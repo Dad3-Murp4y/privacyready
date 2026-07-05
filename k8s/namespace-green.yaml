@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: datawai-green
+  labels:
+    app.kubernetes.io/name: datawai
+    environment: green

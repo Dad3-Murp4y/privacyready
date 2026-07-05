@@ -1,0 +1,86 @@
+# Security groups for load balancer, container tasks, database, and cache tiers
+resource "aws_security_group" "alb" {
+  name_prefix = "datawai-alb-"
+  vpc_id      = aws_vpc.main.id
+  description = "ALB security group"
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS from internet"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP redirect to HTTPS"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.tags, { Name = "datawai-alb-sg" })
+}
+
+resource "aws_security_group" "ecs_tasks" {
+  name_prefix = "datawai-ecs-"
+  vpc_id      = aws_vpc.main.id
+  description = "ECS tasks security group"
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]
+    description     = "ALB to ECS tasks"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(local.tags, { Name = "datawai-ecs-sg" })
+}
+
+resource "aws_security_group" "rds" {
+  name_prefix = "datawai-rds-"
+  vpc_id      = aws_vpc.main.id
+  description = "RDS security group"
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
+    description     = "ECS tasks to RDS"
+  }
+
+  tags = merge(local.tags, { Name = "datawai-rds-sg" })
+}
+
+resource "aws_security_group" "elasticache" {
+  name_prefix = "datawai-cache-"
+  vpc_id      = aws_vpc.main.id
+  description = "ElastiCache security group"
+
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_security_group.ecs_tasks.id]
+    description     = "ECS tasks to ElastiCache"
+  }
+
+  tags = merge(local.tags, { Name = "datawai-cache-sg" })
+}

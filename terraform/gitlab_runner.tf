@@ -1,0 +1,140 @@
+# GitLab Runner instances and S3 caching configurations
+resource "aws_instance" "gitlab_runner" {
+  count                  = 2
+  ami                    = data.aws_ami.amazon_linux_2023.id
+  instance_type          = "m6i.xlarge"
+  subnet_id              = aws_subnet.management_private[count.index].id
+  vpc_security_group_ids = [aws_security_group.gitlab_runner.id]
+  iam_instance_profile   = aws_iam_instance_profile.gitlab_runner.name
+
+  root_block_device {
+    volume_size = 50
+    volume_type = "gp3"
+    encrypted   = true
+    kms_key_id  = aws_kms_key.gitlab.arn
+  }
+
+  user_data = <<USERDATA
+#!/bin/bash
+yum update -y
+yum install -y docker gitlab-runner
+USERDATA
+
+  tags = {
+    Name = "datawai-gitlab-runner-${count.index + 1}"
+    PDPA = "compliant"
+  }
+}
+
+resource "aws_s3_bucket" "gitlab_runner_cache" {
+  bucket = "datawai-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}"
+
+  tags = {
+    PDPA          = "compliant"
+    DataResidency = "thailand"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "gitlab_runner_cache" {
+  bucket = aws_s3_bucket.gitlab_runner_cache.id
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = aws_kms_key.gitlab.arn
+      sse_algorithm     = "aws:kms"
+    }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "gitlab_runner_cache" {
+  bucket = aws_s3_bucket.gitlab_runner_cache.id
+  rule {
+    id     = "expire-cache"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = 7
+    }
+  }
+}
+
+resource "aws_security_group" "gitlab_runner" {
+  name_prefix = "datawai-runner-"
+  vpc_id      = aws_vpc.management.id
+  description = "GitLab runner security group"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    PDPA = "compliant"
+  }
+}
+
+resource "random_password" "gitlab_runner_token" {
+  length  = 32
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "gitlab_runner_token" {
+  name                    = "datawai/gitlab/runner-token"
+  recovery_window_in_days = 7
+}
+
+resource "aws_secretsmanager_secret_version" "gitlab_runner_token" {
+  secret_id     = aws_secretsmanager_secret.gitlab_runner_token.id
+  secret_string = random_password.gitlab_runner_token.result
+}
+
+resource "aws_iam_role" "gitlab_runner" {
+  name = "datawai-gitlab-runner-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_instance_profile" "gitlab_runner" {
+  name = "datawai-gitlab-runner-profile"
+  role = aws_iam_role.gitlab_runner.name
+}
+
+resource "aws_iam_policy" "gitlab_runner_s3" {
+  name = "datawai-gitlab-runner-s3"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:DeleteObject"
+        ]
+        Resource = [
+          aws_s3_bucket.gitlab_runner_cache.arn,
+          "${aws_s3_bucket.gitlab_runner_cache.arn}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "gitlab_runner_s3" {
+  role       = aws_iam_role.gitlab_runner.name
+  policy_arn = aws_iam_policy.gitlab_runner_s3.arn
+}
