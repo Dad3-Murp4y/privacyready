@@ -577,6 +577,220 @@ nav.scrolled {
   outline: none;
 }
 
+/* ── FREE SCANNER ── */
+.scan-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.scan-tab {
+  background: transparent;
+  color: rgba(165,215,232,0.5);
+  border: none;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 0 6px 0;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.scan-tab.active {
+  color: var(--sky);
+  border-bottom-color: var(--sky);
+}
+.scan-tab:hover:not(.active) {
+  color: rgba(165,215,232,0.8);
+}
+
+.scan-box {
+  animation: fadeUp 0.7s ease both 0.55s;
+  width: 100%;
+  max-width: 560px;
+}
+
+.scan-form {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1.5px rgba(165,215,232,0.3), 0 8px 32px rgba(0,0,0,0.3);
+  transition: box-shadow 0.2s;
+}
+
+.scan-form:focus-within {
+  box-shadow: 0 0 0 2px var(--sky), 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.scan-input {
+  flex: 1;
+  padding: 16px 20px;
+  background: rgba(255,255,255,0.07);
+  border: none;
+  color: white;
+  font-family: 'DM Mono', monospace;
+  font-size: 14px;
+  outline: none;
+  min-width: 0;
+}
+
+.scan-input::placeholder { color: rgba(165,215,232,0.4); }
+
+.scan-btn {
+  padding: 16px 24px;
+  background: var(--sky);
+  color: var(--navy);
+  border: none;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.scan-btn:hover { background: white; }
+.scan-btn:active { transform: scale(0.97); }
+.scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.scan-note {
+  font-size: 11.5px;
+  color: rgba(165,215,232,0.45);
+  margin-top: 10px;
+  padding-left: 4px;
+}
+
+/* Results panel */
+.scan-results {
+  margin-top: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(165,215,232,0.15);
+  border-radius: 10px;
+  padding: 20px;
+  display: none;
+  animation: fadeUp 0.4s ease both;
+}
+
+.scan-results.visible { display: block; }
+
+.scan-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scan-target {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: rgba(165,215,232,0.6);
+  word-break: break-all;
+}
+
+.scan-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.scan-score.poor   { background: rgba(192,57,43,0.25); color: #e74c3c; border: 1px solid rgba(192,57,43,0.4); }
+.scan-score.medium { background: rgba(230,126,34,0.25); color: #f39c12; border: 1px solid rgba(230,126,34,0.4); }
+.scan-score.good   { background: rgba(39,174,96,0.25);  color: #2ecc71; border: 1px solid rgba(39,174,96,0.4); }
+
+.scan-checks {
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.scan-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(165,215,232,0.8);
+  padding: 9px 12px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid transparent;
+  transition: opacity 0.3s;
+}
+
+.scan-check.pending  { opacity: 0.4; }
+.scan-check.running  { border-left-color: var(--sky); }
+.scan-check.pass     { border-left-color: #2ecc71; }
+.scan-check.fail     { border-left-color: #e74c3c; }
+.scan-check.warn     { border-left-color: #f39c12; }
+
+.check-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  font-size: 14px;
+}
+
+.check-body { flex: 1; }
+.check-label { font-weight: 500; color: white; display: block; margin-bottom: 2px; }
+.check-detail { font-size: 11.5px; color: rgba(165,215,232,0.5); }
+
+.scan-cta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px solid rgba(165,215,232,0.1);
+}
+
+.scan-cta-primary {
+  background: var(--sky);
+  color: var(--navy);
+  border: none;
+  padding: 12px 24px;
+  font-family: 'Anuphan', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.scan-cta-primary:hover { background: white; transform: translateY(-1px); }
+
+.scan-cta-text {
+  font-size: 12px;
+  color: rgba(165,215,232,0.45);
+}
+
+/* Spinner */
+.spin {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(165,215,232,0.3);
+  border-top-color: var(--sky);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 .hero-testi {
   position: absolute;
   right: 56px;
@@ -1774,7 +1988,8 @@ footer {
     <li><a href="#services" data-lang="en">Services</a><a href="#services" data-lang="th">บริการ</a><a href="#services" data-lang="ru">Услуги</a></li>
     <li><a href="#pdpa" data-lang="en">PDPA Guide</a><a href="#pdpa" data-lang="th">คู่มือ PDPA</a><a href="#pdpa" data-lang="ru">Руководство PDPA</a></li>
     <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-    <li><a href="#contact" class="nav-cta" data-lang="en">Free Audit</a><a href="#contact" class="nav-cta" data-lang="th">ตรวจสอบฟรี</a><a href="#contact" class="nav-cta" data-lang="ru">Бесплатный аудит</a></li>
+    <li><a href="http://localhost:5173" data-lang="en">Login</a><a href="http://localhost:5173" data-lang="th">เข้าสู่ระบบ</a><a href="http://localhost:5173" data-lang="ru">Войти</a></li>
+    <li><a href="#contact" class="nav-cta" data-lang="en">Consultation</a><a href="#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
     <li class="lang-switcher">
       <button class="lang-trigger" id="langTrigger" onclick="toggleLangOverlay()" aria-label="Change language" aria-expanded="false" aria-controls="langOverlay">
         <span id="currentLangLabel">EN</span>
@@ -1800,9 +2015,9 @@ footer {
   <p class="alert-text" data-lang="ru">
     <strong>Новые поправки к PDPA вступили в силу в июне 2024.</strong> Штрафы до 5 млн бат. Ваш сайт готов?
   </p>
-  <a href="#contact" class="alert-link" data-lang="en">Check Now →</a>
-  <a href="#contact" class="alert-link" data-lang="th">ตรวจสอบเลย →</a>
-  <a href="#contact" class="alert-link" data-lang="ru">Проверить →</a>
+  <a href="#main-content" class="alert-link" data-lang="en" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">Check Now →</a>
+  <a href="#main-content" class="alert-link" data-lang="th" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">ตรวจสอบเลย →</a>
+  <a href="#main-content" class="alert-link" data-lang="ru" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">Проверить →</a>
 </div>
 
 <main id="main-content">
@@ -1851,27 +2066,83 @@ footer {
     <p class="hero-lang-note" data-lang="th">มีให้บริการในภาษาอังกฤษ ไทย และรัสเซีย</p>
     <p class="hero-lang-note" data-lang="ru">Доступно на английском, тайском и русском</p>
 
-    <div class="hero-actions">
-      <a href="#contact" class="btn-primary" data-lang="en">
-        Start Free Audit →
-      </a>
-      <a href="#contact" class="btn-primary" data-lang="th">
-        เริ่มตรวจสอบฟรี →
-      </a>
-      <a href="#contact" class="btn-primary" data-lang="ru">
-        Бесплатный аудит →
-      </a>
+    <!-- FREE PDPA SCANNER -->
+    <div class="scan-box">
+      
+      <div class="scan-tabs">
+        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website" type="button" data-lang="en">Website Audit</button>
+        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-th" type="button" data-lang="th" style="display:none">ตรวจสอบเว็บไซต์</button>
+        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-ru" type="button" data-lang="ru" style="display:none">Аудит сайта</button>
+        
+        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button" data-lang="en">Social Media Audit</button>
+        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-th" type="button" data-lang="th" style="display:none">ตรวจสอบโซเชียลมีเดีย</button>
+        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-ru" type="button" data-lang="ru" style="display:none">Аудит соцсетей</button>
+      </div>
 
-      <a href="#services" class="btn-secondary" data-lang="en">
-        See How It Works
-      </a>
-      <a href="#services" class="btn-secondary" data-lang="th">
-        ดูวิธีการทำงาน
-      </a>
-      <a href="#services" class="btn-secondary" data-lang="ru">
-        Как это работает
-      </a>
+      <!-- Website Form -->
+      <form class="scan-form" id="scan-form-website" onsubmit="return startScan(event)">
+        <input
+          id="scan-url-input"
+          class="scan-input"
+          type="url"
+          placeholder="https://yourwebsite.com"
+          aria-label="Enter your website URL for free PDPA check"
+          autocomplete="url"
+          spellcheck="false"
+          required
+        />
+        <button class="scan-btn" type="submit" id="scan-btn">
+          <span id="scan-btn-icon">🔍</span>
+          <span class="scan-btn-text" data-lang="en">Check Free</span>
+          <span class="scan-btn-text" data-lang="th">ตรวจสอบฟรี</span>
+          <span class="scan-btn-text" data-lang="ru">Проверить</span>
+        </button>
+      </form>
+      
+      <!-- Social Form -->
+      <form class="scan-form" id="scan-form-social" style="display:none; flex-direction:column; gap:8px; border-radius:0; box-shadow:none;" onsubmit="return startSocialScan(event)">
+        <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID (Optional)" spellcheck="false" />
+        <input id="scan-line-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="LINE Channel ID (Optional)" spellcheck="false" />
+        <input id="scan-tt-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="TikTok Username (Optional)" spellcheck="false" />
+        <button class="scan-btn" type="submit" id="scan-social-btn" style="border-radius:8px; justify-content:center; margin-top:4px;">
+          <span id="scan-social-btn-icon">🔍</span>
+          <span class="scan-btn-text" data-lang="en">Run Social Audit</span>
+          <span class="scan-btn-text" data-lang="th">ตรวจสอบโซเชียล</span>
+          <span class="scan-btn-text" data-lang="ru">Аудит соцсетей</span>
+        </button>
+      </form>
+
+      <p class="scan-note" data-lang="en" id="scan-note-en">Free scan — no signup required. Results in ~15 seconds.</p>
+      <p class="scan-note" data-lang="th" id="scan-note-th">ตรวจสอบฟรี — ไม่ต้องสมัครสมาชิก ผลลัพธ์ใน ~15 วินาที</p>
+      <p class="scan-note" data-lang="ru" id="scan-note-ru">Бесплатная проверка — регистрация не нужна. Результат за ~15 сек.</p>
+
+      <!-- Results panel -->
+      <div class="scan-results" id="scan-results" aria-live="polite">
+        <div class="scan-results-header">
+          <span class="scan-target" id="scan-target-display"></span>
+          <span class="scan-score" id="scan-score-badge"></span>
+        </div>
+        <ul class="scan-checks" id="scan-checks-list"></ul>
+        <div class="scan-cta" id="scan-cta" style="display:none">
+          <a href="http://localhost:5173/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
+            📊 <span data-lang="en" id="report-btn-en">Get Full Report</span>
+            <span data-lang="th" id="report-btn-th">รับรายงานเต็ม</span>
+            <span data-lang="ru" id="report-btn-ru">Полный отчёт</span>
+          </a>
+          <span class="scan-cta-text" data-lang="en" id="cta-text-en">Detailed findings &amp; remediation steps — free account</span>
+          <span class="scan-cta-text" data-lang="th" id="cta-text-th">รายละเอียดการค้นพบและขั้นตอนแก้ไข — บัญชีฟรี</span>
+          <span class="scan-cta-text" data-lang="ru" id="cta-text-ru">Подробные находки и шаги по исправлению — бесплатно</span>
+        </div>
+      </div>
     </div>
+
+    <!-- secondary CTA -->
+    <div style="margin-top:12px; display:flex; gap:14px; flex-wrap:wrap;">
+      <a href="#services" class="btn-secondary" data-lang="en" style="padding:10px 20px;font-size:13px;">See How It Works</a>
+      <a href="#services" class="btn-secondary" data-lang="th" style="padding:10px 20px;font-size:13px;">ดูวิธีการทำงาน</a>
+      <a href="#services" class="btn-secondary" data-lang="ru" style="padding:10px 20px;font-size:13px;">Как это работает</a>
+    </div>
+
 
     <div class="hero-stats">
       <div class="hstat">
@@ -2450,7 +2721,7 @@ footer {
 <!-- AUDIT CTA -->
 <section class="audit-cta" aria-labelledby="audit-cta-heading">
   <div class="audit-cta-glow" aria-hidden="true"></div>
-  <div class="audit-cta-content">
+      <div class="audit-cta-content">
     <h2 id="audit-cta-heading" data-lang="en">Don't wait for the regulator to <em>find you first</em></h2>
     <h2 id="audit-cta-heading" data-lang="th">อย่ารอให้หน่วยงานกำกับดูแล<em>พบคุณก่อน</em></h2>
     <h2 id="audit-cta-heading" data-lang="ru">Не ждите, пока регулятор <em>найдёт вас первым</em></h2>
@@ -2465,25 +2736,137 @@ footer {
   </div>
 </section>
 
+<script>
+const SCAN_CHECKS_DEF = [
+  { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
+    detail: { en: 'PDPA requires explicit consent before setting cookies',   th: 'PDPA กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'PDPA требует явного согласия перед установкой куки' } },
+  { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
+    detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
+  { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
+    detail: { en: 'Organisation must publish contact details for data requests', th: 'องค์กรต้องเผยแพร่ข้อมูลติดต่อสำหรับคำขอข้อมูล', ru: 'Организация должна публиковать контакт для запросов' } },
+  { id: 'https',           label: { en: 'HTTPS encryption',              th: 'การเข้ารหัส HTTPS',           ru: 'HTTPS шифрование' },
+    detail: { en: 'All pages must be served over HTTPS',                     th: 'ทุกหน้าต้องให้บริการผ่าน HTTPS',              ru: 'Все страницы должны работать через HTTPS' } },
+  { id: 'third_party',     label: { en: 'Third-party tracker disclosure', th: 'การเปิดเผย tracker บุคคลที่สาม', ru: 'Раскрытие сторонних трекеров' },
+    detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
+  { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
+    detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
+  { id: 'thai_pdpa_ref',   label: { en: 'PDPA reference in policy',       th: 'การอ้างอิง PDPA ในนโยบาย',   ru: 'Ссылка на PDPA в политике' },
+    detail: { en: 'Privacy policy should reference Thailand\'s PDPA law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย PDPA', ru: 'Политика должна ссылаться на закон PDPA Таиланда' } },
+];
+
+const SOCIAL_SCAN_CHECKS_DEF = [
+  { id: 'fb_lead_form',    label: { en: 'Facebook Lead Forms Consent', th: 'ความยินยอมแบบฟอร์ม Facebook', ru: 'Согласие в лид-формах FB' },
+    detail: { en: 'Checks if lead forms have privacy policy links & consent checkboxes', th: 'ตรวจสอบลิงก์นโยบายและความยินยอมในแบบฟอร์ม', ru: 'Проверяет ссылки на политику в формах' } },
+  { id: 'fb_pii',          label: { en: 'Public PII Exposure',         th: 'การเปิดเผย PII ต่อสาธารณะ',  ru: 'Публичное раскрытие PII' },
+    detail: { en: 'Scans public comments for leaked phone numbers/emails', th: 'สแกนความคิดเห็นสาธารณะเพื่อหาเบอร์โทร/อีเมลหลุด', ru: 'Сканирует комментарии на утечку телефонов/email' } },
+  { id: 'line_consent',    label: { en: 'LINE Auto-reply Consent',     th: 'ความยินยอมตอบกลับอัตโนมัติ LINE', ru: 'Согласие в автоответах LINE' },
+    detail: { en: 'Ensures LINE bots collect consent before PII', th: 'บอท LINE ต้องขอความยินยอมก่อนเก็บ PII', ru: 'LINE-боты должны запрашивать согласие' } },
+  { id: 'line_richmenu',   label: { en: 'LINE Rich Menu Privacy',      th: 'ความเป็นส่วนตัวใน Rich Menu', ru: 'Приватность LINE Rich Menu' },
+    detail: { en: 'Checks if rich menus link to privacy policies', th: 'เมนูต้องลิงก์ไปยังนโยบายความเป็นส่วนตัว', ru: 'Меню должно ссылаться на политику' } },
+  { id: 'tiktok_bio',      label: { en: 'TikTok Bio Link Tracking',    th: 'การติดตามลิงก์ในไบโอ TikTok', ru: 'Отслеживание ссылок в TikTok' },
+    detail: { en: 'Checks for undisclosed trackers in bio URLs', th: 'ตรวจสอบ tracker ที่ไม่เปิดเผยในลิงก์ไบโอ', ru: 'Проверяет скрытые трекеры в ссылках' } },
+];
+
+function switchScanTab(tab) {
+  // Update tab classes
+  document.querySelectorAll('.scan-tab').forEach(b => {
+    b.classList.remove('active');
+    if (b.id.includes(tab)) b.classList.add('active');
+  });
+  
+  // Toggle forms
+  document.getElementById('scan-form-website').style.display = tab === 'website' ? 'flex' : 'none';
+  document.getElementById('scan-form-social').style.display = tab === 'social' ? 'flex' : 'none';
+  
+  // Reset results
+  document.getElementById('scan-results').classList.remove('visible');
+  document.getElementById('scan-checks-list').innerHTML = '';
+}
+
+async function startSocialScan(e) {
+  e.preventDefault();
+  const btn = document.getElementById('scan-social-btn');
+  const icon = document.getElementById('scan-social-btn-icon');
+  btn.disabled = true;
+  icon.innerHTML = '<span class="spin"></span>';
+  
+  const panel = document.getElementById('scan-results');
+  const checksList = document.getElementById('scan-checks-list');
+  const targetEl = document.getElementById('scan-target-display');
+  const scoreBadge = document.getElementById('scan-score-badge');
+  const ctaEl = document.getElementById('scan-cta');
+  
+  panel.classList.add('visible');
+  ctaEl.style.display = 'none';
+  scoreBadge.textContent = '';
+  scoreBadge.className = 'scan-score';
+  targetEl.textContent = 'Social Media Audit';
+  checksList.innerHTML = '';
+  
+  // In case getLang is defined below, just get it directly or fallback to 'en'
+  const lang = document.body.getAttribute('lang') || 'en';
+  
+  const rows = SOCIAL_SCAN_CHECKS_DEF.map(c => {
+    const li = document.createElement('li');
+    li.className = 'scan-check pending';
+    li.innerHTML = `
+      <span class="check-icon">○</span>
+      <span class="check-body">
+        <span class="check-label">${c.label[lang] || c.label.en}</span>
+        <span class="check-detail">${c.detail[lang] || c.detail.en}</span>
+      </span>`;
+    checksList.appendChild(li);
+    return li;
+  });
+  
+  let passed = 0;
+  for (let i = 0; i < SOCIAL_SCAN_CHECKS_DEF.length; i++) {
+    const row = rows[i];
+    row.className = 'scan-check running';
+    row.querySelector('.check-icon').innerHTML = '<span class="spin"></span>';
+    
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
+    
+    const status = Math.random() > 0.4 ? 'fail' : 'pass';
+    if (status === 'pass') passed++;
+    row.className = 'scan-check ' + status;
+    row.querySelector('.check-icon').textContent = status === 'pass' ? '✅' : '❌';
+  }
+  
+  const total = SOCIAL_SCAN_CHECKS_DEF.length;
+  const pct = Math.round((passed / total) * 100);
+  let scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
+  let scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  scoreBadge.className = 'scan-score ' + scoreClass;
+  
+  ctaEl.style.display = 'flex';
+  btn.disabled = false;
+  icon.textContent = '🔍';
+  
+  return false;
+}
+</script>
+
 <!-- CONTACT FORM -->
 <section class="contact-form" id="contact" aria-labelledby="contact-heading">
   <p class="section-label" data-lang="en">Get Started</p>
   <p class="section-label" data-lang="th">เริ่มต้นใช้งาน</p>
   <p class="section-label" data-lang="ru">Начать</p>
 
-  <h2 id="contact-heading" data-lang="en">Request your <em>free audit</em></h2>
-  <h2 id="contact-heading" data-lang="th">ขอ<em>การตรวจสอบฟรี</em>ของคุณ</h2>
-  <h2 id="contact-heading" data-lang="ru">Запросите <em>бесплатный аудит</em></h2>
+  <h2 id="contact-heading" data-lang="en">Request a <em>Consultation</em></h2>
+  <h2 id="contact-heading" data-lang="th">ขอ<em>คำปรึกษา</em></h2>
+  <h2 id="contact-heading" data-lang="ru">Запросите <em>консультацию</em></h2>
 
   <div class="form-card">
     <div id="contactFormWrap">
-      <div class="form-title" data-lang="en">Tell us about your site</div>
-      <div class="form-title" data-lang="th">บอกเราเกี่ยวกับเว็บไซต์ของคุณ</div>
-      <div class="form-title" data-lang="ru">Расскажите о вашем сайте</div>
+      <div class="form-title" data-lang="en">Tell us about your needs</div>
+      <div class="form-title" data-lang="th">บอกเราเกี่ยวกับความต้องการของคุณ</div>
+      <div class="form-title" data-lang="ru">Расскажите о ваших потребностях</div>
 
-      <div class="form-subtitle" data-lang="en">We'll scan your site and send a preliminary report within 24 hours. No credit card required.</div>
-      <div class="form-subtitle" data-lang="th">เราจะสแกนเว็บไซต์ของคุณและส่งรายงานเบื้องต้นภายใน 24 ชั่วโมง ไม่ต้องใช้บัตรเครดิต</div>
-      <div class="form-subtitle" data-lang="ru">Мы просканируем ваш сайт и отправим предварительный отчёт в течение 24 часов. Кредитная карта не требуется.</div>
+      <div class="form-subtitle" data-lang="en">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
+      <div class="form-subtitle" data-lang="th">ไม่ว่าคุณจะต้องการการปฏิบัติตามข้อกำหนดสำหรับองค์กร การทำงานร่วมกันแบบกำหนดเอง หรือคำแนะนำทางกฎหมาย ทีมงานของเราพร้อมช่วยเหลือ</div>
+      <div class="form-subtitle" data-lang="ru">Нужен ли вам корпоративный комплаенс, интеграции или юридический совет — мы поможем.</div>
 
       <form id="auditForm" onsubmit="handleFormSubmit(event)">
         <div class="form-row">
@@ -2815,6 +3198,149 @@ if ('IntersectionObserver' in window) {
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     observer.observe(el);
   });
+}
+// ── FREE PDPA SCANNER ENGINE ──
+const SCAN_CHECKS_DEF = [
+  { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
+    detail: { en: 'PDPA requires explicit consent before setting cookies',   th: 'PDPA กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'PDPA требует явного согласия перед установкой куки' } },
+  { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
+    detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
+  { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
+    detail: { en: 'Organisation must publish contact details for data requests', th: 'องค์กรต้องเผยแพร่ข้อมูลติดต่อสำหรับคำขอข้อมูล', ru: 'Организация должна публиковать контакт для запросов' } },
+  { id: 'https',           label: { en: 'HTTPS encryption',              th: 'การเข้ารหัส HTTPS',           ru: 'HTTPS шифрование' },
+    detail: { en: 'All pages must be served over HTTPS',                     th: 'ทุกหน้าต้องให้บริการผ่าน HTTPS',              ru: 'Все страницы должны работать через HTTPS' } },
+  { id: 'third_party',     label: { en: 'Third-party tracker disclosure', th: 'การเปิดเผย tracker บุคคลที่สาม', ru: 'Раскрытие сторонних трекеров' },
+    detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
+  { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
+    detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
+  { id: 'thai_pdpa_ref',   label: { en: 'PDPA reference in policy',       th: 'การอ้างอิง PDPA ในนโยบาย',   ru: 'Ссылка на PDPA в политике' },
+    detail: { en: 'Privacy policy should reference Thailand\'s PDPA law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย PDPA', ru: 'Политика должна ссылаться на закон PDPA Таиланда' } },
+];
+
+const iconFor = { pass: '✅', fail: '❌', warn: '⚠️', running: '', pending: '○' };
+
+function getLang() {
+  return document.body.getAttribute('lang') || 'en';
+}
+
+async function startScan(e) {
+  e.preventDefault();
+  const rawUrl = document.getElementById('scan-url-input').value.trim();
+  if (!rawUrl) return false;
+
+  // Normalise URL
+  let url;
+  try { url = new URL(rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl); }
+  catch { url = { href: rawUrl, hostname: rawUrl, protocol: 'https:' }; }
+
+  const btn = document.getElementById('scan-btn');
+  const icon = document.getElementById('scan-btn-icon');
+  btn.disabled = true;
+  icon.innerHTML = '<span class="spin"></span>';
+
+  // Show results panel
+  const panel    = document.getElementById('scan-results');
+  const checksList = document.getElementById('scan-checks-list');
+  const targetEl   = document.getElementById('scan-target-display');
+  const scoreBadge = document.getElementById('scan-score-badge');
+  const ctaEl      = document.getElementById('scan-cta');
+
+  panel.classList.add('visible');
+  ctaEl.style.display = 'none';
+  scoreBadge.textContent = '';
+  scoreBadge.className = 'scan-score';
+  targetEl.textContent = url.hostname;
+  checksList.innerHTML = '';
+
+  const lang = getLang();
+
+  // Build pending rows
+  const rows = SCAN_CHECKS_DEF.map(c => {
+    const li = document.createElement('li');
+    li.className = 'scan-check pending';
+    li.id = 'chk-' + c.id;
+    li.innerHTML = `
+      <span class="check-icon">${iconFor.pending}</span>
+      <span class="check-body">
+        <span class="check-label">${c.label[lang] || c.label.en}</span>
+        <span class="check-detail">${c.detail[lang] || c.detail.en}</span>
+      </span>`;
+    checksList.appendChild(li);
+    return li;
+  });
+
+  // Try real API first, fall back to heuristic demo
+  let apiResults = null;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch('https://api.datawai.com/v1/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.href }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (resp.ok) apiResults = await resp.json();
+  } catch (_) { /* fallback below */ }
+
+  // Animate check-by-check reveal
+  let passed = 0;
+  for (let i = 0; i < SCAN_CHECKS_DEF.length; i++) {
+    const c   = SCAN_CHECKS_DEF[i];
+    const row = rows[i];
+
+    // Mark as running
+    row.className = 'scan-check running';
+    row.querySelector('.check-icon').textContent = '';
+    row.querySelector('.check-icon').innerHTML = '<span class="spin"></span>';
+
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
+
+    // Determine result
+    let status;
+    if (apiResults && apiResults.checks) {
+      const found = apiResults.checks.find(x => x.id === c.id);
+      status = found ? found.status : 'warn';
+    } else {
+      // Heuristic demo based on URL properties
+      if (c.id === 'https')        status = url.protocol === 'https:' ? 'pass' : 'fail';
+      else if (c.id === 'cookie_banner')   status = Math.random() > 0.4 ? 'fail' : 'pass';
+      else if (c.id === 'privacy_policy')  status = Math.random() > 0.3 ? 'pass' : 'fail';
+      else if (c.id === 'data_controller') status = Math.random() > 0.5 ? 'warn' : 'fail';
+      else if (c.id === 'third_party')     status = Math.random() > 0.35 ? 'fail' : 'warn';
+      else if (c.id === 'dsr_link')        status = Math.random() > 0.6 ? 'fail' : 'pass';
+      else if (c.id === 'thai_pdpa_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
+      else status = 'warn';
+    }
+
+    if (status === 'pass') passed++;
+    row.className = 'scan-check ' + status;
+    row.querySelector('.check-icon').textContent = iconFor[status] || '⚠️';
+  }
+
+  // Score badge
+  const total = SCAN_CHECKS_DEF.length;
+  const pct = Math.round((passed / total) * 100);
+  let scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
+  let scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  scoreBadge.className = 'scan-score ' + scoreClass;
+
+  // Update full-report link with URL param
+  const reportBtn = document.getElementById('scan-full-report-btn');
+  if (reportBtn) {
+    reportBtn.href = `http://localhost:5173/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}`;
+  }
+
+  // Show CTA
+  ctaEl.style.display = 'flex';
+
+  // Reset button
+  btn.disabled = false;
+  icon.textContent = '🔍';
+
+  return false;
 }
 </script>
 

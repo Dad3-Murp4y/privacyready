@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  industry  String?
+  users     User[]
+  scans     Scan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id             String       @id @default(uuid())
+  email          String       @unique
+  passwordHash   String
+  fullName       String
+  role           String       @default("MEMBER")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Scan {
+  id               String       @id @default(uuid())
+  scanType         String
+  targetIdentifier String
+  status           String       @default("PENDING")
+  score            Int?
+  riskLevel        String?
+  findingsJson     String?      // SQLite doesn't have native JSON, so we store as String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId   String
+  createdAt        DateTime     @default(now())
+  completedAt      DateTime?
+}
