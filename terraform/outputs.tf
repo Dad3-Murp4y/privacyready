@@ -21,3 +21,8 @@ output "cache_endpoint" {
 }
 
 data "aws_caller_identity" "current" {}
+
+output "domain_nameservers" {
+  description = "Route 53 Nameservers for the domain"
+  value       = aws_route53_zone.main.name_servers
+}

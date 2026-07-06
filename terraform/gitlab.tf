@@ -21,7 +21,7 @@ resource "aws_key_pair" "gitlab" {
 
 resource "aws_instance" "gitlab" {
   ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = "m6i.2xlarge"  # 8 vCPU, 32GB RAM minimum for GitLab
+  instance_type          = "t3.large"
   subnet_id              = aws_subnet.management_private[0].id
   vpc_security_group_ids = [aws_security_group.gitlab.id]
   key_name               = aws_key_pair.gitlab.key_name
@@ -59,6 +59,10 @@ USERDATA
     Name = "datawai-gitlab-primary"
     PDPA = "compliant"
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_db_subnet_group" "gitlab" {
@@ -87,15 +91,23 @@ resource "aws_rds_cluster" "gitlab" {
     PDPA          = "compliant"
     DataResidency = "thailand"
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_rds_cluster_instance" "gitlab" {
   count              = 2
   identifier         = "datawai-gitlab-db-instance-${count.index + 1}"
   cluster_identifier = aws_rds_cluster.gitlab.id
-  instance_class     = "db.r6g.large"
+  instance_class     = "db.t3.medium"
   engine             = aws_rds_cluster.gitlab.engine
   engine_version     = aws_rds_cluster.gitlab.engine_version
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "aws_elasticache_subnet_group" "gitlab" {
@@ -108,7 +120,7 @@ resource "aws_elasticache_replication_group" "gitlab" {
   description                = "GitLab Redis cluster"
   engine                     = "redis"
   engine_version             = "7.0"
-  node_type                  = "cache.r6g.large"
+  node_type                  = "cache.t4g.micro"
   num_cache_clusters         = 2
   automatic_failover_enabled = true
   at_rest_encryption_enabled = true
@@ -274,6 +286,11 @@ resource "aws_iam_role_policy_attachment" "gitlab_kms_secrets" {
   policy_arn = aws_iam_policy.gitlab_kms_secrets.arn
 }
 
+resource "aws_iam_role_policy_attachment" "gitlab_ssm" {
+  role       = aws_iam_role.gitlab.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
 resource "aws_security_group" "gitlab" {
   name_prefix = "datawai-gitlab-"
   vpc_id      = aws_vpc.management.id
@@ -336,4 +353,14 @@ resource "aws_security_group" "gitlab_redis" {
     protocol        = "tcp"
     security_groups = [aws_security_group.gitlab.id]
   }
+}
+
+resource "aws_security_group_rule" "gitlab_ssh_from_eice" {
+  type                     = "ingress"
+  from_port                = 22
+  to_port                  = 22
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.eice.id
+  security_group_id        = aws_security_group.gitlab.id
+  description              = "SSH from EICE"
 }

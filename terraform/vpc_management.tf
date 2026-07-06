@@ -85,3 +85,10 @@ resource "aws_route_table_association" "management_private" {
   subnet_id      = aws_subnet.management_private[count.index].id
   route_table_id = aws_route_table.management_private.id
 }
+
+resource "aws_ec2_instance_connect_endpoint" "main" {
+  subnet_id          = aws_subnet.management_private[0].id
+  security_group_ids = [aws_security_group.eice.id]
+
+  tags = merge(local.tags, { Name = "datawai-eice" })
+}

@@ -1760,30 +1760,34 @@ footer {
 /* COOKIE CONSENT */
 .cookie-banner {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--navy);
+  inset: 0;
+  background: rgba(11, 36, 71, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: white;
-  padding: 20px 56px;
+  padding: 40px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  z-index: 300;
-  transform: translateY(100%);
-  transition: transform 0.4s ease;
-  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+  justify-content: center;
+  gap: 32px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
 .cookie-banner.show {
-  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .cookie-text {
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  flex: 1;
+  font-size: 16px;
+  color: rgba(255,255,255,0.9);
+  text-align: center;
+  max-width: 600px;
+  line-height: 1.6;
 }
 
 .cookie-text a {
@@ -1861,7 +1865,7 @@ footer {
   .trust-strip { padding: 24px; }
   .alert-strip { padding: 14px 24px; flex-direction: column; text-align: center; gap: 8px; }
 
-  .cookie-banner { flex-direction: column; text-align: center; padding: 20px 24px; }
+  .cookie-banner { padding: 32px 24px; gap: 24px; }
 }
 
 @media (max-width: 480px) {
@@ -3135,21 +3139,21 @@ function toggleMobileMenu() {
 
 // Cookie Consent
 function acceptCookies() {
-  localStorage.setItem('datawai-cookies', 'accepted');
+  document.cookie = "datawai-cookies=accepted; domain=.datawai.co.uk; path=/; max-age=31536000; SameSite=Lax";
   document.getElementById('cookieBanner').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
 function declineCookies() {
-  localStorage.setItem('datawai-cookies', 'declined');
-  document.getElementById('cookieBanner').classList.remove('show');
+  alert('You must accept cookies to use this site.');
 }
 
 (function() {
-  const consent = localStorage.getItem('datawai-cookies');
-  if (!consent) {
-    setTimeout(function() {
-      document.getElementById('cookieBanner').classList.add('show');
-    }, 2000);
+  const consentMatch = document.cookie.match(/(?:^|;\s*)datawai-cookies=([^;]*)/);
+  const consent = consentMatch ? consentMatch[1] : null;
+  if (!consent || consent === 'declined') {
+    document.getElementById('cookieBanner').classList.add('show');
+    document.body.style.overflow = 'hidden';
   }
 })();
 

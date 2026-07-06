@@ -84,3 +84,18 @@ resource "aws_security_group" "elasticache" {
 
   tags = merge(local.tags, { Name = "datawai-cache-sg" })
 }
+
+resource "aws_security_group" "eice" {
+  name_prefix = "datawai-eice-"
+  vpc_id      = aws_vpc.management.id
+  description = "EC2 Instance Connect Endpoint SG"
+
+  egress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.management.cidr_block]
+  }
+
+  tags = merge(local.tags, { Name = "datawai-eice-sg" })
+}

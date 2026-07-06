@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';

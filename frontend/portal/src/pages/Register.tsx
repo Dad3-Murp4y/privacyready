@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Home } from 'lucide-react';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -40,6 +40,11 @@ export default function Register() {
   return (
     <div className="auth-container">
       <div className="auth-glow" />
+      <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
+        <a href="http://localhost:3001" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+          <Home size={18} /> Back to Home
+        </a>
+      </div>
       <div className="auth-card">
         <div className="auth-header">
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>

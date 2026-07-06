@@ -315,3 +315,183 @@ resource "aws_appautoscaling_policy" "cpu" {
     scale_out_cooldown = 60
   }
 }
+
+# ── ECR Repositories ────────────────────────────────────────
+
+resource "aws_ecr_repository" "scanner" {
+  name                 = "datawai-scanner"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration { scan_on_push = true }
+  encryption_configuration { encryption_type = "KMS" }
+  tags = merge(local.tags, { Name = "datawai-scanner" })
+}
+
+resource "aws_ecr_repository" "dsr" {
+  name                 = "datawai-dsr"
+  image_tag_mutability = "MUTABLE"
+  image_scanning_configuration { scan_on_push = true }
+  encryption_configuration { encryption_type = "KMS" }
+  tags = merge(local.tags, { Name = "datawai-dsr" })
+}
+
+# ── CloudWatch Log Groups ───────────────────────────────────
+
+resource "aws_cloudwatch_log_group" "scanner" {
+  name              = "/ecs/datawai-scanner"
+  retention_in_days = 30
+  tags = merge(local.tags, { Name = "datawai-scanner-logs" })
+}
+
+resource "aws_cloudwatch_log_group" "dsr" {
+  name              = "/ecs/datawai-dsr"
+  retention_in_days = 30
+  tags = merge(local.tags, { Name = "datawai-dsr-logs" })
+}
+
+# ── ECS Task Definitions ────────────────────────────────────
+
+resource "aws_ecs_task_definition" "scanner" {
+  family                   = "datawai-scanner"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "512"
+  memory                   = "1024"
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([{
+    name  = "scanner"
+    image = "${aws_ecr_repository.scanner.repository_url}:latest"
+    essential = true
+
+    portMappings = [{
+      containerPort = 8080
+      protocol      = "tcp"
+    }]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.scanner.name
+        awslogs-region        = var.region
+        awslogs-stream-prefix = "ecs"
+      }
+    }
+  }])
+}
+
+resource "aws_ecs_task_definition" "dsr" {
+  family                   = "datawai-dsr"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
+  task_role_arn            = aws_iam_role.ecs_task.arn
+
+  container_definitions = jsonencode([{
+    name  = "dsr"
+    image = "${aws_ecr_repository.dsr.repository_url}:latest"
+    essential = true
+
+    portMappings = [{
+      containerPort = 8000
+      protocol      = "tcp"
+    }]
+
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.dsr.name
+        awslogs-region        = var.region
+        awslogs-stream-prefix = "ecs"
+      }
+    }
+  }])
+}
+
+# ── ECS Target Groups ───────────────────────────────────────
+
+resource "aws_lb_target_group" "scanner" {
+  name        = "datawai-tg-scanner"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200,404"
+    path                = "/docs"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 3
+  }
+}
+
+resource "aws_lb_target_group" "dsr" {
+  name        = "datawai-tg-dsr"
+  port        = 8000
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+
+  health_check {
+    enabled             = true
+    healthy_threshold   = 2
+    interval            = 30
+    matcher             = "200,404"
+    path                = "/docs"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    unhealthy_threshold = 3
+  }
+}
+
+# ── ECS Services ────────────────────────────────────────────
+
+resource "aws_ecs_service" "scanner" {
+  name            = "datawai-scanner"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.scanner.arn
+  desired_count   = 1
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.scanner.arn
+    container_name   = "scanner"
+    container_port   = 8080
+  }
+
+  depends_on = [aws_lb_listener_rule.scanner]
+}
+
+resource "aws_ecs_service" "dsr" {
+  name            = "datawai-dsr"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.dsr.arn
+  desired_count   = 1
+
+  network_configuration {
+    subnets          = aws_subnet.private[*].id
+    security_groups  = [aws_security_group.ecs_tasks.id]
+    assign_public_ip = false
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.dsr.arn
+    container_name   = "dsr"
+    container_port   = 8000
+  }
+
+  depends_on = [aws_lb_listener_rule.dsr]
+}

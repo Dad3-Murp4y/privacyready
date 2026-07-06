@@ -1,114 +1,149 @@
-# DataWai Platform
+# DataWai Platform - System Architecture & Overview
 
 DataWai is a comprehensive PDPA (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
 
 ---
 
-## 🏛️ Architecture Overview
+## 🏛️ System Architecture
 
-The DataWai platform consists of several decoupled services and a static frontend, orchestrated via Docker Compose for local development and AWS ECS/EKS for production.
+The DataWai platform is built using a microservices architecture and deployed entirely on **AWS (Amazon Web Services)**. This ensures high availability, strict data residency within the Asia Pacific region, and enterprise-grade security.
 
-### Core Components
+### Core AWS Infrastructure
 
-1. **Frontend Landing & UI (`frontend/index.html`)**
-   - A static, trilingual (EN, TH, RU) frontend.
-   - Hosts the **Free PDPA Scanner** UI (Website & Social Media).
-   - *Production Deployment:* Hosted on AWS S3 behind a CloudFront CDN (see `docs/03_Route53_ACM_CloudFront_Setup_Guide.md`).
+```mermaid
+graph TD
+    %% Define User and DNS
+    User([End User])
+    DNS([Route 53 DNS])
+    
+    %% Define Frontend / CDN
+    CDN([CloudFront CDN])
+    S3_Frontend[(S3: Frontend Landing)]
+    S3_Portal[(S3: React Portal)]
+    
+    %% Define Backend / Application Layer
+    ALB([Application Load Balancer])
+    
+    subgraph "AWS ECS Fargate Cluster"
+        API[Node.js Core API]
+        Scanner[Python Scanner API]
+        DSR[Python DSR API]
+    end
+    
+    %% Define Data Layer
+    subgraph "Data Persistence"
+        RDS[(Aurora PostgreSQL)]
+        Redis[(ElastiCache Redis)]
+    end
+    
+    %% Define Monitoring Layer
+    CloudWatch([CloudWatch Alarms])
+    SNS([SNS Alerting])
+    SES([SES Email Delivery])
+    
+    %% Flow
+    User -->|Visits datawai.co.uk| DNS
+    DNS --> CDN
+    CDN --> S3_Frontend
+    CDN --> S3_Portal
+    
+    User -->|API Requests| ALB
+    ALB --> API
+    ALB --> Scanner
+    ALB --> DSR
+    
+    API <--> RDS
+    API <--> Redis
+    Scanner <--> Redis
+    DSR <--> RDS
+    
+    %% Monitoring Flow
+    ALB -.->|Metrics| CloudWatch
+    ECS -.->|Metrics| CloudWatch
+    RDS -.->|Metrics| CloudWatch
+    
+    CloudWatch -.->|Triggers| SNS
+    SNS -.->|Sends Email| SES
+    SES -.->|Alerts| Admin([Admin: alerts.datawai@gmail.com])
+    
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef service fill:#3F8624,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef data fill:#3B48CC,stroke:#232F3E,stroke-width:2px,color:white;
+    
+    class CDN,ALB,CloudWatch,SNS,SES,DNS aws;
+    class API,Scanner,DSR service;
+    class S3_Frontend,S3_Portal,RDS,Redis data;
+```
 
-2. **Core API Service (`services/api`)**
-   - Written in Node.js (Fastify).
-   - Handles core business logic, user consent tracking, and proxies requests to microservices.
+---
 
-3. **Scanner Service (`services/scanner`)**
-   - Written in Python (FastAPI).
-   - Performs deep PDPA compliance checks on user infrastructure.
-   - Contains specialized scanners for:
-     - **Websites**: Checks for cookie banners, privacy policies, SSL, and trackers.
-     - **Facebook**: Audits lead form consent, pixel matching, and PII leakage in public comments.
-     - **LINE**: Analyases auto-reply consent flows, rich menu privacy links, and login scopes.
-     - **TikTok**: Scans bio link trackers and business settings.
-   - Includes a `UnifiedScorer` that aggregates risks across platforms into a single compliance score and estimates fine exposure.
+## 📦 Component Breakdown
 
-4. **DSR Service (`services/dsr`)**
-   - Written in Python (FastAPI).
-   - Manages Data Subject Rights (DSR) workflows, such as data deletion and access requests.
+### 1. Static Frontend & Portals (AWS S3 + CloudFront)
+- **Landing Page (`frontend/index.html`)**: A static, trilingual (EN, TH, RU) frontend hosting the Free PDPA Scanner UI. It includes a **mandatory, cross-domain cookie consent wall** that blocks site functionality until cookies are accepted.
+- **Client Portal (`frontend/portal`)**: A React-based Single Page Application (SPA) for authenticated users to manage their compliance workflows.
+- **Deployment**: Both are hosted securely in private AWS S3 buckets. Public access is facilitated exclusively through CloudFront distributions using Origin Access Identities (OAI) for caching, low latency, and SSL/TLS termination.
 
-### Infrastructure & Data Residency
+### 2. Backend Microservices (AWS ECS Fargate)
+All backend services are dockerized, pushed to AWS Elastic Container Registry (ECR), and run as serverless containers on **AWS ECS Fargate**.
+- **Core API Service (`services/api`)**: Written in Node.js (Fastify). Handles authentication, core business logic, user consent tracking, and proxies requests to other microservices.
+- **Scanner Service (`services/scanner`)**: Written in Python (FastAPI). Performs deep PDPA compliance checks on user infrastructure (Websites, Facebook, LINE, TikTok) and aggregates risks into a compliance score.
+- **DSR Service (`services/dsr`)**: Written in Python (FastAPI). Manages Data Subject Rights (DSR) workflows, such as automated data deletion and access requests.
+
+### 3. Data Storage (AWS RDS & ElastiCache)
+- **Primary Database**: Amazon Aurora PostgreSQL (`db.t3.medium`). Used for storing user profiles, scan histories, and DSR records.
+- **Caching & Message Broker**: Amazon ElastiCache (Redis 7.0). Used for rate limiting, session management, and asynchronous task queues between the Core API and the Scanner service.
+
+### 4. Monitoring & Alerting (CloudWatch, SNS, SES)
+The entire infrastructure is continuously monitored for health and performance anomalies:
+- **CloudWatch Alarms**: Triggers on critical events such as high CPU utilization, high memory usage, ALB 5xx error spikes, or low RDS storage capacity.
+- **Route 53 Health Checks**: Constantly ping the API endpoints to ensure uptime.
+- **Alert Routing**: Alarms publish messages to an **Amazon SNS** topic, which in turn leverages **Amazon SES** to send formatted email notifications directly to `alerts.datawai@gmail.com`.
+
+---
+
+## 🔒 Security & Data Residency (PDPA Compliance)
 
 To comply with Thailand's PDPA requirements regarding cross-border data transfers and security:
-- **AWS Region:** All production data is stored in AWS `ap-southeast-1` (Singapore) or `ap-southeast-7` (Thailand, when fully available).
-- **Terraform:** Infrastructure is codified in the `terraform/` directory, provisioning VPCs, encrypted RDS (PostgreSQL), ElastiCache (Redis), and WAF.
-- **Data Isolation:** Complete VPC isolation between Production, Staging, and Management environments.
 
-For a deep dive into the infrastructure, see `docs/01_AWS_Thailand_GitLab_Architecture.md`.
-
----
-
-## 🚀 How to Run Locally
-
-We provide a Docker Compose environment for seamless local development.
-
-### Prerequisites
-- Docker & Docker Compose
-- Python 3.10+
-- Node.js 18+
-- Go 1.22+
-
-### Quick Start
-
-1. **Environment Setup**
-   ```bash
-   cp .env.example .env
-   ```
-
-2. **Start Infrastructure Services**
-   Starts PostgreSQL, Redis, MinIO (S3 compatible), Vault, and MailHog.
-   ```bash
-   docker-compose -f docker-compose.dev.yml up -d
-   ```
-
-3. **Run the Scanner Service (Python)**
-   ```bash
-   cd services/scanner/cmd/scanner
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   uvicorn main:app --reload --port 8080
-   ```
-
-4. **Run the DSR Service (Python)**
-   ```bash
-   cd services/dsr
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   uvicorn main:app --reload --port 8000
-   ```
-
-5. **Run the Frontend**
-   Simply open `datawai.html` in your browser to view the frontend, or serve it using a simple HTTP server:
-   ```bash
-   python3 -m http.server 3001
-   ```
+1. **Geographic Data Residency**: All production data, including S3 buckets, RDS clusters, and ECS containers, are strictly provisioned in AWS `ap-southeast-1` (Singapore) or `ap-southeast-7` (Thailand) to maintain ASEAN data sovereignty.
+2. **Encryption**: 
+   - **In Transit**: All endpoints are secured with modern TLS v1.2+ via AWS ACM certificates. HTTP traffic is strictly redirected to HTTPS at the Load Balancer level.
+   - **At Rest**: EBS volumes, RDS clusters, ElastiCache, and S3 buckets are encrypted using AWS Key Management Service (KMS).
+3. **Network Isolation**: Resources are deployed within isolated Virtual Private Clouds (VPCs). Databases and internal services are located in private subnets with absolutely no direct internet access, relying on NAT Gateways for outbound traffic and ALBs for inbound routing.
 
 ---
 
-## 🛠️ Operations & GitLab FAQs
+## 🛠️ Infrastructure as Code (Terraform)
 
-### Do I need to keep the GitLab EC2 instance running to deploy?
-**No.** If you are using the self-hosted GitLab instance defined in the Terraform blueprints (`gitlab.tf`), it is only strictly required while you are actively pushing code, running CI/CD pipelines, or merging MRs. 
+The entire AWS environment is codified using Terraform, ensuring reproducible, version-controlled infrastructure deployments. 
 
-To save costs:
-- You can stop the GitLab EC2 instance and its associated RDS/ElastiCache instances when not actively developing.
-- *However*, if you rely on GitLab Auto DevOps or continuous deployment triggers, they won't run while it's offline. 
-- The production application (ECS, API, RDS) runs completely independent of GitLab. Your SaaS will stay online even if GitLab is shut down.
+```mermaid
+graph LR
+    TF([Terraform State])
+    
+    subgraph "Terraform Modules"
+        Network[vpc.tf]
+        Compute[ecs.tf]
+        Data[rds.tf / redis.tf]
+        Web[alb.tf / cloudfront.tf]
+        Mon[monitoring.tf]
+        DevOps[gitlab.tf]
+    end
+    
+    TF --> Network
+    TF --> Compute
+    TF --> Data
+    TF --> Web
+    TF --> Mon
+    TF --> DevOps
+```
 
-### How do I access the frontend of GitLab?
-When provisioned via the Terraform scripts (`gitlab.tf` and `alb.tf`):
-1. GitLab is placed behind an Application Load Balancer (ALB).
-2. You access it via the domain name you configured (e.g., `gitlab.datawai.internal` or your public Route53 record).
-3. If deployed in a private management VPC (as per the architecture docs), you must connect via your **AWS Client VPN** to the Bastion host or VPC before resolving the internal GitLab URL.
-4. **Initial Login:** The root password is automatically generated. You can retrieve it via AWS Secrets Manager or by SSHing into the instance and running `sudo gitlab-rake "gitlab:password:reset[root]"`.
+### Self-Hosted GitLab (CI/CD)
+The infrastructure blueprints include a fully isolated, self-hosted GitLab instance deployed on a private EC2 instance. This instance handles:
+- Version Control for strict internal code governance.
+- Automated CI/CD pipelines to build Docker images and push them directly to ECR.
+- *Note:* The production application (ECS, API, RDS) runs completely independent of GitLab. The SaaS remains online even if the GitLab instance is shut down to save costs.
 
 ---
 
