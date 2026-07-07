@@ -7,6 +7,7 @@ import { registerSecurity } from './plugins/security.js';
 import { registerConsentRoutes } from './routes/consent.js';
 import { registerHealthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
+import { registerScanRoutes } from './routes/scan.js';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
 const host = process.env.HOST ?? '0.0.0.0';
@@ -30,6 +31,7 @@ async function buildServer() {
   
   // Register new SaaS auth routes
   await app.register(authRoutes);
+  await registerScanRoutes(app);
 
   return app;
 }

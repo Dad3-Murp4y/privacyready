@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, 
@@ -13,6 +13,12 @@ import {
   Trash2
 } from 'lucide-react';
 
+interface AuditCheck {
+  name: string;
+  passed: boolean;
+  details: string;
+}
+
 interface Audit {
   id: string;
   target: string;
@@ -20,6 +26,8 @@ interface Audit {
   date: string;
   score: number;
   status: 'Passed' | 'Warning';
+  logs?: string[];
+  checks?: AuditCheck[];
 }
 
 interface DSR {
@@ -35,37 +43,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'past_audits' | 'dsr_manager'>('overview');
   
-  // Audits list state, initialized with dynamic free scan if it exists, otherwise defaults
-  const [audits, setAudits] = useState<Audit[]>(() => {
-    const list: Audit[] = [];
-    const freeScanUrl = localStorage.getItem('freeScanUrl');
-    const freeScanScore = localStorage.getItem('freeScanScore');
-    
-    if (freeScanUrl) {
-      try {
-        const hostname = new URL(freeScanUrl).hostname || freeScanUrl;
-        list.push({
-          id: 'audit-free',
-          target: hostname,
-          type: 'Website',
-          date: 'Just now (from homepage)',
-          score: parseInt(freeScanScore || '75'),
-          status: parseInt(freeScanScore || '75') >= 80 ? 'Passed' : 'Warning'
-        });
-      } catch (e) {
-        list.push({
-          id: 'audit-free',
-          target: freeScanUrl,
-          type: 'Website',
-          date: 'Just now (from homepage)',
-          score: parseInt(freeScanScore || '75'),
-          status: parseInt(freeScanScore || '75') >= 80 ? 'Passed' : 'Warning'
-        });
-      }
-    }
-    
-    return list;
-  });
+  // Audits list state, initialized from backend API
+  const [audits, setAudits] = useState<Audit[]>([]);
 
   // DSR list state
   const [dsrs, setDsrs] = useState<DSR[]>([]);
@@ -73,6 +52,40 @@ export default function Dashboard() {
   // Form / Modal States
   const [showAuditModal, setShowAuditModal] = useState(false);
   const [showDsrModal, setShowDsrModal] = useState(false);
+  const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
+
+  useEffect(() => {
+    const fetchAudits = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch('/api/scan', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const mappedAudits = data.map((d: any) => ({
+            id: d.id,
+            target: d.targetIdentifier,
+            type: d.scanType,
+            date: new Date(d.createdAt).toLocaleString(),
+            score: d.score || 0,
+            status: d.status === 'COMPLETED' ? (d.score >= 80 ? 'Passed' : 'Warning') : d.status,
+            logs: [],
+            checks: d.findingsJson?.map((f: any) => ({
+              name: f.finding_type || f.platform,
+              passed: f.severity === 'low' || !f.severity,
+              details: f.description
+            })) || []
+          }));
+          setAudits(mappedAudits);
+        }
+      } catch (err) {
+        console.error('Failed to fetch audits:', err);
+      }
+    };
+    fetchAudits();
+  }, []);
 
   // New Audit Input
   const [newAuditUrl, setNewAuditUrl] = useState('');
@@ -103,50 +116,70 @@ export default function Dashboard() {
     navigate('/login');
   };
 
-  // Run Simulated Scan
-  const handleStartScan = (e: React.FormEvent) => {
+  const handleStartScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAuditUrl) return;
 
-    setIsScanning(true);
-    setScanProgress(0);
-    setScanLogs(['[INFO] Initializing DataWai remote scanning core...']);
-
-    let progressVal = 0;
-    const interval = setInterval(() => {
-      progressVal += 20;
-      setScanProgress(progressVal);
-
-      if (progressVal === 20) {
-        setScanLogs(prev => [...prev, `[INFO] Resolving endpoint target: ${newAuditUrl}`, '[INFO] Verifying SSL/TLS encryption parameters...']);
-      } else if (progressVal === 40) {
-        setScanLogs(prev => [...prev, '[INFO] Fetching landing page elements and checking tracking scripts...', '[WARN] Detected 3 third-party scripts loaded without active consent banner control.']);
-      } else if (progressVal === 60) {
-        setScanLogs(prev => [...prev, '[INFO] Performing PDPA form audit (checking privacy notice, data retention declarations)...', '[INFO] Analyzing Cookie declaration list for required disclosures...']);
-      } else if (progressVal === 80) {
-        setScanLogs(prev => [...prev, '[INFO] Compiling security vulnerabilities and data transfer mappings...', '[INFO] Generating unified risk factor assessment...']);
-      } else if (progressVal === 100) {
-        clearInterval(interval);
-        setScanLogs(prev => [...prev, '[SUCCESS] Scan completed. Storing unified audit score to database...']);
-
-        // Generate score and add audit
-        setTimeout(() => {
-          const generatedScore = Math.floor(Math.random() * 21) + 75; // 75 - 95
-          const newAudit: Audit = {
-            id: `audit-${Date.now()}`,
-            target: newAuditUrl.replace(/https?:\/\/(www\.)?/, ''),
-            type: newAuditType,
-            date: 'Just now',
-            score: generatedScore,
-            status: generatedScore >= 80 ? 'Passed' : 'Warning'
-          };
-          setAudits(prev => [newAudit, ...prev]);
-          setIsScanning(false);
-          setShowAuditModal(false);
-          setNewAuditUrl('');
-        }, 600);
+    if (newAuditType === 'Website') {
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+      if (!urlPattern.test(newAuditUrl)) {
+        alert("Please enter a valid website address (e.g., example.com or https://example.com)");
+        return;
       }
-    }, 850);
+    } else {
+      const handlePattern = /^(https?:\/\/[\w\.-]+\.[a-z]{2,})|(@?[a-zA-Z0-9_\.-]+)$/i;
+      if (!handlePattern.test(newAuditUrl) || newAuditUrl.includes(' ')) {
+        alert(`Please enter a valid ${newAuditType} URL or handle without spaces.`);
+        return;
+      }
+    }
+
+    setIsScanning(true);
+    setScanProgress(30);
+    setScanLogs(['[INFO] Initializing DataWai remote scanning core...', '[INFO] Connecting to backend scanner microservice...']);
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          targetIdentifier: newAuditUrl.replace(/https?:\/\/(www\.)?/, ''),
+          scanType: newAuditType
+        })
+      });
+
+      setScanProgress(100);
+      setScanLogs(prev => [...prev, '[SUCCESS] Scan completed. Fetched unified audit score from database.']);
+      
+      const d = await res.json();
+      
+      const newAudit: Audit = {
+        id: d.id,
+        target: d.targetIdentifier,
+        type: d.scanType,
+        date: new Date(d.createdAt).toLocaleString(),
+        score: d.score || 0,
+        status: d.status === 'COMPLETED' ? (d.score >= 80 ? 'Passed' : 'Warning') : d.status,
+        checks: d.findingsJson?.map((f: any) => ({
+          name: f.finding_type || f.platform,
+          passed: f.severity === 'low' || !f.severity,
+          details: f.description
+        })) || []
+      };
+
+      setAudits(prev => [newAudit, ...prev]);
+      setIsScanning(false);
+      setShowAuditModal(false);
+      setNewAuditUrl('');
+    } catch (err) {
+      console.error(err);
+      setIsScanning(false);
+      alert("Scan failed to run");
+    }
   };
 
   // Create DSR
@@ -269,7 +302,7 @@ export default function Dashboard() {
                   </div>
                 ) : (
                   audits.map((audit) => (
-                  <div key={audit.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--sky)' }}>
                         <Globe size={18} />
@@ -359,7 +392,7 @@ export default function Dashboard() {
                     </tr>
                   ) : (
                     audits.filter(a => a.target.toLowerCase().includes(searchTerm.toLowerCase())).map((audit) => (
-                    <tr key={audit.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="table-row-hover">
+                    <tr key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="table-row-hover">
                       <td style={{ padding: '16px 24px', fontWeight: 600 }}>{audit.target}</td>
                       <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{audit.type}</td>
                       <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{audit.date}</td>
@@ -376,7 +409,7 @@ export default function Dashboard() {
                           {audit.status}
                         </span>
                       </td>
-                      <td style={{ padding: '16px 24px' }}>
+                      <td style={{ padding: '16px 24px' }} onClick={(e) => e.stopPropagation()}>
                         <button 
                           onClick={() => setAudits(prev => prev.filter(item => item.id !== audit.id))}
                           style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
@@ -567,6 +600,47 @@ export default function Dashboard() {
               </form>
             )}
 
+          </div>
+        </div>
+      )}
+
+      {/* AUDIT DETAILS MODAL */}
+      {selectedAudit && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+          <div style={{ background: 'var(--mid)', border: '1px solid var(--glass-border)', borderRadius: '20px', width: '100%', maxWidth: '600px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' }}>
+            
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Audit Diagnostic Report</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+              Detailed run logs and warnings for <strong>{selectedAudit.target}</strong>
+            </p>
+
+            <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', maxHeight: '300px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+              {selectedAudit.checks && selectedAudit.checks.length > 0 ? (
+                selectedAudit.checks.map((check, i) => (
+                  <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{ color: check.passed ? '#4ade80' : '#facc15', fontWeight: 'bold' }}>
+                        {check.passed ? '[PASS]' : '[FAIL]'}
+                      </span>
+                      <span style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '14px' }}>{check.name}</span>
+                    </div>
+                    <div style={{ color: '#94a3b8', paddingLeft: '48px' }}>
+                      {check.details}
+                    </div>
+                  </div>
+                ))
+              ) : selectedAudit.logs && selectedAudit.logs.length > 0 ? (
+                selectedAudit.logs.map((log, i) => (
+                  <div key={i} style={{ color: log.startsWith('[WARN]') || log.startsWith('[FAIL]') ? '#facc15' : log.startsWith('[SUCCESS]') ? '#4ade80' : '#94a3b8' }}>
+                    {log}
+                  </div>
+                ))
+              ) : (
+                <div style={{ color: '#94a3b8' }}>No logs or breakdown available for this audit.</div>
+              )}
+            </div>
+
+            <button className="btn-primary" style={{ width: '100%', margin: 0 }} onClick={() => setSelectedAudit(null)}>Close Report</button>
           </div>
         </div>
       )}

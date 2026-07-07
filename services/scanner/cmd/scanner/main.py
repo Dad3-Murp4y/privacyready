@@ -24,6 +24,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 facebook_scanner = load_module("facebook_scanner", os.path.join(current_dir, "facebook-scanner.py"))
 line_scanner = load_module("line_scanner", os.path.join(current_dir, "line-scanner.py"))
 tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok-scanner.py"))
+website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
 unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
 
 app = FastAPI(title="DataWai Scanner API", version="2.1.0")
@@ -36,9 +37,47 @@ class SocialScanRequest(BaseModel):
     line_channel_id: Optional[str] = None
     tiktok_username: Optional[str] = None
 
+class WebsiteScanRequest(BaseModel):
+    customer_id: str
+    url: str
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "scanner", "version": "2.1.0"}
+
+@app.post("/v1/scan/website")
+def scan_website(req: WebsiteScanRequest):
+    all_findings = []
+    
+    try:
+        scanner = website_scanner.WebsiteScanner(req.url)
+        findings = scanner.scan_all()
+        all_findings.extend([asdict(f) for f in findings])
+    except Exception as e:
+        print(f"Website scan error: {e}")
+        all_findings.append({
+            "platform": "website",
+            "severity": "medium",
+            "finding_type": "scan_error",
+            "description": f"Failed to scan Website: {str(e)}"
+        })
+        
+    scorer = unified_scorer.UnifiedScorer()
+    if not all_findings:
+        return {
+            "overall_risk_score": 0,
+            "risk_level": "LOW",
+            "pdpa_compliance_percentage": 100,
+            "estimated_fine_exposure": "None",
+            "findings": [],
+            "action_items": ["No compliance issues found."]
+        }
+        
+    report = scorer.calculate_score(all_findings)
+    report.customer_id = req.customer_id
+    report.scan_date = datetime.now().isoformat()
+    
+    return asdict(report)
 
 @app.post("/v1/scan/social")
 def scan_social(req: SocialScanRequest):
