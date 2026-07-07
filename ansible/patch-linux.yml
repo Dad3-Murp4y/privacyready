@@ -1,0 +1,43 @@
+---
+- name: Universal Linux patch management (Zero-Touch Updates)
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update & upgrade on Ubuntu/Debian
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Upgrade all packages on CentOS/RHEL 7/8 (yum)
+      ansible.builtin.yum:
+        name: "*"
+        state: latest
+        update_cache: yes
+        autoremove: yes
+      when:
+        - ansible_facts['os_family'] == "RedHat"
+        - ansible_facts['distribution_major_version'] is defined
+        - ansible_facts['distribution_major_version'] | int < 9
+
+    - name: Upgrade all packages on CentOS Stream 9+/RHEL 9+/Amazon Linux 2023 (dnf)
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_cache: yes
+        autoremove: yes
+      when:
+        - ansible_facts['os_family'] == "RedHat"
+        - ansible_facts['distribution_major_version'] is not defined or ansible_facts['distribution_major_version'] | int >= 9
+
+    - name: Reboot if required (Debian/Ubuntu)
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Reboot if required (CentOS/RHEL/Amazon Linux)
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+      when: ansible_facts['os_family'] == "RedHat"

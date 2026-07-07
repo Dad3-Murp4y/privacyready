@@ -73,8 +73,8 @@ resource "aws_ecs_task_definition" "app" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([{
-    name  = "api"
-    image = "${aws_ecr_repository.app.repository_url}:latest"
+    name      = "api"
+    image     = "${aws_ecr_repository.app.repository_url}:latest"
     essential = true
 
     portMappings = [{
@@ -94,14 +94,14 @@ resource "aws_ecs_task_definition" "app" {
     environment = [
       { name = "NODE_ENV", value = "production" },
       { name = "PORT", value = "8080" },
-      { name = "DB_HOST", value = aws_db_instance.main.address },
-      { name = "REDIS_HOST", value = aws_elasticache_cluster.main.cache_nodes[0].address }
+      { name = "DB_HOST", value = local.db_host },
+      { name = "REDIS_HOST", value = local.redis_host }
     ]
 
     secrets = [
       {
         name      = "DB_PASSWORD"
-        valueFrom = aws_secretsmanager_secret.db_password.arn
+        valueFrom = local.db_secret_arn
       }
     ]
 
@@ -136,8 +136,8 @@ resource "aws_ecs_service" "app" {
   deployment_minimum_healthy_percent = 100
 
   network_configuration {
-    subnets          = aws_subnet.private[*].id
-    security_groups  = [aws_security_group.ecs_tasks.id]
+    subnets          = local.private_subnet_ids
+    security_groups  = [local.ecs_sg_id]
     assign_public_ip = false
   }
 
@@ -161,7 +161,7 @@ resource "aws_ecs_service" "app" {
 resource "aws_service_discovery_private_dns_namespace" "main" {
   name        = "datawai.local"
   description = "Service discovery for DataWai microservices"
-  vpc         = aws_vpc.main.id
+  vpc         = local.vpc_id
 
   tags = merge(local.tags, { Name = "datawai-service-discovery" })
 }
@@ -217,13 +217,13 @@ resource "aws_iam_policy" "ecs_secrets_access" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = [
+      Effect = "Allow"
+      Action = [
         "secretsmanager:GetSecretValue",
         "kms:Decrypt"
       ]
       Resource = [
-        aws_secretsmanager_secret.db_password.arn
+        local.db_secret_arn
       ]
     }]
   })
@@ -339,13 +339,13 @@ resource "aws_ecr_repository" "dsr" {
 resource "aws_cloudwatch_log_group" "scanner" {
   name              = "/ecs/datawai-scanner"
   retention_in_days = 30
-  tags = merge(local.tags, { Name = "datawai-scanner-logs" })
+  tags              = merge(local.tags, { Name = "datawai-scanner-logs" })
 }
 
 resource "aws_cloudwatch_log_group" "dsr" {
   name              = "/ecs/datawai-dsr"
   retention_in_days = 30
-  tags = merge(local.tags, { Name = "datawai-dsr-logs" })
+  tags              = merge(local.tags, { Name = "datawai-dsr-logs" })
 }
 
 # ── ECS Task Definitions ────────────────────────────────────
@@ -360,8 +360,8 @@ resource "aws_ecs_task_definition" "scanner" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([{
-    name  = "scanner"
-    image = "${aws_ecr_repository.scanner.repository_url}:latest"
+    name      = "scanner"
+    image     = "${aws_ecr_repository.scanner.repository_url}:latest"
     essential = true
 
     portMappings = [{
@@ -390,8 +390,8 @@ resource "aws_ecs_task_definition" "dsr" {
   task_role_arn            = aws_iam_role.ecs_task.arn
 
   container_definitions = jsonencode([{
-    name  = "dsr"
-    image = "${aws_ecr_repository.dsr.repository_url}:latest"
+    name      = "dsr"
+    image     = "${aws_ecr_repository.dsr.repository_url}:latest"
     essential = true
 
     portMappings = [{
@@ -413,10 +413,10 @@ resource "aws_ecs_task_definition" "dsr" {
 # ── ECS Target Groups ───────────────────────────────────────
 
 resource "aws_lb_target_group" "scanner" {
-  name        = "datawai-tg-scanner"
+  name        = "datawai-tg-scanner-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -433,10 +433,10 @@ resource "aws_lb_target_group" "scanner" {
 }
 
 resource "aws_lb_target_group" "dsr" {
-  name        = "datawai-tg-dsr"
+  name        = "datawai-tg-dsr-${terraform.workspace}"
   port        = 8000
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -461,8 +461,8 @@ resource "aws_ecs_service" "scanner" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = aws_subnet.private[*].id
-    security_groups  = [aws_security_group.ecs_tasks.id]
+    subnets          = local.private_subnet_ids
+    security_groups  = [local.ecs_sg_id]
     assign_public_ip = false
   }
 
@@ -482,8 +482,8 @@ resource "aws_ecs_service" "dsr" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = aws_subnet.private[*].id
-    security_groups  = [aws_security_group.ecs_tasks.id]
+    subnets          = local.private_subnet_ids
+    security_groups  = [local.ecs_sg_id]
     assign_public_ip = false
   }
 

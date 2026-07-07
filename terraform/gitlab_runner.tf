@@ -1,9 +1,9 @@
 # GitLab Runner instances and S3 caching configurations
 resource "aws_instance" "gitlab_runner" {
-  count                  = 2
+  count                  = local.is_prod ? 2 : 0
   ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = "t3.micro"
-  subnet_id              = aws_subnet.management_private[count.index].id
+  subnet_id              = local.private_subnet_ids[count.index]
   vpc_security_group_ids = [aws_security_group.gitlab_runner.id]
   iam_instance_profile   = aws_iam_instance_profile.gitlab_runner.name
 
@@ -27,7 +27,7 @@ USERDATA
 }
 
 resource "aws_s3_bucket" "gitlab_runner_cache" {
-  bucket = "datawai-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}"
+  bucket = "datawai-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}-${terraform.workspace}"
 
   tags = {
     PDPA          = "compliant"
@@ -62,7 +62,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "gitlab_runner_cache" {
 
 resource "aws_security_group" "gitlab_runner" {
   name_prefix = "datawai-runner-"
-  vpc_id      = aws_vpc.management.id
+  vpc_id      = local.gitlab_vpc_id
   description = "GitLab runner security group"
 
   egress {
@@ -83,7 +83,7 @@ resource "random_password" "gitlab_runner_token" {
 }
 
 resource "aws_secretsmanager_secret" "gitlab_runner_token" {
-  name                    = "datawai/gitlab/runner-token"
+  name                    = "datawai/gitlab/runner-token-${terraform.workspace}"
   recovery_window_in_days = 7
 }
 
@@ -93,7 +93,7 @@ resource "aws_secretsmanager_secret_version" "gitlab_runner_token" {
 }
 
 resource "aws_iam_role" "gitlab_runner" {
-  name = "datawai-gitlab-runner-role"
+  name = "datawai-gitlab-runner-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -108,12 +108,12 @@ resource "aws_iam_role" "gitlab_runner" {
 }
 
 resource "aws_iam_instance_profile" "gitlab_runner" {
-  name = "datawai-gitlab-runner-profile"
+  name = "datawai-gitlab-runner-profile-${terraform.workspace}"
   role = aws_iam_role.gitlab_runner.name
 }
 
 resource "aws_iam_policy" "gitlab_runner_s3" {
-  name = "datawai-gitlab-runner-s3"
+  name = "datawai-gitlab-runner-s3-${terraform.workspace}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -144,7 +144,7 @@ resource "aws_security_group_rule" "gitlab_runner_ssh_from_eice" {
   from_port                = 22
   to_port                  = 22
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.eice.id
+  source_security_group_id = local.is_prod ? aws_security_group.eice[0].id : aws_security_group.test_eice[0].id
   security_group_id        = aws_security_group.gitlab_runner.id
   description              = "SSH from EICE"
 }

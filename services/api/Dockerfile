@@ -1,5 +1,7 @@
 FROM node:22-alpine
 
+RUN apk add --no-cache libc6-compat openssl curl
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -18,4 +20,7 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-CMD ["npm", "start"]
+COPY start.sh ./
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]

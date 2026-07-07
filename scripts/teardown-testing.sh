@@ -20,21 +20,36 @@ echo "2. Stopping GitLab RDS cluster..."
 CLUSTER_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier datawai-gitlab-postgres --query "DBClusters[0].Status" --output text 2>/dev/null || true)
 if [ "$CLUSTER_STATUS" == "available" ]; then
   aws rds stop-db-cluster --db-cluster-identifier datawai-gitlab-postgres
-  echo "RDS stop command sent."
+  echo "GitLab RDS stop command sent."
 else
   echo "GitLab RDS cluster is not available or already stopped (Status: $CLUSTER_STATUS)."
 fi
 
+# Stop Main RDS Instance
+echo "3. Stopping main RDS database instance..."
+DB_STATUS=$(aws rds describe-db-instances --db-instance-identifier datawai-db --query "DBInstances[0].DBInstanceStatus" --output text 2>/dev/null || true)
+if [ "$DB_STATUS" == "available" ]; then
+  aws rds stop-db-instance --db-instance-identifier datawai-db
+  echo "Main RDS stop command sent."
+else
+  echo "Main RDS instance is not available or already stopped (Status: $DB_STATUS)."
+fi
+
 # Destroy Terraform expensive resources
-echo "3. Destroying expensive Terraform resources (ALB, ECS, NAT Gateway, Redis)..."
-cd terraform
+echo "4. Destroying expensive Terraform resources (ALB, ECS services, NAT Gateways, Redis)..."
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/../terraform"
 terraform destroy \
   -target=aws_lb.main \
   -target=aws_ecs_service.app \
+  -target=aws_ecs_service.scanner \
+  -target=aws_ecs_service.dsr \
   -target=aws_nat_gateway.management \
+  -target=aws_nat_gateway.staging \
+  -target=aws_nat_gateway.main \
   -target=aws_elasticache_replication_group.gitlab \
   -auto-approve \
   -var="domain_name=datawai.local"
 
 echo "=== Teardown Complete ==="
-echo "Your GitLab codebase is safe on the stopped EC2 and RDS instances. Other expensive resources have been destroyed."
+echo "Your codebase and GitLab files are safe. Expensive resources (ALB, ECS, NAT Gateways, Redis) are destroyed and databases are stopped to minimize costs."

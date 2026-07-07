@@ -1992,7 +1992,7 @@ footer {
     <li><a href="#services" data-lang="en">Services</a><a href="#services" data-lang="th">บริการ</a><a href="#services" data-lang="ru">Услуги</a></li>
     <li><a href="#pdpa" data-lang="en">PDPA Guide</a><a href="#pdpa" data-lang="th">คู่มือ PDPA</a><a href="#pdpa" data-lang="ru">Руководство PDPA</a></li>
     <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-    <li><a href="http://localhost:5173" data-lang="en">Login</a><a href="http://localhost:5173" data-lang="th">เข้าสู่ระบบ</a><a href="http://localhost:5173" data-lang="ru">Войти</a></li>
+    <li><a href="https://portal.datawai.co.uk" data-lang="en">Login</a><a href="https://portal.datawai.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.datawai.co.uk" data-lang="ru">Войти</a></li>
     <li><a href="#contact" class="nav-cta" data-lang="en">Consultation</a><a href="#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
     <li class="lang-switcher">
       <button class="lang-trigger" id="langTrigger" onclick="toggleLangOverlay()" aria-label="Change language" aria-expanded="false" aria-controls="langOverlay">
@@ -2128,7 +2128,7 @@ footer {
         </div>
         <ul class="scan-checks" id="scan-checks-list"></ul>
         <div class="scan-cta" id="scan-cta" style="display:none">
-          <a href="http://localhost:5173/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
+          <a href="https://portal.datawai.co.uk/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
             📊 <span data-lang="en" id="report-btn-en">Get Full Report</span>
             <span data-lang="th" id="report-btn-th">รับรายงานเต็ม</span>
             <span data-lang="ru" id="report-btn-ru">Полный отчёт</span>
@@ -2850,6 +2850,131 @@ async function startSocialScan(e) {
   
   return false;
 }
+
+const iconFor = { pass: '✅', fail: '❌', warn: '⚠️', running: '', pending: '○' };
+
+function getLang() {
+  return document.body.getAttribute('lang') || 'en';
+}
+
+async function startScan(e) {
+  e.preventDefault();
+  const rawUrl = document.getElementById('scan-url-input').value.trim();
+  if (!rawUrl) return false;
+
+  // Normalise URL
+  let url;
+  try { url = new URL(rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl); }
+  catch { url = { href: rawUrl, hostname: rawUrl, protocol: 'https:' }; }
+
+  const btn  = document.getElementById('scan-btn');
+  const icon = document.getElementById('scan-btn-icon');
+  btn.disabled = true;
+  icon.innerHTML = '<span class="spin"></span>';
+
+  // Show results panel
+  const panel      = document.getElementById('scan-results');
+  const checksList = document.getElementById('scan-checks-list');
+  const targetEl   = document.getElementById('scan-target-display');
+  const scoreBadge = document.getElementById('scan-score-badge');
+  const ctaEl      = document.getElementById('scan-cta');
+
+  panel.classList.add('visible');
+  ctaEl.style.display = 'none';
+  scoreBadge.textContent = '';
+  scoreBadge.className = 'scan-score';
+  targetEl.textContent = url.hostname;
+  checksList.innerHTML = '';
+
+  const lang = getLang();
+
+  // Build pending rows
+  const rows = SCAN_CHECKS_DEF.map(c => {
+    const li = document.createElement('li');
+    li.className = 'scan-check pending';
+    li.id = 'chk-' + c.id;
+    li.innerHTML = `
+      <span class="check-icon">${iconFor.pending}</span>
+      <span class="check-body">
+        <span class="check-label">${c.label[lang] || c.label.en}</span>
+        <span class="check-detail">${c.detail[lang] || c.detail.en}</span>
+      </span>`;
+    checksList.appendChild(li);
+    return li;
+  });
+
+  // Try real API first, fall back to heuristic demo
+  let apiResults = null;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    const resp = await fetch('https://api.datawai.co.uk/v1/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.href }),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (resp.ok) apiResults = await resp.json();
+  } catch (_) { /* fallback to heuristic below */ }
+
+  // Animate check-by-check reveal
+  let passed = 0;
+  for (let i = 0; i < SCAN_CHECKS_DEF.length; i++) {
+    const c   = SCAN_CHECKS_DEF[i];
+    const row = rows[i];
+
+    // Mark as running
+    row.className = 'scan-check running';
+    row.querySelector('.check-icon').innerHTML = '<span class="spin"></span>';
+
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
+
+    // Determine result
+    let status;
+    if (apiResults && apiResults.checks) {
+      const found = apiResults.checks.find(x => x.id === c.id);
+      status = found ? found.status : 'warn';
+    } else {
+      // Heuristic demo based on URL properties
+      if      (c.id === 'https')           status = url.protocol === 'https:' ? 'pass' : 'fail';
+      else if (c.id === 'cookie_banner')   status = Math.random() > 0.4 ? 'fail' : 'pass';
+      else if (c.id === 'privacy_policy')  status = Math.random() > 0.3 ? 'pass' : 'fail';
+      else if (c.id === 'data_controller') status = Math.random() > 0.5 ? 'warn' : 'fail';
+      else if (c.id === 'third_party')     status = Math.random() > 0.35 ? 'fail' : 'warn';
+      else if (c.id === 'dsr_link')        status = Math.random() > 0.6 ? 'fail' : 'pass';
+      else if (c.id === 'thai_pdpa_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
+      else status = 'warn';
+    }
+
+    if (status === 'pass') passed++;
+    row.className = 'scan-check ' + status;
+    row.querySelector('.check-icon').textContent = iconFor[status] || '⚠️';
+  }
+
+  // Score badge
+  const total = SCAN_CHECKS_DEF.length;
+  const pct = Math.round((passed / total) * 100);
+  const scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
+  const scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  scoreBadge.className = 'scan-score ' + scoreClass;
+
+  // Update full-report link with scanned URL + score
+  const reportBtn = document.getElementById('scan-full-report-btn');
+  if (reportBtn) {
+    reportBtn.href = `https://portal.datawai.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}`;
+  }
+
+  // Show CTA
+  ctaEl.style.display = 'flex';
+
+  // Reset button
+  btn.disabled = false;
+  icon.textContent = '🔍';
+
+  return false;
+}
 </script>
 
 <!-- CONTACT FORM -->
@@ -3202,149 +3327,6 @@ if ('IntersectionObserver' in window) {
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
     observer.observe(el);
   });
-}
-// ── FREE PDPA SCANNER ENGINE ──
-const SCAN_CHECKS_DEF = [
-  { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
-    detail: { en: 'PDPA requires explicit consent before setting cookies',   th: 'PDPA กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'PDPA требует явного согласия перед установкой куки' } },
-  { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
-    detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
-  { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
-    detail: { en: 'Organisation must publish contact details for data requests', th: 'องค์กรต้องเผยแพร่ข้อมูลติดต่อสำหรับคำขอข้อมูล', ru: 'Организация должна публиковать контакт для запросов' } },
-  { id: 'https',           label: { en: 'HTTPS encryption',              th: 'การเข้ารหัส HTTPS',           ru: 'HTTPS шифрование' },
-    detail: { en: 'All pages must be served over HTTPS',                     th: 'ทุกหน้าต้องให้บริการผ่าน HTTPS',              ru: 'Все страницы должны работать через HTTPS' } },
-  { id: 'third_party',     label: { en: 'Third-party tracker disclosure', th: 'การเปิดเผย tracker บุคคลที่สาม', ru: 'Раскрытие сторонних трекеров' },
-    detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
-  { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
-    detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
-  { id: 'thai_pdpa_ref',   label: { en: 'PDPA reference in policy',       th: 'การอ้างอิง PDPA ในนโยบาย',   ru: 'Ссылка на PDPA в политике' },
-    detail: { en: 'Privacy policy should reference Thailand\'s PDPA law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย PDPA', ru: 'Политика должна ссылаться на закон PDPA Таиланда' } },
-];
-
-const iconFor = { pass: '✅', fail: '❌', warn: '⚠️', running: '', pending: '○' };
-
-function getLang() {
-  return document.body.getAttribute('lang') || 'en';
-}
-
-async function startScan(e) {
-  e.preventDefault();
-  const rawUrl = document.getElementById('scan-url-input').value.trim();
-  if (!rawUrl) return false;
-
-  // Normalise URL
-  let url;
-  try { url = new URL(rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl); }
-  catch { url = { href: rawUrl, hostname: rawUrl, protocol: 'https:' }; }
-
-  const btn = document.getElementById('scan-btn');
-  const icon = document.getElementById('scan-btn-icon');
-  btn.disabled = true;
-  icon.innerHTML = '<span class="spin"></span>';
-
-  // Show results panel
-  const panel    = document.getElementById('scan-results');
-  const checksList = document.getElementById('scan-checks-list');
-  const targetEl   = document.getElementById('scan-target-display');
-  const scoreBadge = document.getElementById('scan-score-badge');
-  const ctaEl      = document.getElementById('scan-cta');
-
-  panel.classList.add('visible');
-  ctaEl.style.display = 'none';
-  scoreBadge.textContent = '';
-  scoreBadge.className = 'scan-score';
-  targetEl.textContent = url.hostname;
-  checksList.innerHTML = '';
-
-  const lang = getLang();
-
-  // Build pending rows
-  const rows = SCAN_CHECKS_DEF.map(c => {
-    const li = document.createElement('li');
-    li.className = 'scan-check pending';
-    li.id = 'chk-' + c.id;
-    li.innerHTML = `
-      <span class="check-icon">${iconFor.pending}</span>
-      <span class="check-body">
-        <span class="check-label">${c.label[lang] || c.label.en}</span>
-        <span class="check-detail">${c.detail[lang] || c.detail.en}</span>
-      </span>`;
-    checksList.appendChild(li);
-    return li;
-  });
-
-  // Try real API first, fall back to heuristic demo
-  let apiResults = null;
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
-    const resp = await fetch('https://api.datawai.com/v1/scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url.href }),
-      signal: controller.signal
-    });
-    clearTimeout(timeout);
-    if (resp.ok) apiResults = await resp.json();
-  } catch (_) { /* fallback below */ }
-
-  // Animate check-by-check reveal
-  let passed = 0;
-  for (let i = 0; i < SCAN_CHECKS_DEF.length; i++) {
-    const c   = SCAN_CHECKS_DEF[i];
-    const row = rows[i];
-
-    // Mark as running
-    row.className = 'scan-check running';
-    row.querySelector('.check-icon').textContent = '';
-    row.querySelector('.check-icon').innerHTML = '<span class="spin"></span>';
-
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
-
-    // Determine result
-    let status;
-    if (apiResults && apiResults.checks) {
-      const found = apiResults.checks.find(x => x.id === c.id);
-      status = found ? found.status : 'warn';
-    } else {
-      // Heuristic demo based on URL properties
-      if (c.id === 'https')        status = url.protocol === 'https:' ? 'pass' : 'fail';
-      else if (c.id === 'cookie_banner')   status = Math.random() > 0.4 ? 'fail' : 'pass';
-      else if (c.id === 'privacy_policy')  status = Math.random() > 0.3 ? 'pass' : 'fail';
-      else if (c.id === 'data_controller') status = Math.random() > 0.5 ? 'warn' : 'fail';
-      else if (c.id === 'third_party')     status = Math.random() > 0.35 ? 'fail' : 'warn';
-      else if (c.id === 'dsr_link')        status = Math.random() > 0.6 ? 'fail' : 'pass';
-      else if (c.id === 'thai_pdpa_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
-      else status = 'warn';
-    }
-
-    if (status === 'pass') passed++;
-    row.className = 'scan-check ' + status;
-    row.querySelector('.check-icon').textContent = iconFor[status] || '⚠️';
-  }
-
-  // Score badge
-  const total = SCAN_CHECKS_DEF.length;
-  const pct = Math.round((passed / total) * 100);
-  let scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
-  let scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
-  scoreBadge.className = 'scan-score ' + scoreClass;
-
-  // Update full-report link with URL param
-  const reportBtn = document.getElementById('scan-full-report-btn');
-  if (reportBtn) {
-    reportBtn.href = `http://localhost:5173/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}`;
-  }
-
-  // Show CTA
-  ctaEl.style.display = 'flex';
-
-  // Reset button
-  btn.disabled = false;
-  icon.textContent = '🔍';
-
-  return false;
 }
 </script>
 

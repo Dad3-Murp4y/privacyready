@@ -1,7 +1,8 @@
 # Security groups for load balancer, container tasks, database, and cache tiers
 resource "aws_security_group" "alb" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-alb-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.main[0].id
   description = "ALB security group"
 
   ingress {
@@ -31,15 +32,16 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_security_group" "ecs_tasks" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-ecs-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.main[0].id
   description = "ECS tasks security group"
 
   ingress {
     from_port       = 8080
     to_port         = 8080
     protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    security_groups = [aws_security_group.alb[0].id]
     description     = "ALB to ECS tasks"
   }
 
@@ -54,15 +56,16 @@ resource "aws_security_group" "ecs_tasks" {
 }
 
 resource "aws_security_group" "rds" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-rds-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.main[0].id
   description = "RDS security group"
 
   ingress {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.ecs_tasks[0].id]
     description     = "ECS tasks to RDS"
   }
 
@@ -70,15 +73,16 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_security_group" "elasticache" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-cache-"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = aws_vpc.main[0].id
   description = "ElastiCache security group"
 
   ingress {
     from_port       = 6379
     to_port         = 6379
     protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_tasks.id]
+    security_groups = [aws_security_group.ecs_tasks[0].id]
     description     = "ECS tasks to ElastiCache"
   }
 
@@ -86,15 +90,16 @@ resource "aws_security_group" "elasticache" {
 }
 
 resource "aws_security_group" "eice" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-eice-"
-  vpc_id      = aws_vpc.management.id
+  vpc_id      = aws_vpc.management[0].id
   description = "EC2 Instance Connect Endpoint SG"
 
   egress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.management.cidr_block]
+    cidr_blocks = [aws_vpc.management[0].cidr_block]
   }
 
   tags = merge(local.tags, { Name = "datawai-eice-sg" })

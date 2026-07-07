@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc --noEmit",
-    "start": "node dist/main.js"
+    "build": "tsc",
+    "start": "export DATABASE_URL=\"postgresql://${DB_USER:-datawai_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-datawai}\" && npx prisma db push --accept-data-loss && node dist/main.js"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

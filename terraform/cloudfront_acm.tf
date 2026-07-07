@@ -5,8 +5,8 @@ provider "aws" {
 
 resource "aws_acm_certificate" "cloudfront" {
   provider                  = aws.us_east_1
-  domain_name               = "www.${var.domain_name}"
-  subject_alternative_names = ["portal.${var.domain_name}"]
+  domain_name               = var.domain_name
+  subject_alternative_names = ["www.${var.domain_name}", "portal.${var.domain_name}"]
   validation_method         = "DNS"
 
   lifecycle {
@@ -25,11 +25,12 @@ resource "aws_route53_record" "cloudfront_cert_validation" {
     }
   }
 
-  zone_id = aws_route53_zone.main.zone_id
-  name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  ttl     = 60
+  zone_id         = aws_route53_zone.main.zone_id
+  name            = each.value.name
+  type            = each.value.type
+  records         = [each.value.record]
+  ttl             = 60
+  allow_overwrite = true
 }
 
 resource "aws_acm_certificate_validation" "cloudfront" {

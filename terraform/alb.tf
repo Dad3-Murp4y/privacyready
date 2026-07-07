@@ -3,8 +3,8 @@ resource "aws_lb" "main" {
   name               = "datawai-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  security_groups    = [local.alb_sg_id]
+  subnets            = local.public_subnet_ids
 
   enable_deletion_protection = false
   enable_http2               = true
@@ -14,10 +14,10 @@ resource "aws_lb" "main" {
 
 # Target Group Blue (current stable)
 resource "aws_lb_target_group" "blue" {
-  name        = "datawai-tg-blue"
+  name        = "datawai-tg-blue-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -37,10 +37,10 @@ resource "aws_lb_target_group" "blue" {
 
 # Target Group Green (new deployment)
 resource "aws_lb_target_group" "green" {
-  name        = "datawai-tg-green"
+  name        = "datawai-tg-green-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {
@@ -168,10 +168,10 @@ resource "aws_acm_certificate_validation" "main" {
 # ── GitLab Routing ──────────────────────────────────────────
 
 resource "aws_lb_target_group" "gitlab" {
-  name_prefix = "tg-git"
+  name        = "datawai-tg-gitlab-${terraform.workspace}"
   port        = 80
   protocol    = "HTTP"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = local.vpc_id
   target_type = "ip"
 
   health_check {

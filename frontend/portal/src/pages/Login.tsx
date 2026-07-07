@@ -1,72 +1,154 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Home } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Home, CheckCircle2 } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
+  // Forgot password states
+  const [isForgot, setIsForgot] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn === 'true') {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // Placeholder login logic
     if (email) {
+      localStorage.setItem('isLoggedIn', 'true');
       navigate('/dashboard');
     }
+  };
+
+  const handleResetPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetEmail) {
+      setResetSent(true);
+    }
+  };
+
+  const handleBackToSignIn = () => {
+    setIsForgot(false);
+    setResetSent(false);
+    setResetEmail('');
   };
 
   return (
     <div className="auth-container">
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
-        <a href="http://localhost:3001" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+        <a href="https://www.datawai.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
           <Home size={18} /> Back to Home
         </a>
       </div>
       <div className="auth-card">
-        <div className="auth-header">
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-            <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
+        
+        {/* FORGOT PASSWORD - SUCCESS STATE */}
+        {isForgot && resetSent ? (
+          <div style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px', color: '#4ade80' }}>
+              <CheckCircle2 size={64} strokeWidth={1.5} />
+            </div>
+            <div className="auth-header">
+              <h1 className="auth-title">Link Sent</h1>
+              <p className="auth-subtitle" style={{ lineHeight: '1.5' }}>
+                If an account is associated with <strong>{resetEmail}</strong>, we have sent a secure password reset link. Please check your inbox.
+              </p>
+            </div>
+            <button className="btn-primary" onClick={handleBackToSignIn} style={{ width: '100%', marginTop: '24px' }}>
+              Back to Sign In
+            </button>
           </div>
-          <h1 className="auth-title">Welcome back</h1>
-          <p className="auth-subtitle">Log in to manage your PDPA compliance</p>
-        </div>
+        ) : isForgot ? (
+          /* FORGOT PASSWORD - REQUEST FORM */
+          <div style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+            <div className="auth-header">
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
+              </div>
+              <h1 className="auth-title">Reset Password</h1>
+              <p className="auth-subtitle">Enter your email to receive a recovery link</p>
+            </div>
 
-        <form className="auth-form" onSubmit={handleLogin}>
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input 
-              type="email" 
-              className="form-input" 
-              placeholder="you@company.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
+            <form className="auth-form" onSubmit={handleResetPassword}>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  placeholder="you@company.com" 
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required 
+                />
+              </div>
+
+              <button type="submit" className="btn-primary">
+                Send Reset Link <ArrowRight size={18} />
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <a href="#" onClick={(e) => { e.preventDefault(); handleBackToSignIn(); }}>Back to Sign In</a>
+            </div>
           </div>
-          <div className="form-group">
-            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Password</span>
-              <a href="#" style={{ fontSize: '12px', textTransform: 'none' }}>Forgot password?</a>
-            </label>
-            <input 
-              type="password" 
-              className="form-input" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+        ) : (
+          /* STANDARD SIGN IN FORM */
+          <div style={{ animation: 'fadeUp 0.4s ease-out both' }}>
+            <div className="auth-header">
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
+              </div>
+              <h1 className="auth-title">Welcome back</h1>
+              <p className="auth-subtitle">Log in to manage your PDPA compliance</p>
+            </div>
+
+            <form className="auth-form" onSubmit={handleLogin}>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  placeholder="you@company.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Password</span>
+                  <a href="#" onClick={(e) => { e.preventDefault(); setIsForgot(true); }} style={{ fontSize: '12px', textTransform: 'none' }}>Forgot password?</a>
+                </label>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
+              </div>
+
+              <button type="submit" className="btn-primary">
+                Sign In <ArrowRight size={18} />
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              Don't have an account? <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Create account</a>
+            </div>
           </div>
+        )}
 
-          <button type="submit" className="btn-primary">
-            Sign In <ArrowRight size={18} />
-          </button>
-        </form>
-
-        <div className="auth-footer">
-          Don't have an account? <a href="/register" onClick={(e) => { e.preventDefault(); navigate('/register'); }}>Create account</a>
-        </div>
       </div>
     </div>
   );

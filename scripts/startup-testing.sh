@@ -20,14 +20,25 @@ echo "2. Starting GitLab RDS cluster..."
 CLUSTER_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier datawai-gitlab-postgres --query "DBClusters[0].Status" --output text 2>/dev/null || true)
 if [ "$CLUSTER_STATUS" == "stopped" ]; then
   aws rds start-db-cluster --db-cluster-identifier datawai-gitlab-postgres
-  echo "RDS start command sent."
+  echo "GitLab RDS start command sent."
 else
   echo "GitLab RDS cluster is already available or not found (Status: $CLUSTER_STATUS)."
 fi
 
+# Start Main RDS Instance
+echo "3. Starting main RDS database instance..."
+DB_STATUS=$(aws rds describe-db-instances --db-instance-identifier datawai-db --query "DBInstances[0].DBInstanceStatus" --output text 2>/dev/null || true)
+if [ "$DB_STATUS" == "stopped" ]; then
+  aws rds start-db-instance --db-instance-identifier datawai-db
+  echo "Main RDS start command sent."
+else
+  echo "Main RDS instance is already available or not found (Status: $DB_STATUS)."
+fi
+
 # Apply Terraform
-echo "3. Recreating expensive Terraform resources..."
-cd terraform
+echo "4. Recreating expensive Terraform resources..."
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+cd "$SCRIPT_DIR/../terraform"
 terraform init
 terraform apply -auto-approve -var="domain_name=datawai.local"
 

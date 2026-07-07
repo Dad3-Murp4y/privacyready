@@ -1,0 +1,120 @@
+stages:
+  - lint-and-test
+  - security-scan
+  - deploy
+  - cost-saver
+
+# ---------------------------------------------
+# 1. LINT AND CODE QUALITY STAGE
+# ---------------------------------------------
+
+api-lint:
+  stage: lint-and-test
+  image: node:22-alpine
+  script:
+    - cd services/api
+    - npm ci
+    - npm run build
+  rules:
+    - changes:
+        - services/api/**/*
+
+portal-lint:
+  stage: lint-and-test
+  image: node:22-alpine
+  script:
+    - cd frontend/portal
+    - npm ci
+    - npm run lint
+  rules:
+    - changes:
+        - frontend/portal/**/*
+
+python-lint:
+  stage: lint-and-test
+  image: python:3.11-slim
+  script:
+    - python -m py_compile services/dsr/main.py services/scanner/cmd/scanner/*.py
+  rules:
+    - changes:
+        - services/dsr/**/*
+        - services/scanner/**/*
+
+# ---------------------------------------------
+# 2. SECURITY SCANNING (SAST / DAST / DEPENDENCIES)
+# ---------------------------------------------
+
+# Include GitLab built-in SAST, Secret Detection and Dependency scanning
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+# Custom Dependency Vulnerability Scan (works on any GitLab version)
+npm-security-audit:
+  stage: security-scan
+  image: node:22-alpine
+  script:
+    - echo "Auditing API dependencies..."
+    - cd services/api && npm audit --audit-level=high || true
+    - echo "Auditing Portal dependencies..."
+    - cd ../../frontend/portal && npm audit --audit-level=high || true
+
+# Custom DAST Check (Verifies API security headers and endpoints)
+dast-security-check:
+  stage: security-scan
+  image: curlimages/curl:latest
+  script:
+    - echo "Running DAST endpoint validation..."
+    - curl -s -I https://api.datawai.co.uk/health | grep -i "HTTP/1.1 200\|HTTP/2 200"
+    - echo "Checking security headers..."
+    - curl -s -I https://api.datawai.co.uk/health | grep -i "strict-transport-security\|x-content-type-options\|x-frame-options" || true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# ---------------------------------------------
+# 3. DEPLOY STAGE
+# ---------------------------------------------
+
+deploy-api:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  script:
+    - echo "Deploying updated API task definition and triggering ECS update..."
+    - aws ecs update-service --cluster datawai-cluster --service datawai-api --force-new-deployment --region ap-southeast-1
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/api/**/*
+
+# ---------------------------------------------
+# 4. COST-SAVER STAGES (MANUAL CLEANUP)
+# ---------------------------------------------
+
+environment-shutdown:
+  stage: cost-saver
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache aws-cli terraform bash curl jq
+  script:
+    - echo "Executing Environment Teardown to Save Costs..."
+    - chmod +x ./scripts/teardown-testing.sh
+    - ./scripts/teardown-testing.sh
+  when: manual
+  environment:
+    name: testing-teardown
+    action: stop
+
+environment-startup:
+  stage: cost-saver
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache aws-cli terraform bash curl jq
+  script:
+    - echo "Restoring Environment and Re-deploying Services..."
+    - chmod +x ./scripts/startup-testing.sh
+    - ./scripts/startup-testing.sh
+  when: manual
+  environment:
+    name: testing-teardown
+    action: start

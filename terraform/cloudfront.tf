@@ -38,13 +38,13 @@ resource "aws_s3_bucket_policy" "frontend" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "CloudFrontReadGetObject"
-        Effect    = "Allow"
+        Sid    = "CloudFrontReadGetObject"
+        Effect = "Allow"
         Principal = {
           AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
         }
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.frontend.arn}/*"
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.frontend.arn}/*"
       }
     ]
   })
@@ -89,13 +89,13 @@ resource "aws_s3_bucket_policy" "portal" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid       = "CloudFrontReadGetObject"
-        Effect    = "Allow"
+        Sid    = "CloudFrontReadGetObject"
+        Effect = "Allow"
         Principal = {
           AWS = aws_cloudfront_origin_access_identity.oai.iam_arn
         }
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.portal.arn}/*"
+        Action   = "s3:GetObject"
+        Resource = "${aws_s3_bucket.portal.arn}/*"
       }
     ]
   })
@@ -115,7 +115,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  aliases             = ["www.${var.domain_name}"]
+  aliases             = ["www.${var.domain_name}", var.domain_name]
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -215,6 +215,18 @@ resource "aws_cloudfront_distribution" "portal" {
 }
 
 # Route 53 Records for CloudFront
+resource "aws_route53_record" "apex" {
+  zone_id = aws_route53_zone.main.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.frontend.domain_name
+    zone_id                = aws_cloudfront_distribution.frontend.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_route53_record" "www" {
   zone_id = aws_route53_zone.main.zone_id
   name    = "www.${var.domain_name}"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Home } from 'lucide-react';
 
@@ -10,12 +10,29 @@ export default function Register() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const queryParams = new URLSearchParams(window.location.search);
+    const source = queryParams.get('source');
+    const scanUrl = queryParams.get('url');
+    const scanScore = queryParams.get('score');
+
+    if (source === 'free-scan' && scanUrl) {
+      localStorage.setItem('freeScanUrl', scanUrl);
+      localStorage.setItem('freeScanScore', scanScore || '75');
+    }
+
+    if (isLoggedIn === 'true') {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
     try {
-      const response = await fetch('http://localhost:8080/auth/register', {
+      const response = await fetch('https://api.datawai.co.uk/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -31,6 +48,7 @@ export default function Register() {
         throw new Error(data.error || 'Registration failed');
       }
       
+      localStorage.setItem('isLoggedIn', 'true');
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -41,7 +59,7 @@ export default function Register() {
     <div className="auth-container">
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
-        <a href="http://localhost:3001" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+        <a href="https://www.datawai.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
           <Home size={18} /> Back to Home
         </a>
       </div>

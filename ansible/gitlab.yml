@@ -1,0 +1,109 @@
+---
+- name: Provision GitLab Server (PDPA Compliant)
+  hosts: all
+  become: yes
+  vars:
+    domain_name: "{{ domain_name | default('datawai.local') }}"
+    db_host: "{{ db_host }}"
+    db_password: "{{ db_password }}"
+    redis_host: "{{ redis_host }}"
+    redis_password: "{{ redis_password }}"
+
+  tasks:
+    - name: Update all packages
+      ansible.builtin.dnf:
+        name: '*'
+        state: latest
+        update_cache: yes
+
+    - name: Install required dependencies
+      ansible.builtin.dnf:
+        name:
+          - docker
+          - amazon-cloudwatch-agent
+          - unzip
+          - jq
+          - fail2ban
+        state: present
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Download AWS CLI v2
+      get_url:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        dest: "/tmp/awscliv2.zip"
+
+    - name: Unzip AWS CLI v2
+      unarchive:
+        src: "/tmp/awscliv2.zip"
+        dest: "/tmp/"
+        remote_src: yes
+
+    - name: Install AWS CLI v2
+      command: "/tmp/aws/install --update"
+      args:
+        creates: /usr/local/bin/aws
+
+    - name: Ensure PDPA external storage is formatted (XFS)
+      filesystem:
+        fstype: xfs
+        dev: /dev/nvme1n1
+      ignore_errors: yes # nvme1n1 might be attached as a different name depending on nitro
+
+    - name: Mount GitLab storage volume
+      mount:
+        path: /mnt/gitlab
+        src: /dev/nvme1n1
+        fstype: xfs
+        state: mounted
+      ignore_errors: yes
+
+    - name: Ensure GitLab directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0700'
+        owner: root
+        group: root
+      with_items:
+        - /mnt/gitlab/config
+        - /mnt/gitlab/logs
+        - /mnt/gitlab/data
+
+    - name: Enable fail2ban for PDPA OS security
+      systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Deploy GitLab container
+      docker_container:
+        name: gitlab
+        image: "gitlab/gitlab-ce:16.11.10-ce.0"
+        state: started
+        restart_policy: always
+        hostname: "gitlab.{{ domain_name }}"
+        published_ports:
+          - "80:80"
+        volumes:
+          - "/mnt/gitlab/config:/etc/gitlab"
+          - "/mnt/gitlab/logs:/var/log/gitlab"
+          - "/mnt/gitlab/data:/var/opt/gitlab"
+        env:
+          GITLAB_OMNIBUS_CONFIG: >
+            external_url 'https://gitlab.{{ domain_name }}';
+            nginx['listen_port'] = 80;
+            nginx['listen_https'] = false;
+            postgresql['enable'] = false;
+            gitlab_rails['db_adapter'] = 'postgresql';
+            gitlab_rails['db_encoding'] = 'unicode';
+            gitlab_rails['db_host'] = '{{ db_host }}';
+            gitlab_rails['db_password'] = '{{ db_password }}';
+            redis['enable'] = false;
+            gitlab_rails['redis_host'] = '{{ redis_host }}';
+            gitlab_rails['redis_port'] = 6379;
+            gitlab_rails['redis_password'] = '{{ redis_password }}';

@@ -11,13 +11,13 @@ output "ecr_repository_url" {
 
 output "db_endpoint" {
   description = "RDS endpoint"
-  value       = aws_db_instance.main.address
+  value       = local.db_host
   sensitive   = true
 }
 
 output "cache_endpoint" {
   description = "ElastiCache endpoint"
-  value       = aws_elasticache_cluster.main.cache_nodes[0].address
+  value       = local.redis_host
 }
 
 data "aws_caller_identity" "current" {}

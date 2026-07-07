@@ -15,20 +15,20 @@ resource "tls_private_key" "gitlab" {
 }
 
 resource "aws_key_pair" "gitlab" {
-  key_name   = "datawai-gitlab-key"
+  key_name   = "datawai-gitlab-key-${terraform.workspace}"
   public_key = tls_private_key.gitlab.public_key_openssh
 }
 
 resource "aws_instance" "gitlab" {
   ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = "t3.large"
-  subnet_id              = aws_subnet.management_private[0].id
+  instance_type          = local.is_prod ? "t3.large" : "t3.medium"
+  subnet_id              = local.gitlab_subnet_id
   vpc_security_group_ids = [aws_security_group.gitlab.id]
   key_name               = aws_key_pair.gitlab.key_name
   iam_instance_profile   = aws_iam_instance_profile.gitlab.name
 
   root_block_device {
-    volume_size = 100
+    volume_size = 50
     volume_type = "gp3"
     encrypted   = true
     kms_key_id  = aws_kms_key.gitlab.arn
@@ -36,86 +36,91 @@ resource "aws_instance" "gitlab" {
 
   ebs_block_device {
     device_name = "/dev/sdb"
-    volume_size = 500  # For repositories, artifacts, LFS
+    volume_size = local.is_prod ? 500 : 50
     volume_type = "gp3"
     encrypted   = true
     kms_key_id  = aws_kms_key.gitlab.arn
   }
 
-  user_data = <<USERDATA
+  user_data = <<-USERDATA
 #!/bin/bash
-# Install dependencies
 yum update -y
-yum install -y docker amazon-cloudwatch-agent unzip
-systemctl enable docker
-systemctl start docker
-# Download AWS CLI v2
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip -q awscliv2.zip
-./aws/install
+yum install -y ansible jq
+
+cat << 'EOF' > /tmp/gitlab.yml
+${file("${path.module}/../ansible/gitlab.yml")}
+EOF
+
+export AWS_DEFAULT_REGION=${var.region}
+DB_PASS=$(aws secretsmanager get-secret-value --secret-id ${local.db_secret_name} --query SecretString --output text)
+if [ "${local.redis_secret_name}" != "none" ]; then
+  REDIS_PASS=$(aws secretsmanager get-secret-value --secret-id ${local.redis_secret_name} --query SecretString --output text)
+else
+  REDIS_PASS="none"
+fi
+
+ansible-playbook -c local -i localhost, \
+  -e "domain_name=${var.domain_name}" \
+  -e "db_host=${local.db_host}" \
+  -e "db_password=$DB_PASS" \
+  -e "redis_host=${local.redis_host}" \
+  -e "redis_password=$REDIS_PASS" \
+  /tmp/gitlab.yml
 USERDATA
 
-  tags = {
+  tags = merge(local.tags, {
     Name = "datawai-gitlab-primary"
     PDPA = "compliant"
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  })
 }
 
 resource "aws_db_subnet_group" "gitlab" {
+  count      = local.is_prod ? 1 : 0
   name       = "datawai-gitlab-db-subnet"
   subnet_ids = aws_subnet.management_private[*].id
-  tags       = { Name = "datawai-gitlab-db-subnet" }
+  tags       = merge(local.tags, { Name = "datawai-gitlab-db-subnet" })
 }
 
 resource "aws_rds_cluster" "gitlab" {
-  cluster_identifier        = "datawai-gitlab-postgres"
-  engine                    = "aurora-postgresql"
-  engine_version            = "15.13"
-  database_name             = "gitlabhq_production"
-  master_username           = "gitlab"
-  master_password           = random_password.gitlab_db.result
-  backup_retention_period   = 30
-  preferred_backup_window   = "03:00-04:00"  # Thailand time (UTC+7)
-  vpc_security_group_ids    = [aws_security_group.gitlab_db.id]
-  db_subnet_group_name      = aws_db_subnet_group.gitlab.name
-  storage_encrypted         = true
-  kms_key_id                = aws_kms_key.gitlab.arn
-  deletion_protection       = false
-  skip_final_snapshot       = true
+  count                   = local.is_prod ? 1 : 0
+  cluster_identifier      = "datawai-gitlab-postgres"
+  engine                  = "aurora-postgresql"
+  engine_version          = "15.13"
+  database_name           = "gitlabhq_production"
+  master_username         = "gitlab"
+  master_password         = random_password.gitlab_db[0].result
+  backup_retention_period = 30
+  preferred_backup_window = "03:00-04:00"
+  vpc_security_group_ids  = [aws_security_group.gitlab_db[0].id]
+  db_subnet_group_name    = aws_db_subnet_group.gitlab[0].name
+  storage_encrypted       = true
+  kms_key_id              = aws_kms_key.gitlab.arn
+  deletion_protection     = false
+  skip_final_snapshot     = true
 
-  tags = {
+  tags = merge(local.tags, {
     PDPA          = "compliant"
     DataResidency = "thailand"
-  }
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  })
 }
 
 resource "aws_rds_cluster_instance" "gitlab" {
-  count              = 2
+  count              = local.is_prod ? 2 : 0
   identifier         = "datawai-gitlab-db-instance-${count.index + 1}"
-  cluster_identifier = aws_rds_cluster.gitlab.id
+  cluster_identifier = aws_rds_cluster.gitlab[0].id
   instance_class     = "db.t3.medium"
-  engine             = aws_rds_cluster.gitlab.engine
-  engine_version     = aws_rds_cluster.gitlab.engine_version
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  engine             = aws_rds_cluster.gitlab[0].engine
+  engine_version     = aws_rds_cluster.gitlab[0].engine_version
 }
 
 resource "aws_elasticache_subnet_group" "gitlab" {
+  count      = local.is_prod ? 1 : 0
   name       = "datawai-gitlab-cache-subnet"
   subnet_ids = aws_subnet.management_private[*].id
 }
 
 resource "aws_elasticache_replication_group" "gitlab" {
+  count                      = local.is_prod ? 1 : 0
   replication_group_id       = "datawai-gitlab-redis"
   description                = "GitLab Redis cluster"
   engine                     = "redis"
@@ -125,26 +130,28 @@ resource "aws_elasticache_replication_group" "gitlab" {
   automatic_failover_enabled = true
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  auth_token                 = random_password.gitlab_redis.result
-  subnet_group_name          = aws_elasticache_subnet_group.gitlab.name
-  security_group_ids         = [aws_security_group.gitlab_redis.id]
+  auth_token                 = random_password.gitlab_redis[0].result
+  subnet_group_name          = aws_elasticache_subnet_group.gitlab[0].name
+  security_group_ids         = [aws_security_group.gitlab_redis[0].id]
 
-  tags = {
+  tags = merge(local.tags, {
     PDPA = "compliant"
-  }
+  })
 }
 
 resource "aws_s3_bucket" "gitlab_artifacts" {
+  count  = local.is_prod ? 1 : 0
   bucket = "datawai-gitlab-artifacts-${data.aws_caller_identity.current.account_id}"
 
-  tags = {
+  tags = merge(local.tags, {
     PDPA          = "compliant"
     DataResidency = "thailand"
-  }
+  })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "gitlab_artifacts" {
-  bucket = aws_s3_bucket.gitlab_artifacts.id
+  count  = local.is_prod ? 1 : 0
+  bucket = aws_s3_bucket.gitlab_artifacts[0].id
   rule {
     apply_server_side_encryption_by_default {
       kms_master_key_id = aws_kms_key.gitlab.arn
@@ -155,14 +162,16 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "gitlab_artifacts"
 }
 
 resource "aws_s3_bucket_versioning" "gitlab_artifacts" {
-  bucket = aws_s3_bucket.gitlab_artifacts.id
+  count  = local.is_prod ? 1 : 0
+  bucket = aws_s3_bucket.gitlab_artifacts[0].id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
 resource "aws_s3_bucket_public_access_block" "gitlab_artifacts" {
-  bucket = aws_s3_bucket.gitlab_artifacts.id
+  count  = local.is_prod ? 1 : 0
+  bucket = aws_s3_bucket.gitlab_artifacts[0].id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -203,49 +212,55 @@ resource "aws_kms_key" "gitlab" {
     ]
   })
 
-  tags = {
+  tags = merge(local.tags, {
     PDPA    = "compliant"
     Purpose = "gitlab-encryption"
-  }
+  })
 }
 
 resource "aws_kms_alias" "gitlab" {
-  name          = "alias/datawai-gitlab-pdpa"
+  name          = "alias/datawai-gitlab-pdpa-${terraform.workspace}"
   target_key_id = aws_kms_key.gitlab.key_id
 }
 
 resource "random_password" "gitlab_db" {
+  count   = local.is_prod ? 1 : 0
   length  = 32
   special = false
 }
 
 resource "random_password" "gitlab_redis" {
+  count   = local.is_prod ? 1 : 0
   length  = 32
   special = false
 }
 
 resource "aws_secretsmanager_secret" "gitlab_db_password" {
+  count                   = local.is_prod ? 1 : 0
   name                    = "datawai/gitlab/db-password"
   recovery_window_in_days = 7
 }
 
 resource "aws_secretsmanager_secret_version" "gitlab_db_password" {
-  secret_id     = aws_secretsmanager_secret.gitlab_db_password.id
-  secret_string = random_password.gitlab_db.result
+  count         = local.is_prod ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.gitlab_db_password[0].id
+  secret_string = random_password.gitlab_db[0].result
 }
 
 resource "aws_secretsmanager_secret" "gitlab_redis_password" {
+  count                   = local.is_prod ? 1 : 0
   name                    = "datawai/gitlab/redis-password"
   recovery_window_in_days = 7
 }
 
 resource "aws_secretsmanager_secret_version" "gitlab_redis_password" {
-  secret_id     = aws_secretsmanager_secret.gitlab_redis_password.id
-  secret_string = random_password.gitlab_redis.result
+  count         = local.is_prod ? 1 : 0
+  secret_id     = aws_secretsmanager_secret.gitlab_redis_password[0].id
+  secret_string = random_password.gitlab_redis[0].result
 }
 
 resource "aws_iam_role" "gitlab" {
-  name = "datawai-gitlab-primary-role"
+  name = "datawai-gitlab-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -260,12 +275,12 @@ resource "aws_iam_role" "gitlab" {
 }
 
 resource "aws_iam_instance_profile" "gitlab" {
-  name = "datawai-gitlab-profile"
+  name = "datawai-gitlab-profile-${terraform.workspace}"
   role = aws_iam_role.gitlab.name
 }
 
 resource "aws_iam_policy" "gitlab_kms_secrets" {
-  name = "datawai-gitlab-kms-secrets"
+  name = "datawai-gitlab-kms-secrets-${terraform.workspace}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -293,14 +308,14 @@ resource "aws_iam_role_policy_attachment" "gitlab_ssm" {
 
 resource "aws_security_group" "gitlab" {
   name_prefix = "datawai-gitlab-"
-  vpc_id      = aws_vpc.management.id
-  description = "GitLab management security group"
+  vpc_id      = local.gitlab_vpc_id
+  description = "GitLab security group"
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.management.cidr_block, aws_vpc.main.cidr_block, aws_vpc.staging.cidr_block]
+    cidr_blocks = ["10.0.0.0/8"]
     description = "HTTPS from internal VPCs"
   }
 
@@ -308,14 +323,14 @@ resource "aws_security_group" "gitlab" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.management.cidr_block]
+    cidr_blocks = ["10.0.0.0/8"]
   }
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.management.cidr_block]
+    cidr_blocks = ["10.0.0.0/8"]
     description = "SSH from internal only"
   }
 
@@ -326,14 +341,15 @@ resource "aws_security_group" "gitlab" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags = merge(local.tags, {
     PDPA = "compliant"
-  }
+  })
 }
 
 resource "aws_security_group" "gitlab_db" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-gitlab-db-"
-  vpc_id      = aws_vpc.management.id
+  vpc_id      = aws_vpc.management[0].id
 
   ingress {
     from_port       = 5432
@@ -344,8 +360,9 @@ resource "aws_security_group" "gitlab_db" {
 }
 
 resource "aws_security_group" "gitlab_redis" {
+  count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-gitlab-redis-"
-  vpc_id      = aws_vpc.management.id
+  vpc_id      = aws_vpc.management[0].id
 
   ingress {
     from_port       = 6379
@@ -360,7 +377,7 @@ resource "aws_security_group_rule" "gitlab_ssh_from_eice" {
   from_port                = 22
   to_port                  = 22
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.eice.id
+  source_security_group_id = local.is_prod ? aws_security_group.eice[0].id : aws_security_group.test_eice[0].id
   security_group_id        = aws_security_group.gitlab.id
   description              = "SSH from EICE"
 }

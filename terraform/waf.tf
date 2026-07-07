@@ -37,7 +37,7 @@ resource "aws_wafv2_web_acl" "main" {
       not_statement {
         statement {
           geo_match_statement {
-            country_codes = ["TH"]
+            country_codes = ["TH", "GB", "SG", "US"]
           }
         }
       }
