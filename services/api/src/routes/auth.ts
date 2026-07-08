@@ -7,9 +7,13 @@ import { prisma } from '../db.js';
 const RegisterSchema = {
   body: Type.Object({
     email: Type.String({ format: 'email' }),
-    password: Type.String({ minLength: 8 }),
+    password: Type.String({ 
+      minLength: 8,
+      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
+    }),
     fullName: Type.String({ minLength: 2 }),
-    organizationName: Type.String({ minLength: 2 })
+    organizationName: Type.String({ minLength: 2 }),
+    scanId: Type.Optional(Type.String())
   })
 };
 
@@ -23,7 +27,7 @@ const LoginSchema = {
 export const authRoutes: FastifyPluginAsync = async (app) => {
   
   app.post('/auth/register', { schema: RegisterSchema }, async (request, reply) => {
-    const { email, password, fullName, organizationName } = request.body as any;
+    const { email, password, fullName, organizationName, scanId } = request.body as any;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -37,7 +41,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       const org = await tx.organization.create({
         data: { name: organizationName }
       });
-      return tx.user.create({
+      const newUser = await tx.user.create({
         data: {
           email,
           passwordHash,
@@ -46,9 +50,19 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           role: 'ADMIN'
         }
       });
+      
+      // Claim the scan if provided
+      if (scanId) {
+        await tx.scan.updateMany({
+          where: { id: scanId, organizationId: null },
+          data: { organizationId: org.id }
+        });
+      }
+      
+      return newUser;
     });
 
-    const token = app.jwt.sign({ sub: user.id, org: user.organizationId });
+    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
     return { token };
   });
 
@@ -66,7 +80,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return reply.code(401).send({ error: 'Invalid credentials' });
+      return reply.code(401).send({ error: 'User not found' });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
@@ -74,8 +88,35 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(401).send({ error: 'Invalid credentials' });
     }
 
-    const token = app.jwt.sign({ sub: user.id, org: user.organizationId });
+    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
     return { token };
+  });
+
+  // Fetch current user identity
+  app.get('/auth/me', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
+
+    const tokenUser = request.user as any;
+    const user = await prisma.user.findUnique({
+      where: { id: tokenUser.sub },
+      include: { organization: true }
+    });
+
+    if (!user) {
+      return reply.code(404).send({ error: 'User not found' });
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      organizationName: user.organization.name
+    };
   });
 
 };
