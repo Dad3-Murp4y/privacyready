@@ -11,18 +11,21 @@ export default function Register() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
     const scanUrl = queryParams.get('url');
     const scanScore = queryParams.get('score');
 
+    const scanId = queryParams.get('scanId');
+
     if (source === 'free-scan' && scanUrl) {
       localStorage.setItem('freeScanUrl', scanUrl);
       localStorage.setItem('freeScanScore', scanScore || '75');
+      if (scanId) localStorage.setItem('freeScanId', scanId);
     }
 
-    if (isLoggedIn === 'true') {
+    if (token) {
       navigate('/dashboard');
     }
   }, [navigate]);
@@ -32,14 +35,15 @@ export default function Register() {
     setError('');
     
     try {
-      const response = await fetch('https://api.datawai.co.uk/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
           fullName,
-          organizationName: orgName
+          organizationName: orgName,
+          scanId: localStorage.getItem('freeScanId') || undefined
         })
       });
       
@@ -48,7 +52,8 @@ export default function Register() {
         throw new Error(data.error || 'Registration failed');
       }
       
-      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('token', data.token);
+      localStorage.removeItem('freeScanId');
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message);
@@ -78,7 +83,7 @@ export default function Register() {
           </div>
         )}
 
-        <form className="auth-form" onSubmit={handleRegister}>
+        <form className="auth-form" onSubmit={handleRegister} autoComplete="off">
           <div className="form-group">
             <label className="form-label">Full Name</label>
             <input 
@@ -120,6 +125,7 @@ export default function Register() {
               placeholder="Min. 8 characters" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               required 
             />
           </div>

@@ -13,18 +13,32 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('');
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
+    const token = localStorage.getItem('token');
+    if (token) {
       navigate('/dashboard');
     }
   }, [navigate]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder login logic
-    if (email) {
-      localStorage.setItem('isLoggedIn', 'true');
-      navigate('/dashboard');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        navigate('/dashboard');
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Invalid credentials');
+      }
+    } catch (err) {
+      console.error('Login failed', err);
+      alert('Network error. Please try again later.');
     }
   };
 
@@ -111,7 +125,7 @@ export default function Login() {
               <p className="auth-subtitle">Log in to manage your PDPA compliance</p>
             </div>
 
-            <form className="auth-form" onSubmit={handleLogin}>
+            <form className="auth-form" onSubmit={handleLogin} autoComplete="off">
               <div className="form-group">
                 <label className="form-label">Email Address</label>
                 <input 
@@ -134,6 +148,7 @@ export default function Login() {
                   placeholder="••••••••" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   required 
                 />
               </div>

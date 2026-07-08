@@ -6,6 +6,7 @@
     domain_name: "{{ domain_name | default('datawai.local') }}"
     db_host: "{{ db_host }}"
     db_password: "{{ db_password }}"
+    db_username: "{{ db_username | default('gitlab') }}"
     redis_host: "{{ redis_host }}"
     redis_password: "{{ redis_password }}"
 
@@ -101,6 +102,8 @@
             postgresql['enable'] = false;
             gitlab_rails['db_adapter'] = 'postgresql';
             gitlab_rails['db_encoding'] = 'unicode';
+            gitlab_rails['db_username'] = '{{ db_username }}';
+            gitlab_rails['db_database'] = 'datawai';
             gitlab_rails['db_host'] = '{{ db_host }}';
             gitlab_rails['db_password'] = '{{ db_password }}';
             redis['enable'] = false;

@@ -21,7 +21,7 @@ resource "aws_key_pair" "gitlab" {
 
 resource "aws_instance" "gitlab" {
   ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = local.is_prod ? "t3.large" : "t3.medium"
+  instance_type          = local.is_prod ? "t3.xlarge" : "t3.large"
   subnet_id              = local.gitlab_subnet_id
   vpc_security_group_ids = [aws_security_group.gitlab.id]
   key_name               = aws_key_pair.gitlab.key_name
@@ -62,6 +62,7 @@ fi
 ansible-playbook -c local -i localhost, \
   -e "domain_name=${var.domain_name}" \
   -e "db_host=${local.db_host}" \
+  -e "db_username=${local.is_prod ? "gitlab" : "datawai_admin"}" \
   -e "db_password=$DB_PASS" \
   -e "redis_host=${local.redis_host}" \
   -e "redis_password=$REDIS_PASS" \
