@@ -106,7 +106,11 @@
             gitlab_rails['db_database'] = 'datawai';
             gitlab_rails['db_host'] = '{{ db_host }}';
             gitlab_rails['db_password'] = '{{ db_password }}';
+            {% if redis_host != 'none' %}
             redis['enable'] = false;
             gitlab_rails['redis_host'] = '{{ redis_host }}';
             gitlab_rails['redis_port'] = 6379;
             gitlab_rails['redis_password'] = '{{ redis_password }}';
+            {% else %}
+            redis['enable'] = true;
+            {% endif %}

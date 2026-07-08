@@ -12,8 +12,7 @@ import {
   Loader2,
   Trash2,
   ArrowRight,
-  Clock,
-  Shield
+  Clock
 } from 'lucide-react';
 
 interface AuditCheck {
@@ -288,13 +287,6 @@ export default function Dashboard() {
                 second: '2-digit'
               })}
             </div>
-            {userProfile?.role === 'SUPERADMIN' && (
-              <div style={{ marginTop: '10px' }}>
-                <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }} style={{ color: 'var(--sky)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Shield size={14} /> Super Admin
-                </a>
-              </div>
-            )}
           </div>
         )}
 
