@@ -32,10 +32,12 @@ export default function AdminDashboard() {
         if (!token) throw new Error('No token found');
 
         const [statsRes, usersRes] = await Promise.all([
-          fetch('/api/admin/stats', {
-            headers: { Authorization: `Bearer ${token}` }
+          fetch('https://api.datawai.co.uk/api/admin/stats', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
           }),
-          fetch('/api/admin/users', {
+          fetch('https://api.datawai.co.uk/api/admin/users', {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
