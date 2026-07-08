@@ -1,16 +1,20 @@
 # Security groups for load balancer, container tasks, database, and cache tiers
+data "aws_ec2_managed_prefix_list" "cloudfront_prod" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 resource "aws_security_group" "alb" {
   count       = local.is_prod ? 1 : 0
   name_prefix = "datawai-alb-"
   vpc_id      = aws_vpc.main[0].id
-  description = "ALB security group"
+  description = "ALB security group for production"
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from internet"
+    description = "HTTPS from Internet"
   }
 
   ingress {
@@ -18,8 +22,9 @@ resource "aws_security_group" "alb" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP redirect to HTTPS"
+    description = "HTTP from Internet"
   }
+
 
   egress {
     from_port   = 0

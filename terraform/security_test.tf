@@ -1,4 +1,8 @@
 # Simplified security groups for Testing Workspace
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 resource "aws_security_group" "test_alb" {
   count       = local.is_prod ? 0 : 1
   name_prefix = "datawai-test-alb-"
@@ -10,7 +14,7 @@ resource "aws_security_group" "test_alb" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from internet"
+    description = "HTTPS from Internet"
   }
 
   ingress {
@@ -18,8 +22,9 @@ resource "aws_security_group" "test_alb" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP redirect to HTTPS"
+    description = "HTTP from Internet"
   }
+
 
   egress {
     from_port   = 0
@@ -67,6 +72,14 @@ resource "aws_security_group" "test_rds" {
     protocol        = "tcp"
     security_groups = [aws_security_group.test_ecs_tasks[0].id]
     description     = "ECS tasks to RDS"
+  }
+
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.gitlab.id]
+    description     = "GitLab to RDS"
   }
 
   tags = merge(local.tags, { Name = "datawai-test-rds-sg" })

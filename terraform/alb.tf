@@ -194,10 +194,9 @@ resource "aws_lb_target_group" "gitlab" {
 }
 
 resource "aws_lb_target_group_attachment" "gitlab" {
-  target_group_arn  = aws_lb_target_group.gitlab.arn
-  target_id         = aws_instance.gitlab.private_ip
-  port              = 80
-  availability_zone = "all"
+  target_group_arn = aws_lb_target_group.gitlab.arn
+  target_id        = aws_instance.gitlab.private_ip
+  port             = 80
 }
 
 resource "aws_lb_listener_rule" "gitlab" {

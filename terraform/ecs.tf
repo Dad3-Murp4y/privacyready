@@ -187,6 +187,27 @@ resource "aws_service_discovery_service" "app" {
   tags = merge(local.tags, { Name = "datawai-api-discovery" })
 }
 
+resource "aws_service_discovery_service" "scanner" {
+  name = "scanner"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.main.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+
+  tags = merge(local.tags, { Name = "datawai-scanner-discovery" })
+}
+
 # ── IAM Roles ───────────────────────────────────────────────
 resource "aws_iam_role" "ecs_execution" {
   name = "datawai-ecs-execution-role"
@@ -472,7 +493,12 @@ resource "aws_ecs_service" "scanner" {
     container_port   = 8080
   }
 
-  depends_on = [aws_lb_listener_rule.scanner]
+  service_registries {
+    registry_arn = aws_service_discovery_service.scanner.arn
+  }
+
+  propagate_tags = "SERVICE"
+  depends_on     = [aws_lb_listener_rule.scanner]
 }
 
 resource "aws_ecs_service" "dsr" {

@@ -10,4 +10,12 @@ terraform {
       version = "~> 3.0"
     }
   }
+
+  backend "s3" {
+    bucket         = "datawai-terraform-state" # UPDATE this if the name is taken
+    key            = "platform/terraform.tfstate"
+    region         = "ap-southeast-1"
+    encrypt        = true
+    dynamodb_table = "datawai-terraform-locks"
+  }
 }

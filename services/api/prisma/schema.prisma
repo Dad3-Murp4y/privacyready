@@ -38,8 +38,8 @@ model Scan {
   score            Int?
   riskLevel        String?
   findingsJson     Json?
-  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId   String
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId   String?
   createdAt        DateTime     @default(now())
   completedAt      DateTime?
 }

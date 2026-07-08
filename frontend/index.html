@@ -2903,20 +2903,22 @@ async function startScan(e) {
     return li;
   });
 
-  // Try real API first, fall back to heuristic demo
+  // Call the public API
   let apiResults = null;
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
-    const resp = await fetch('https://api.datawai.co.uk/v1/scan', {
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout for scanner
+    const resp = await fetch('https://api.datawai.co.uk/api/public/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url.href }),
+      body: JSON.stringify({ targetIdentifier: url.href, scanType: 'Website' }),
       signal: controller.signal
     });
     clearTimeout(timeout);
     if (resp.ok) apiResults = await resp.json();
-  } catch (_) { /* fallback to heuristic below */ }
+  } catch (err) {
+    console.error("Scan API Error:", err);
+  }
 
   // Animate check-by-check reveal
   let passed = 0;
@@ -2931,19 +2933,22 @@ async function startScan(e) {
     await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
 
     // Determine result
-    let status;
-    if (apiResults && apiResults.checks) {
-      const found = apiResults.checks.find(x => x.id === c.id);
-      status = found ? found.status : 'warn';
+    let status = 'warn';
+    if (apiResults && apiResults.findingsJson) {
+      // Look for a finding matching the check's ID or label
+      const found = apiResults.findingsJson.find((x) => 
+        (x.finding_type || x.platform || '').toLowerCase().includes(c.id) ||
+        (x.finding_type || x.platform || '').toLowerCase() === c.label.en.toLowerCase()
+      );
+      if (found) {
+        status = (!found.severity || found.severity === 'low') ? 'pass' : 'fail';
+      } else {
+        // If not found in findings, assume it passed (or warn if it's a known missing check)
+        status = 'pass';
+      }
     } else {
-      // Heuristic demo based on URL properties
-      if      (c.id === 'https')           status = url.protocol === 'https:' ? 'pass' : 'fail';
-      else if (c.id === 'cookie_banner')   status = Math.random() > 0.4 ? 'fail' : 'pass';
-      else if (c.id === 'privacy_policy')  status = Math.random() > 0.3 ? 'pass' : 'fail';
-      else if (c.id === 'data_controller') status = Math.random() > 0.5 ? 'warn' : 'fail';
-      else if (c.id === 'third_party')     status = Math.random() > 0.35 ? 'fail' : 'warn';
-      else if (c.id === 'dsr_link')        status = Math.random() > 0.6 ? 'fail' : 'pass';
-      else if (c.id === 'thai_pdpa_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
+      // Fallback if API fails
+      if (c.id === 'https') status = url.protocol === 'https:' ? 'pass' : 'fail';
       else status = 'warn';
     }
 
@@ -2960,10 +2965,11 @@ async function startScan(e) {
   scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
   scoreBadge.className = 'scan-score ' + scoreClass;
 
-  // Update full-report link with scanned URL + score
+  // Update full-report link with scanned URL + score + scanId
   const reportBtn = document.getElementById('scan-full-report-btn');
   if (reportBtn) {
-    reportBtn.href = `https://portal.datawai.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}`;
+    const scanId = apiResults?.id || '';
+    reportBtn.href = `https://portal.datawai.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}`;
   }
 
   // Show CTA

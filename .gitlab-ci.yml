@@ -1,6 +1,7 @@
 stages:
   - lint-and-test
   - security-scan
+  - build-and-scan
   - deploy
   - cost-saver
 
@@ -14,6 +15,7 @@ api-lint:
   script:
     - cd services/api
     - npm ci
+    - npm run lint
     - npm run build
   rules:
     - changes:
@@ -60,6 +62,31 @@ npm-security-audit:
     - echo "Auditing Portal dependencies..."
     - cd ../../frontend/portal && npm audit --audit-level=high || true
 
+tfsec-scan:
+  stage: security-scan
+  image: aquasec/tfsec-ci
+  script:
+    - tfsec terraform/
+  allow_failure: true
+
+python-sast:
+  stage: security-scan
+  image: python:3.11-slim
+  before_script:
+    - pip install bandit safety
+  script:
+    - echo "Running Bandit SAST..."
+    - bandit -r services/scanner/ services/dsr/ -ll -ii
+    - echo "Running Safety dependency check..."
+    - safety check -r services/scanner/requirements.txt || true
+    - safety check -r services/dsr/requirements.txt || true
+
+shellcheck-scan:
+  stage: security-scan
+  image: koalaman/shellcheck-alpine:stable
+  script:
+    - shellcheck scripts/*.sh
+
 # Custom DAST Check (Verifies API security headers and endpoints)
 dast-security-check:
   stage: security-scan
@@ -73,7 +100,64 @@ dast-security-check:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 # ---------------------------------------------
-# 3. DEPLOY STAGE
+# 3. BUILD, SCAN, AND PUSH (TRIVY + ECR)
+# ---------------------------------------------
+
+.build-scan-push:
+  stage: build-and-scan
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    ECR_REGISTRY: "138973100176.dkr.ecr.ap-southeast-1.amazonaws.com"
+  before_script:
+    - apk add --no-cache aws-cli curl
+    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.0
+    - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+  script:
+    - echo "Building $SERVICE_NAME..."
+    - docker build -t $ECR_REGISTRY/$SERVICE_NAME:$CI_COMMIT_SHA $BUILD_CONTEXT
+    - echo "Scanning image with Trivy (blocking on HIGH/CRITICAL)..."
+    - trivy image --exit-code 1 --severity HIGH,CRITICAL $ECR_REGISTRY/$SERVICE_NAME:$CI_COMMIT_SHA
+    - echo "Scan passed! Pushing image to ECR..."
+    - docker push $ECR_REGISTRY/$SERVICE_NAME:$CI_COMMIT_SHA
+    - docker tag $ECR_REGISTRY/$SERVICE_NAME:$CI_COMMIT_SHA $ECR_REGISTRY/$SERVICE_NAME:latest
+    - docker push $ECR_REGISTRY/$SERVICE_NAME:latest
+
+build-api:
+  extends: .build-scan-push
+  variables:
+    SERVICE_NAME: "datawai-api"
+    BUILD_CONTEXT: "services/api"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/api/**/*
+
+build-dsr:
+  extends: .build-scan-push
+  variables:
+    SERVICE_NAME: "datawai-dsr"
+    BUILD_CONTEXT: "services/dsr"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/dsr/**/*
+
+build-scanner:
+  extends: .build-scan-push
+  variables:
+    SERVICE_NAME: "datawai-scanner"
+    BUILD_CONTEXT: "services/scanner"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/scanner/**/*
+
+# ---------------------------------------------
+# 4. DEPLOY STAGE
 # ---------------------------------------------
 
 deploy-api:
@@ -87,8 +171,30 @@ deploy-api:
       changes:
         - services/api/**/*
 
+deploy-dsr:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  script:
+    - echo "Deploying updated DSR task definition and triggering ECS update..."
+    - aws ecs update-service --cluster datawai-cluster --service datawai-dsr --force-new-deployment --region ap-southeast-1
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/dsr/**/*
+
+deploy-scanner:
+  stage: deploy
+  image: amazon/aws-cli:latest
+  script:
+    - echo "Deploying updated Scanner task definition and triggering ECS update..."
+    - aws ecs update-service --cluster datawai-cluster --service datawai-scanner --force-new-deployment --region ap-southeast-1
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - services/scanner/**/*
+
 # ---------------------------------------------
-# 4. COST-SAVER STAGES (MANUAL CLEANUP)
+# 5. COST-SAVER STAGES (MANUAL CLEANUP)
 # ---------------------------------------------
 
 environment-shutdown:

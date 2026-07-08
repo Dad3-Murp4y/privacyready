@@ -10,7 +10,10 @@ import {
   Search,
   Globe,
   Loader2,
-  Trash2
+  Trash2,
+  ArrowRight,
+  Clock,
+  Shield
 } from 'lucide-react';
 
 interface AuditCheck {
@@ -43,6 +46,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'past_audits' | 'dsr_manager'>('overview');
   
+  // User profile
+  const [userProfile, setUserProfile] = useState<{fullName: string, email: string, organizationName: string, role?: string} | null>(null);
+
   // Audits list state, initialized from backend API
   const [audits, setAudits] = useState<Audit[]>([]);
 
@@ -54,11 +60,56 @@ export default function Dashboard() {
   const [showDsrModal, setShowDsrModal] = useState(false);
   const [selectedAudit, setSelectedAudit] = useState<Audit | null>(null);
 
+  // Live Date/Time
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   useEffect(() => {
     const fetchAudits = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) return;
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        // Verify token expiration client-side
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const exp = payload.exp * 1000;
+          if (Date.now() >= exp) {
+            localStorage.removeItem('token');
+            navigate('/login');
+            return;
+          }
+          const timeUntilExp = exp - Date.now();
+          setTimeout(() => {
+            alert('Your session has expired. Please log in again.');
+            localStorage.removeItem('token');
+            navigate('/login');
+          }, timeUntilExp);
+        } catch (e) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+
+        // Fetch user profile
+        const meRes = await fetch('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (meRes.ok) {
+          setUserProfile(await meRes.json());
+        } else if (meRes.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+
         const res = await fetch('/api/scan', {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -106,7 +157,7 @@ export default function Dashboard() {
   const overallScore = audits.length > 0 
     ? Math.round(audits.reduce((acc, curr) => acc + curr.score, 0) / audits.length) 
     : 100;
-  const websiteVulnerabilities = audits.filter(a => a.type === 'Website' && a.status === 'Warning').length * 2 + 1;
+  const websiteVulnerabilities = audits.filter(a => a.type === 'Website' && a.status === 'Warning').length * 2 + (audits.length > 0 ? 1 : 0);
   const pendingDsrs = dsrs.filter(d => d.status === 'Pending' || d.status === 'In Progress').length;
 
   // Handle Sign Out
@@ -140,6 +191,10 @@ export default function Dashboard() {
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
       const res = await fetch('/api/scan', {
         method: 'POST',
         headers: { 
@@ -151,6 +206,12 @@ export default function Dashboard() {
           scanType: newAuditType
         })
       });
+
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+        return;
+      }
 
       setScanProgress(100);
       setScanLogs(prev => [...prev, '[SUCCESS] Scan completed. Fetched unified audit score from database.']);
@@ -191,7 +252,7 @@ export default function Dashboard() {
       id: `dsr-${Math.floor(Math.random() * 90000) + 10000}`,
       type: newDsrType,
       email: newDsrEmail,
-      date: 'Just now',
+      date: new Date().toLocaleString(),
       status: 'Pending',
       description: newDsrDescription
     };
@@ -205,64 +266,196 @@ export default function Dashboard() {
   return (
     <div className="dashboard-layout">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar animate-fade-up">
         <div className="sidebar-logo">
           <ShieldCheck size={28} color="var(--sky)" />
           DataWai Portal
         </div>
         
+        {userProfile && (
+          <div className="user-profile-widget">
+            <div className="user-name">{userProfile.fullName}</div>
+            <div className="user-org">{userProfile.organizationName}</div>
+            <div className="live-time-container">
+              <div className="live-indicator"></div>
+              <Clock size={12} />
+              {currentTime.toLocaleString(undefined, { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              })}
+            </div>
+            {userProfile?.role === 'SUPERADMIN' && (
+              <div style={{ marginTop: '10px' }}>
+                <a href="/admin" onClick={(e) => { e.preventDefault(); navigate('/admin'); }} style={{ color: 'var(--sky)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Shield size={14} /> Super Admin
+                </a>
+              </div>
+            )}
+          </div>
+        )}
+
         <nav className="sidebar-nav">
           <button 
             onClick={() => setActiveTab('overview')} 
             className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`}
             style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
           >
-            <Activity size={20} /> Overview
+            <Activity className="nav-icon" size={20} /> Overview
           </button>
           <button 
             onClick={() => setActiveTab('past_audits')} 
             className={`nav-item ${activeTab === 'past_audits' ? 'active' : ''}`}
             style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
           >
-            <FileText size={20} /> Past Audits
+            <FileText className="nav-icon" size={20} /> Past Audits
           </button>
           <button 
             onClick={() => setActiveTab('dsr_manager')} 
             className={`nav-item ${activeTab === 'dsr_manager' ? 'active' : ''}`}
             style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer' }}
           >
-            <UserCheck size={20} /> DSR Manager
+            <UserCheck className="nav-icon" size={20} /> DSR Manager
           </button>
         </nav>
 
-        <a href="#" className="nav-item" onClick={handleSignOut} style={{ marginTop: 'auto' }}>
-          <LogOut size={20} /> Sign Out
+        <a href="#" className="nav-item" onClick={handleSignOut} style={{ marginTop: 'auto', color: 'var(--text-secondary)' }}>
+          <LogOut className="nav-icon" size={20} /> Sign Out
         </a>
       </aside>
 
       {/* Main Content */}
       <main className="main-content">
         
-        {/* OVERVIEW TAB */}
-        {activeTab === 'overview' && (
-          <div className="tab-fade-in">
+        {/* DETAILED SCAN VIEW */}
+        {selectedAudit ? (
+          <div className="animate-fade-up">
             <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
+                <button 
+                  onClick={() => setSelectedAudit(null)}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', marginBottom: '12px', padding: 0 }}
+                  className="btn-link"
+                >
+                  <ArrowRight size={16} style={{ transform: 'rotate(180deg)' }} /> Back to Dashboard
+                </button>
+                <h1 className="page-title">{selectedAudit.target}</h1>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '8px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span>{selectedAudit.type} Scan</span>
+                  <span>•</span>
+                  <span>{selectedAudit.date}</span>
+                </p>
+              </div>
+              <div style={{ 
+                background: selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                color: selectedAudit.status === 'Passed' ? 'var(--success)' : 'var(--warning)',
+                padding: '12px 24px',
+                borderRadius: '16px',
+                border: `1px solid ${selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.2)' : 'rgba(255, 214, 0, 0.2)'}`,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                boxShadow: `0 0 20px ${selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)'}`
+              }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.8 }}>Compliance Status</span>
+                <span style={{ fontSize: '28px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>{selectedAudit.status}</span>
+              </div>
+            </header>
+
+            <div className="metric-grid animate-fade-up stagger-1" style={{ marginBottom: '32px' }}>
+              <div className="metric-card">
+                <div className="metric-label">PDPA Score</div>
+                <div className={`metric-value ${selectedAudit.score >= 80 ? 'good' : selectedAudit.score >= 50 ? 'warn' : 'danger'}`}>
+                  {selectedAudit.score}%
+                </div>
+              </div>
+              
+              <div className="metric-card">
+                <div className="metric-label">Checks Passed</div>
+                <div className="metric-value good">
+                  {selectedAudit.checks?.filter(c => c.passed).length || 0}
+                  <span style={{ fontSize: '20px', color: 'var(--text-tertiary)' }}> / {selectedAudit.checks?.length || 0}</span>
+                </div>
+              </div>
+
+              <div className="metric-card">
+                <div className="metric-label">Critical Findings</div>
+                <div className="metric-value danger">
+                  {selectedAudit.checks?.filter(c => !c.passed).length || 0}
+                </div>
+              </div>
+            </div>
+
+            <h2 style={{ fontSize: '22px', marginBottom: '20px', fontWeight: 600 }} className="animate-fade-up stagger-2">Detailed Findings</h2>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }} className="animate-fade-up stagger-2">
+              {selectedAudit.checks?.map((check, i) => (
+                <div key={i} className="content-card" style={{ 
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  textAlign: 'left',
+                  borderTop: `3px solid ${check.passed ? 'var(--success)' : 'var(--warning)'}`
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>{check.name}</h3>
+                    <span style={{ 
+                      background: check.passed ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                      color: check.passed ? 'var(--success)' : 'var(--warning)',
+                      padding: '4px 8px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      {check.passed ? 'PASS' : 'ISSUE'}
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, flex: 1, margin: 0 }}>
+                    {check.details}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {(!selectedAudit.checks || selectedAudit.checks.length === 0) && (
+               <div className="content-card animate-fade-up stagger-2" style={{ textAlign: 'left', fontFamily: 'var(--font-mono)', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                 {selectedAudit.logs?.map((log, i) => (
+                   <div key={i} style={{ marginBottom: '8px', color: log.startsWith('[WARN]') || log.startsWith('[FAIL]') ? 'var(--warning)' : log.startsWith('[SUCCESS]') ? 'var(--success)' : 'var(--text-secondary)' }}>{log}</div>
+                 ))}
+                 {(!selectedAudit.logs || selectedAudit.logs.length === 0) && "No logs or findings available for this scan."}
+               </div>
+            )}
+            
+          </div>
+        ) : (
+          <>
+        {/* OVERVIEW TAB */}
+        {activeTab === 'overview' && (
+          <div className="animate-fade-up">
+            <header className="page-header">
+              <div>
                 <h1 className="page-title">Compliance Overview</h1>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>
                   Track your PDPA health across web and social properties.
                 </p>
               </div>
-              <button className="btn-primary" onClick={() => setShowAuditModal(true)} style={{ margin: 0 }}>
+              <button className="btn btn-primary" onClick={() => setShowAuditModal(true)}>
                 <Plus size={18} /> New Audit
               </button>
             </header>
 
-            <div className="metric-grid">
+            <div className="metric-grid animate-fade-up stagger-1">
               <div className="metric-card">
                 <div className="metric-label">Overall PDPA Score</div>
                 <div className="metric-value good">{overallScore}%</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '12px' }}>
                   Based on {audits.length} active audit assets
                 </div>
               </div>
@@ -270,7 +463,7 @@ export default function Dashboard() {
               <div className="metric-card">
                 <div className="metric-label">Website Vulnerabilities</div>
                 <div className="metric-value warn">{websiteVulnerabilities}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '12px' }}>
                   Pending cookie notice consent issues
                 </div>
               </div>
@@ -278,52 +471,56 @@ export default function Dashboard() {
               <div className="metric-card">
                 <div className="metric-label">Pending DSR Requests</div>
                 <div className="metric-value danger">{pendingDsrs}</div>
-                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '12px' }}>
                   Requires urgent attention
                 </div>
               </div>
             </div>
 
-            <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ fontSize: '20px' }}>Recent Audit Reports</h2>
+            <section className="animate-fade-up stagger-2" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '32px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '22px', fontWeight: 600 }}>Recent Audit Reports</h2>
                 <button 
                   onClick={() => setActiveTab('past_audits')} 
-                  style={{ background: 'none', border: 'none', color: 'var(--sky)', cursor: 'pointer', fontSize: '14px', fontWeight: 500 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--sky)', cursor: 'pointer', fontSize: '14px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}
                 >
-                  View All
+                  View All <ArrowRight size={14} />
                 </button>
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {audits.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '32px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.01)', borderRadius: '8px', border: '1px dashed var(--glass-border)', fontSize: '14px' }}>
-                    No audit reports found. Start by running a new scan!
+                  <div className="empty-state">
+                    <Globe className="empty-icon" />
+                    <div className="empty-title">No Scans Found</div>
+                    <div className="empty-desc">Your dashboard is empty. Run your first automated PDPA compliance scan to uncover vulnerabilities.</div>
+                    <button className="btn btn-primary" onClick={() => setShowAuditModal(true)}>Start Scan</button>
                   </div>
                 ) : (
                   audits.map((audit) => (
-                  <div key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', background: 'rgba(56, 189, 248, 0.1)', color: 'var(--sky)' }}>
-                        <Globe size={18} />
+                  <div key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.3s' }} className="hover-lift">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.2))', color: 'var(--sky)' }}>
+                        <Globe size={24} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: '600' }}>{audit.target}</div>
+                        <div style={{ fontWeight: '600', fontSize: '16px', marginBottom: '4px' }}>{audit.target}</div>
                         <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{audit.date}</div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)' }}>{audit.score}%</div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Score</div>
+                        <div style={{ fontWeight: 'bold', color: 'var(--text-primary)', fontSize: '18px' }}>{audit.score}%</div>
+                        <div style={{ fontSize: '12px', color: 'var(--text-tertiary)' }}>Score</div>
                       </div>
                       <div style={{ 
-                        color: audit.status === 'Passed' ? '#4ade80' : '#facc15', 
-                        fontWeight: 'bold',
-                        background: audit.status === 'Passed' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(250, 204, 21, 0.1)',
-                        padding: '6px 12px',
+                        color: audit.status === 'Passed' ? 'var(--success)' : 'var(--warning)', 
+                        fontWeight: '600',
+                        background: audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                        padding: '8px 16px',
                         borderRadius: '20px',
-                        fontSize: '13px'
+                        fontSize: '13px',
+                        boxShadow: `0 0 10px ${audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.05)' : 'rgba(255, 214, 0, 0.05)'}`
                       }}>
                         {audit.status}
                       </div>
@@ -337,20 +534,20 @@ export default function Dashboard() {
 
         {/* PAST AUDITS TAB */}
         {activeTab === 'past_audits' && (
-          <div className="tab-fade-in">
-            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="animate-fade-up">
+            <header className="page-header">
               <div>
                 <h1 className="page-title">Audit Reports</h1>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>
                   Manage and run compliance audits on your domains and social platforms.
                 </p>
               </div>
-              <button className="btn-primary" onClick={() => setShowAuditModal(true)} style={{ margin: 0 }}>
+              <button className="btn btn-primary" onClick={() => setShowAuditModal(true)}>
                 <Plus size={18} /> Run New Audit
               </button>
             </header>
 
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }} className="animate-fade-up stagger-1">
               <div style={{ flex: 1, position: 'relative' }}>
                 <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
                 <input 
@@ -358,50 +555,46 @@ export default function Dashboard() {
                   placeholder="Search audited domains or assets..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    width: '100%',
-                    background: 'var(--glass-bg)',
-                    border: '1px solid var(--glass-border)',
-                    borderRadius: '10px',
-                    padding: '14px 16px 14px 48px',
-                    color: 'var(--text-primary)',
-                    fontSize: '15px'
-                  }}
+                  className="form-input"
+                  style={{ paddingLeft: '48px' }}
                 />
               </div>
             </div>
 
-            <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div className="animate-fade-up stagger-2" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', overflow: 'hidden', backdropFilter: 'blur(16px)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Audited Asset</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Asset Type</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Scan Date</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Compliance Score</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>PDPA Status</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Actions</th>
+                  <tr style={{ background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid var(--glass-border)' }}>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Audited Asset</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Asset Type</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Scan Date</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Compliance Score</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PDPA Status</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {audits.filter(a => a.target.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                        No audit reports found.
+                      <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <div className="empty-state" style={{ padding: 0 }}>
+                          <FileText className="empty-icon" style={{ opacity: 0.5 }} />
+                          <div className="empty-title">No records found</div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     audits.filter(a => a.target.toLowerCase().includes(searchTerm.toLowerCase())).map((audit) => (
-                    <tr key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', borderBottom: '1px solid var(--glass-border)', transition: 'background 0.2s' }} className="table-row-hover">
-                      <td style={{ padding: '16px 24px', fontWeight: 600 }}>{audit.target}</td>
-                      <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{audit.type}</td>
-                      <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{audit.date}</td>
-                      <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{audit.score}%</td>
-                      <td style={{ padding: '16px 24px' }}>
+                    <tr key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,0.03)', transition: 'background 0.2s' }} className="table-row-hover">
+                      <td style={{ padding: '20px 24px', fontWeight: 600, color: 'var(--text-primary)' }}>{audit.target}</td>
+                      <td style={{ padding: '20px 24px', color: 'var(--text-secondary)' }}>{audit.type}</td>
+                      <td style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '14px' }}>{audit.date}</td>
+                      <td style={{ padding: '20px 24px', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>{audit.score}%</td>
+                      <td style={{ padding: '20px 24px' }}>
                         <span style={{ 
-                          color: audit.status === 'Passed' ? '#4ade80' : '#facc15',
-                          background: audit.status === 'Passed' ? 'rgba(74, 222, 128, 0.08)' : 'rgba(250, 204, 21, 0.08)',
-                          padding: '4px 10px',
+                          color: audit.status === 'Passed' ? 'var(--success)' : 'var(--warning)',
+                          background: audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                          padding: '6px 12px',
                           borderRadius: '12px',
                           fontSize: '13px',
                           fontWeight: 600
@@ -409,11 +602,13 @@ export default function Dashboard() {
                           {audit.status}
                         </span>
                       </td>
-                      <td style={{ padding: '16px 24px' }} onClick={(e) => e.stopPropagation()}>
+                      <td style={{ padding: '20px 24px' }} onClick={(e) => e.stopPropagation()}>
                         <button 
                           onClick={() => setAudits(prev => prev.filter(item => item.id !== audit.id))}
-                          style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                          style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', transition: 'background 0.2s' }}
                           title="Delete Audit"
+                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 23, 68, 0.1)'}
+                          onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -428,50 +623,53 @@ export default function Dashboard() {
 
         {/* DSR MANAGER TAB */}
         {activeTab === 'dsr_manager' && (
-          <div className="tab-fade-in">
-            <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="animate-fade-up">
+            <header className="page-header">
               <div>
-                <h1 className="page-title">Data Subject Access Request (DSR) Manager</h1>
-                <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                <h1 className="page-title">Data Subject Request Manager</h1>
+                <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>
                   Receive, audit, and log consumer requests under PDPA privacy standards.
                 </p>
               </div>
-              <button className="btn-primary" onClick={() => setShowDsrModal(true)} style={{ margin: 0 }}>
+              <button className="btn btn-primary" onClick={() => setShowDsrModal(true)}>
                 <Plus size={18} /> Log Request
               </button>
             </header>
 
-            <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '16px', overflow: 'hidden' }}>
+            <div className="animate-fade-up stagger-1" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', overflow: 'hidden', backdropFilter: 'blur(16px)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--glass-border)' }}>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Request ID</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Subject Email</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Request Type</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Submitted Date</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>PDPA Timeline Status</th>
-                    <th style={{ padding: '16px 24px', color: 'var(--text-secondary)', fontWeight: 600 }}>Actions</th>
+                  <tr style={{ background: 'rgba(0,0,0,0.2)', borderBottom: '1px solid var(--glass-border)' }}>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Request ID</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Subject Email</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Request Type</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Submitted Date</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dsrs.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                        No DSR privacy requests logged yet.
+                      <td colSpan={6} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                        <div className="empty-state" style={{ padding: 0 }}>
+                          <UserCheck className="empty-icon" style={{ opacity: 0.5 }} />
+                          <div className="empty-title">No DSRs Logged</div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     dsrs.map((dsr) => (
-                      <tr key={dsr.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                        <td style={{ padding: '16px 24px', fontWeight: 'bold', color: 'var(--sky)' }}>{dsr.id}</td>
-                        <td style={{ padding: '16px 24px' }}>{dsr.email}</td>
-                        <td style={{ padding: '16px 24px', fontWeight: '500' }}>{dsr.type}</td>
-                        <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{dsr.date}</td>
-                        <td style={{ padding: '16px 24px' }}>
+                      <tr key={dsr.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                        <td style={{ padding: '20px 24px', fontWeight: 'bold', color: 'var(--sky)', fontFamily: 'var(--font-mono)' }}>{dsr.id}</td>
+                        <td style={{ padding: '20px 24px', color: 'var(--text-primary)' }}>{dsr.email}</td>
+                        <td style={{ padding: '20px 24px', fontWeight: '500' }}>{dsr.type}</td>
+                        <td style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '14px' }}>{dsr.date}</td>
+                        <td style={{ padding: '20px 24px' }}>
                           <span style={{ 
-                            color: dsr.status === 'Completed' ? '#4ade80' : dsr.status === 'In Progress' ? '#60a5fa' : '#facc15',
-                            background: dsr.status === 'Completed' ? 'rgba(74, 222, 128, 0.08)' : dsr.status === 'In Progress' ? 'rgba(96, 165, 250, 0.08)' : 'rgba(250, 204, 21, 0.08)',
-                            padding: '4px 10px',
+                            color: dsr.status === 'Completed' ? 'var(--success)' : dsr.status === 'In Progress' ? 'var(--sky)' : 'var(--warning)',
+                            background: dsr.status === 'Completed' ? 'rgba(0, 230, 118, 0.1)' : dsr.status === 'In Progress' ? 'rgba(0, 229, 255, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                            padding: '6px 12px',
                             borderRadius: '12px',
                             fontSize: '13px',
                             fontWeight: 600
@@ -479,13 +677,13 @@ export default function Dashboard() {
                             {dsr.status}
                           </span>
                         </td>
-                        <td style={{ padding: '16px 24px' }}>
+                        <td style={{ padding: '20px 24px' }}>
                           <div style={{ display: 'flex', gap: '12px' }}>
                             <button 
                               onClick={() => {
                                 alert(`DSR Request Details:\nID: ${dsr.id}\nEmail: ${dsr.email}\nType: ${dsr.type}\nNotes: ${dsr.description || 'No description provided.'}`);
                               }}
-                              style={{ background: 'none', border: 'none', color: 'var(--sky)', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}
+                              style={{ background: 'none', border: 'none', color: 'var(--sky)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}
                             >
                               Details
                             </button>
@@ -497,11 +695,11 @@ export default function Dashboard() {
                               style={{ 
                                 background: 'none', 
                                 border: 'none', 
-                                color: '#4ade80', 
+                                color: 'var(--success)', 
                                 cursor: dsr.status === 'Completed' ? 'not-allowed' : 'pointer', 
                                 opacity: dsr.status === 'Completed' ? 0.4 : 1, 
                                 fontSize: '13px', 
-                                fontWeight: 500 
+                                fontWeight: 600 
                               }}
                             >
                               Complete
@@ -516,36 +714,38 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+        </>
+      )}
 
       </main>
 
       {/* NEW AUDIT MODAL */}
       {showAuditModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--mid)', border: '1px solid var(--glass-border)', borderRadius: '20px', width: '100%', maxWidth: '500px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} className="animate-fade-up">
+          <div style={{ background: 'linear-gradient(180deg, var(--mid) 0%, var(--navy) 100%)', border: '1px solid var(--glass-border)', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '40px', position: 'relative', boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Run Remote PDPA Audit</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-              Select target type and input identifier to start.
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>Run PDPA Audit</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '32px' }}>
+              Select target type and input identifier to start scanning.
             </p>
 
             {isScanning ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Loader2 className="spin" size={24} color="var(--sky)" />
-                  <span style={{ fontWeight: '500' }}>Running scan ({scanProgress}%)</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <Loader2 className="spin" size={28} color="var(--sky)" />
+                  <span style={{ fontWeight: '600', fontSize: '16px' }}>Running deep scan ({scanProgress}%)</span>
                 </div>
                 
                 {/* Progress bar */}
-                <div style={{ background: 'rgba(0,0,0,0.3)', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div style={{ background: 'var(--sky)', width: `${scanProgress}%`, height: '100%', transition: 'width 0.4s' }} />
+                <div style={{ background: 'rgba(255,255,255,0.05)', height: '10px', borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+                  <div style={{ background: 'linear-gradient(90deg, var(--sky), var(--accent))', width: `${scanProgress}%`, height: '100%', transition: 'width 0.4s ease-out', boxShadow: '0 0 10px rgba(0, 229, 255, 0.5)' }} />
                 </div>
 
                 {/* Simulated Logs console */}
-                <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', height: '180px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.05)', padding: '20px', borderRadius: '12px', height: '200px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'inset 0 5px 15px rgba(0,0,0,0.5)' }}>
                   {scanLogs.map((log, index) => (
                     <div key={index} style={{ 
-                      color: log.startsWith('[SUCCESS]') ? '#4ade80' : log.startsWith('[WARN]') ? '#facc15' : '#94a3b8'
+                      color: log.startsWith('[SUCCESS]') ? 'var(--success)' : log.startsWith('[WARN]') ? 'var(--warning)' : 'var(--text-secondary)'
                     }}>
                       {log}
                     </div>
@@ -560,7 +760,6 @@ export default function Dashboard() {
                     value={newAuditType} 
                     onChange={(e) => setNewAuditType(e.target.value as any)}
                     className="form-input"
-                    style={{ background: 'rgba(15, 23, 42, 0.6)' }}
                   >
                     <option value="Website">Website</option>
                     <option value="Facebook">Facebook Page</option>
@@ -581,18 +780,19 @@ export default function Dashboard() {
                   />
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
                   <button 
                     type="button" 
                     onClick={() => setShowAuditModal(false)}
-                    style={{ flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: 'none', borderRadius: '10px', padding: '14px', cursor: 'pointer', fontWeight: 600 }}
+                    className="btn"
+                    style={{ flex: 1 }}
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="btn-primary" 
-                    style={{ flex: 1, margin: 0 }}
+                    className="btn btn-primary" 
+                    style={{ flex: 1 }}
                   >
                     Run Scan
                   </button>
@@ -604,54 +804,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* AUDIT DETAILS MODAL */}
-      {selectedAudit && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--mid)', border: '1px solid var(--glass-border)', borderRadius: '20px', width: '100%', maxWidth: '600px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' }}>
-            
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Audit Diagnostic Report</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
-              Detailed run logs and warnings for <strong>{selectedAudit.target}</strong>
-            </p>
-
-            <div style={{ background: '#090d16', border: '1px solid rgba(255,255,255,0.05)', padding: '16px', borderRadius: '8px', maxHeight: '300px', overflowY: 'auto', fontFamily: 'var(--font-mono)', fontSize: '13px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
-              {selectedAudit.checks && selectedAudit.checks.length > 0 ? (
-                selectedAudit.checks.map((check, i) => (
-                  <div key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ color: check.passed ? '#4ade80' : '#facc15', fontWeight: 'bold' }}>
-                        {check.passed ? '[PASS]' : '[FAIL]'}
-                      </span>
-                      <span style={{ color: '#e2e8f0', fontWeight: '600', fontSize: '14px' }}>{check.name}</span>
-                    </div>
-                    <div style={{ color: '#94a3b8', paddingLeft: '48px' }}>
-                      {check.details}
-                    </div>
-                  </div>
-                ))
-              ) : selectedAudit.logs && selectedAudit.logs.length > 0 ? (
-                selectedAudit.logs.map((log, i) => (
-                  <div key={i} style={{ color: log.startsWith('[WARN]') || log.startsWith('[FAIL]') ? '#facc15' : log.startsWith('[SUCCESS]') ? '#4ade80' : '#94a3b8' }}>
-                    {log}
-                  </div>
-                ))
-              ) : (
-                <div style={{ color: '#94a3b8' }}>No logs or breakdown available for this audit.</div>
-              )}
-            </div>
-
-            <button className="btn-primary" style={{ width: '100%', margin: 0 }} onClick={() => setSelectedAudit(null)}>Close Report</button>
-          </div>
-        </div>
-      )}
-
       {/* NEW DSR MODAL */}
       {showDsrModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
-          <div style={{ background: 'var(--mid)', border: '1px solid var(--glass-border)', borderRadius: '20px', width: '100%', maxWidth: '500px', padding: '32px', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} className="animate-fade-up">
+          <div style={{ background: 'linear-gradient(180deg, var(--mid) 0%, var(--navy) 100%)', border: '1px solid var(--glass-border)', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '40px', position: 'relative', boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' }}>Log DSR Privacy Request</h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>Log Privacy Request</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '32px' }}>
               Manually file a consumer data request received from support channels.
             </p>
 
@@ -662,7 +821,6 @@ export default function Dashboard() {
                   value={newDsrType} 
                   onChange={(e) => setNewDsrType(e.target.value)}
                   className="form-input"
-                  style={{ background: 'rgba(15, 23, 42, 0.6)' }}
                 >
                   <option value="Access">Access (Request personal records)</option>
                   <option value="Erasure">Erasure (Right to be forgotten)</option>
@@ -687,7 +845,7 @@ export default function Dashboard() {
               <div className="form-group">
                 <label className="form-label">Detailed Notes / Request Context</label>
                 <textarea 
-                  rows={3}
+                  rows={4}
                   placeholder="Provide any details about the consumer's request..."
                   value={newDsrDescription}
                   onChange={(e) => setNewDsrDescription(e.target.value)}
@@ -696,18 +854,19 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
                 <button 
                   type="button" 
                   onClick={() => setShowDsrModal(false)}
-                  style={{ flex: 1, background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', border: 'none', borderRadius: '10px', padding: '14px', cursor: 'pointer', fontWeight: 600 }}
+                  className="btn"
+                  style={{ flex: 1 }}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="btn-primary" 
-                  style={{ flex: 1, margin: 0 }}
+                  className="btn btn-primary" 
+                  style={{ flex: 1 }}
                 >
                   Submit Request
                 </button>
