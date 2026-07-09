@@ -1,6 +1,6 @@
 # ECS Cluster, Fargate services, task definitions, auto-scaling, and IAM roles configurations
 resource "aws_ecr_repository" "app" {
-  name                 = "datawai-api"
+  name                 = "privacyready-api"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -11,7 +11,7 @@ resource "aws_ecr_repository" "app" {
     encryption_type = "KMS"
   }
 
-  tags = merge(local.tags, { Name = "datawai-api" })
+  tags = merge(local.tags, { Name = "privacyready-api" })
 }
 
 resource "aws_ecr_lifecycle_policy" "app" {
@@ -34,14 +34,14 @@ resource "aws_ecr_lifecycle_policy" "app" {
 }
 
 resource "aws_ecs_cluster" "main" {
-  name = "datawai-cluster"
+  name = "privacyready-cluster"
 
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
 
-  tags = merge(local.tags, { Name = "datawai-cluster" })
+  tags = merge(local.tags, { Name = "privacyready-cluster" })
 }
 
 resource "aws_ecs_cluster_capacity_providers" "main" {
@@ -57,14 +57,14 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
 }
 
 resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/datawai-api"
+  name              = "/ecs/privacyready-api"
   retention_in_days = 30
 
-  tags = merge(local.tags, { Name = "datawai-api-logs" })
+  tags = merge(local.tags, { Name = "privacyready-api-logs" })
 }
 
 resource "aws_ecs_task_definition" "app" {
-  family                   = "datawai-api"
+  family                   = "privacyready-api"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -114,11 +114,11 @@ resource "aws_ecs_task_definition" "app" {
     }
   }])
 
-  tags = merge(local.tags, { Name = "datawai-api-task" })
+  tags = merge(local.tags, { Name = "privacyready-api-task" })
 }
 
 resource "aws_ecs_service" "app" {
-  name            = "datawai-api"
+  name            = "privacyready-api"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 2
@@ -152,18 +152,18 @@ resource "aws_ecs_service" "app" {
   }
 
   propagate_tags = "SERVICE"
-  tags           = merge(local.tags, { Name = "datawai-api-service" })
+  tags           = merge(local.tags, { Name = "privacyready-api-service" })
 
   depends_on = [aws_lb_listener.https]
 }
 
 # ── Service Discovery (for internal communication) ─────────
 resource "aws_service_discovery_private_dns_namespace" "main" {
-  name        = "datawai.local"
+  name        = "privacyready.local"
   description = "Service discovery for DataWai microservices"
   vpc         = local.vpc_id
 
-  tags = merge(local.tags, { Name = "datawai-service-discovery" })
+  tags = merge(local.tags, { Name = "privacyready-service-discovery" })
 }
 
 resource "aws_service_discovery_service" "app" {
@@ -184,7 +184,7 @@ resource "aws_service_discovery_service" "app" {
     failure_threshold = 1
   }
 
-  tags = merge(local.tags, { Name = "datawai-api-discovery" })
+  tags = merge(local.tags, { Name = "privacyready-api-discovery" })
 }
 
 resource "aws_service_discovery_service" "scanner" {
@@ -205,12 +205,12 @@ resource "aws_service_discovery_service" "scanner" {
     failure_threshold = 1
   }
 
-  tags = merge(local.tags, { Name = "datawai-scanner-discovery" })
+  tags = merge(local.tags, { Name = "privacyready-scanner-discovery" })
 }
 
 # ── IAM Roles ───────────────────────────────────────────────
 resource "aws_iam_role" "ecs_execution" {
-  name = "datawai-ecs-execution-role"
+  name = "privacyready-ecs-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -223,7 +223,7 @@ resource "aws_iam_role" "ecs_execution" {
     }]
   })
 
-  tags = merge(local.tags, { Name = "datawai-ecs-exec-role" })
+  tags = merge(local.tags, { Name = "privacyready-ecs-exec-role" })
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
@@ -232,7 +232,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 }
 
 resource "aws_iam_policy" "ecs_secrets_access" {
-  name        = "datawai-ecs-secrets-policy"
+  name        = "privacyready-ecs-secrets-policy"
   description = "Allows ECS execution role to retrieve DB password secret"
 
   policy = jsonencode({
@@ -256,7 +256,7 @@ resource "aws_iam_role_policy_attachment" "ecs_secrets" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  name = "datawai-ecs-task-role"
+  name = "privacyready-ecs-task-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -269,12 +269,12 @@ resource "aws_iam_role" "ecs_task" {
     }]
   })
 
-  tags = merge(local.tags, { Name = "datawai-ecs-task" })
+  tags = merge(local.tags, { Name = "privacyready-ecs-task" })
 }
 
 # ── CloudWatch Alarms ───────────────────────────────────────
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "datawai-high-cpu"
+  alarm_name          = "privacyready-high-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
@@ -289,11 +289,11 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
     ClusterName = aws_ecs_cluster.main.name
   }
 
-  tags = merge(local.tags, { Name = "datawai-high-cpu" })
+  tags = merge(local.tags, { Name = "privacyready-high-cpu" })
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_memory" {
-  alarm_name          = "datawai-high-memory"
+  alarm_name          = "privacyready-high-memory"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "MemoryUtilization"
@@ -308,7 +308,7 @@ resource "aws_cloudwatch_metric_alarm" "high_memory" {
     ClusterName = aws_ecs_cluster.main.name
   }
 
-  tags = merge(local.tags, { Name = "datawai-high-memory" })
+  tags = merge(local.tags, { Name = "privacyready-high-memory" })
 }
 
 # ── Auto Scaling ────────────────────────────────────────────
@@ -321,7 +321,7 @@ resource "aws_appautoscaling_target" "ecs" {
 }
 
 resource "aws_appautoscaling_policy" "cpu" {
-  name               = "datawai-cpu-autoscaling"
+  name               = "privacyready-cpu-autoscaling"
   policy_type        = "TargetTrackingScaling"
   resource_id        = aws_appautoscaling_target.ecs.resource_id
   scalable_dimension = aws_appautoscaling_target.ecs.scalable_dimension
@@ -340,39 +340,39 @@ resource "aws_appautoscaling_policy" "cpu" {
 # ── ECR Repositories ────────────────────────────────────────
 
 resource "aws_ecr_repository" "scanner" {
-  name                 = "datawai-scanner"
+  name                 = "privacyready-scanner"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration { encryption_type = "KMS" }
-  tags = merge(local.tags, { Name = "datawai-scanner" })
+  tags = merge(local.tags, { Name = "privacyready-scanner" })
 }
 
 resource "aws_ecr_repository" "dsr" {
-  name                 = "datawai-dsr"
+  name                 = "privacyready-dsr"
   image_tag_mutability = "MUTABLE"
   image_scanning_configuration { scan_on_push = true }
   encryption_configuration { encryption_type = "KMS" }
-  tags = merge(local.tags, { Name = "datawai-dsr" })
+  tags = merge(local.tags, { Name = "privacyready-dsr" })
 }
 
 # ── CloudWatch Log Groups ───────────────────────────────────
 
 resource "aws_cloudwatch_log_group" "scanner" {
-  name              = "/ecs/datawai-scanner"
+  name              = "/ecs/privacyready-scanner"
   retention_in_days = 30
-  tags              = merge(local.tags, { Name = "datawai-scanner-logs" })
+  tags              = merge(local.tags, { Name = "privacyready-scanner-logs" })
 }
 
 resource "aws_cloudwatch_log_group" "dsr" {
-  name              = "/ecs/datawai-dsr"
+  name              = "/ecs/privacyready-dsr"
   retention_in_days = 30
-  tags              = merge(local.tags, { Name = "datawai-dsr-logs" })
+  tags              = merge(local.tags, { Name = "privacyready-dsr-logs" })
 }
 
 # ── ECS Task Definitions ────────────────────────────────────
 
 resource "aws_ecs_task_definition" "scanner" {
-  family                   = "datawai-scanner"
+  family                   = "privacyready-scanner"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"
@@ -402,7 +402,7 @@ resource "aws_ecs_task_definition" "scanner" {
 }
 
 resource "aws_ecs_task_definition" "dsr" {
-  family                   = "datawai-dsr"
+  family                   = "privacyready-dsr"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -434,7 +434,7 @@ resource "aws_ecs_task_definition" "dsr" {
 # ── ECS Target Groups ───────────────────────────────────────
 
 resource "aws_lb_target_group" "scanner" {
-  name        = "datawai-tg-scanner-${terraform.workspace}"
+  name        = "privacyready-tg-scanner-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -454,7 +454,7 @@ resource "aws_lb_target_group" "scanner" {
 }
 
 resource "aws_lb_target_group" "dsr" {
-  name        = "datawai-tg-dsr-${terraform.workspace}"
+  name        = "privacyready-tg-dsr-${terraform.workspace}"
   port        = 8000
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -476,7 +476,7 @@ resource "aws_lb_target_group" "dsr" {
 # ── ECS Services ────────────────────────────────────────────
 
 resource "aws_ecs_service" "scanner" {
-  name            = "datawai-scanner"
+  name            = "privacyready-scanner"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.scanner.arn
   desired_count   = 1
@@ -502,7 +502,7 @@ resource "aws_ecs_service" "scanner" {
 }
 
 resource "aws_ecs_service" "dsr" {
-  name            = "datawai-dsr"
+  name            = "privacyready-dsr"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.dsr.arn
   desired_count   = 1

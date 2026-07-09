@@ -1,6 +1,6 @@
 # Application Load Balancer, listeners, target groups, and ACM certificate configurations
 resource "aws_lb" "main" {
-  name               = "datawai-alb"
+  name               = "privacyready-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [local.alb_sg_id]
@@ -9,12 +9,12 @@ resource "aws_lb" "main" {
   enable_deletion_protection = false
   enable_http2               = true
 
-  tags = merge(local.tags, { Name = "datawai-alb" })
+  tags = merge(local.tags, { Name = "privacyready-alb" })
 }
 
 # Target Group Blue (current stable)
 resource "aws_lb_target_group" "blue" {
-  name        = "datawai-tg-blue-${terraform.workspace}"
+  name        = "privacyready-tg-blue-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -32,12 +32,12 @@ resource "aws_lb_target_group" "blue" {
     unhealthy_threshold = 3
   }
 
-  tags = merge(local.tags, { Name = "datawai-tg-blue" })
+  tags = merge(local.tags, { Name = "privacyready-tg-blue" })
 }
 
 # Target Group Green (new deployment)
 resource "aws_lb_target_group" "green" {
-  name        = "datawai-tg-green-${terraform.workspace}"
+  name        = "privacyready-tg-green-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -55,7 +55,7 @@ resource "aws_lb_target_group" "green" {
     unhealthy_threshold = 3
   }
 
-  tags = merge(local.tags, { Name = "datawai-tg-green" })
+  tags = merge(local.tags, { Name = "privacyready-tg-green" })
 }
 
 # Listener - Production (port 80)
@@ -73,7 +73,7 @@ resource "aws_lb_listener" "http" {
     }
   }
 
-  tags = merge(local.tags, { Name = "datawai-http-redirect" })
+  tags = merge(local.tags, { Name = "privacyready-http-redirect" })
 }
 
 # ── Managed Route 53 Hosted Zone & Records ────────────────────
@@ -141,7 +141,7 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.blue.arn
   }
 
-  tags = merge(local.tags, { Name = "datawai-https-listener" })
+  tags = merge(local.tags, { Name = "privacyready-https-listener" })
 }
 
 # Listener - Test (port 8443 for green validation)
@@ -157,7 +157,7 @@ resource "aws_lb_listener" "test" {
     target_group_arn = aws_lb_target_group.green.arn
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-listener" })
+  tags = merge(local.tags, { Name = "privacyready-test-listener" })
 }
 
 resource "aws_acm_certificate_validation" "main" {
@@ -168,7 +168,7 @@ resource "aws_acm_certificate_validation" "main" {
 # ── GitLab Routing ──────────────────────────────────────────
 
 resource "aws_lb_target_group" "gitlab" {
-  name        = "datawai-tg-gitlab-${terraform.workspace}"
+  name        = "privacyready-tg-gitlab-${terraform.workspace}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -190,7 +190,7 @@ resource "aws_lb_target_group" "gitlab" {
     create_before_destroy = true
   }
 
-  tags = merge(local.tags, { Name = "datawai-tg-gitlab" })
+  tags = merge(local.tags, { Name = "privacyready-tg-gitlab" })
 }
 
 resource "aws_lb_target_group_attachment" "gitlab" {

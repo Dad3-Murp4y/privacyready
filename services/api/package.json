@@ -1,5 +1,5 @@
 {
-  "name": "@datawai/api",
+  "name": "@privacyready/api",
   "version": "2.1.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
     "lint": "eslint src/",
-    "start": "export DATABASE_URL=\"postgresql://${DB_USER:-datawai_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-datawai}\" && npx prisma db push --accept-data-loss && node dist/main.js"
+    "start": "export DATABASE_URL=\"postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}\" && npx prisma db push --accept-data-loss && node dist/main.js"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.1",

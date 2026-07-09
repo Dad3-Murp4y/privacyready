@@ -6,7 +6,7 @@ resource "aws_vpc" "management" {
   enable_dns_support   = true
 
   tags = merge(local.tags, {
-    Name        = "datawai-management-vpc"
+    Name        = "privacyready-management-vpc"
     Environment = "management"
   })
 }
@@ -14,7 +14,7 @@ resource "aws_vpc" "management" {
 resource "aws_internet_gateway" "management" {
   count  = local.is_prod ? 1 : 0
   vpc_id = aws_vpc.management[0].id
-  tags   = merge(local.tags, { Name = "datawai-management-igw", Environment = "management" })
+  tags   = merge(local.tags, { Name = "privacyready-management-igw", Environment = "management" })
 }
 
 # Public subnets (for bastion / external access)
@@ -26,7 +26,7 @@ resource "aws_subnet" "management_public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name        = "datawai-management-public-${count.index + 1}"
+    Name        = "privacyready-management-public-${count.index + 1}"
     Type        = "public"
     Environment = "management"
   })
@@ -40,7 +40,7 @@ resource "aws_subnet" "management_private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = merge(local.tags, {
-    Name        = "datawai-management-private-${count.index + 1}"
+    Name        = "privacyready-management-private-${count.index + 1}"
     Type        = "private"
     Environment = "management"
   })
@@ -50,14 +50,14 @@ resource "aws_subnet" "management_private" {
 resource "aws_eip" "management_nat" {
   count  = local.is_prod ? 1 : 0
   domain = "vpc"
-  tags   = merge(local.tags, { Name = "datawai-management-nat-eip", Environment = "management" })
+  tags   = merge(local.tags, { Name = "privacyready-management-nat-eip", Environment = "management" })
 }
 
 resource "aws_nat_gateway" "management" {
   count         = local.is_prod ? 1 : 0
   allocation_id = aws_eip.management_nat[0].id
   subnet_id     = aws_subnet.management_public[0].id
-  tags          = merge(local.tags, { Name = "datawai-management-nat", Environment = "management" })
+  tags          = merge(local.tags, { Name = "privacyready-management-nat", Environment = "management" })
 }
 
 resource "aws_route_table" "management_public" {
@@ -67,7 +67,7 @@ resource "aws_route_table" "management_public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.management[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-management-public-rt", Environment = "management" })
+  tags = merge(local.tags, { Name = "privacyready-management-public-rt", Environment = "management" })
 }
 
 resource "aws_route_table_association" "management_public" {
@@ -91,7 +91,7 @@ resource "aws_route_table" "management_private" {
     cidr_block         = aws_vpc.staging[0].cidr_block
     transit_gateway_id = aws_ec2_transit_gateway.main[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-management-private-rt", Environment = "management" })
+  tags = merge(local.tags, { Name = "privacyready-management-private-rt", Environment = "management" })
 }
 
 resource "aws_route_table_association" "management_private" {
@@ -105,5 +105,5 @@ resource "aws_ec2_instance_connect_endpoint" "main" {
   subnet_id          = aws_subnet.management_private[0].id
   security_group_ids = [aws_security_group.eice[0].id]
 
-  tags = merge(local.tags, { Name = "datawai-eice" })
+  tags = merge(local.tags, { Name = "privacyready-eice" })
 }

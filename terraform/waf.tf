@@ -1,6 +1,6 @@
 # AWS WAFv2 Regional Web ACL to protect endpoints from DDoS and unauthorized geo-access
 resource "aws_wafv2_web_acl" "main" {
-  name        = "datawai-pdpa-waf"
+  name        = "privacyready-pdpa-waf"
   description = "WAF rules for DataWai PDPA compliance"
   scope       = "REGIONAL"
 
@@ -89,7 +89,7 @@ resource "aws_wafv2_web_acl" "main" {
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "datawai-waf"
+    metric_name                = "privacyready-waf"
     sampled_requests_enabled   = true
   }
 }

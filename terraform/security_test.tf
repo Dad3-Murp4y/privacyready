@@ -5,7 +5,7 @@ data "aws_ec2_managed_prefix_list" "cloudfront" {
 
 resource "aws_security_group" "test_alb" {
   count       = local.is_prod ? 0 : 1
-  name_prefix = "datawai-test-alb-"
+  name_prefix = "privacyready-test-alb-"
   vpc_id      = aws_vpc.test[0].id
   description = "ALB security group for testing"
 
@@ -33,12 +33,12 @@ resource "aws_security_group" "test_alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-alb-sg" })
+  tags = merge(local.tags, { Name = "privacyready-test-alb-sg" })
 }
 
 resource "aws_security_group" "test_ecs_tasks" {
   count       = local.is_prod ? 0 : 1
-  name_prefix = "datawai-test-ecs-"
+  name_prefix = "privacyready-test-ecs-"
   vpc_id      = aws_vpc.test[0].id
   description = "ECS tasks security group for testing"
 
@@ -57,12 +57,12 @@ resource "aws_security_group" "test_ecs_tasks" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-ecs-sg" })
+  tags = merge(local.tags, { Name = "privacyready-test-ecs-sg" })
 }
 
 resource "aws_security_group" "test_rds" {
   count       = local.is_prod ? 0 : 1
-  name_prefix = "datawai-test-rds-"
+  name_prefix = "privacyready-test-rds-"
   vpc_id      = aws_vpc.test[0].id
   description = "RDS security group for testing"
 
@@ -82,12 +82,12 @@ resource "aws_security_group" "test_rds" {
     description     = "GitLab to RDS"
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-rds-sg" })
+  tags = merge(local.tags, { Name = "privacyready-test-rds-sg" })
 }
 
 resource "aws_security_group" "test_elasticache" {
   count       = local.is_prod ? 0 : 1
-  name_prefix = "datawai-test-cache-"
+  name_prefix = "privacyready-test-cache-"
   vpc_id      = aws_vpc.test[0].id
   description = "ElastiCache security group for testing"
 
@@ -99,12 +99,12 @@ resource "aws_security_group" "test_elasticache" {
     description     = "ECS tasks to ElastiCache"
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-cache-sg" })
+  tags = merge(local.tags, { Name = "privacyready-test-cache-sg" })
 }
 
 resource "aws_security_group" "test_eice" {
   count       = local.is_prod ? 0 : 1
-  name_prefix = "datawai-test-eice-"
+  name_prefix = "privacyready-test-eice-"
   vpc_id      = aws_vpc.test[0].id
   description = "EC2 Instance Connect Endpoint SG for testing"
 
@@ -115,5 +115,5 @@ resource "aws_security_group" "test_eice" {
     cidr_blocks = [aws_vpc.test[0].cidr_block]
   }
 
-  tags = merge(local.tags, { Name = "datawai-test-eice-sg" })
+  tags = merge(local.tags, { Name = "privacyready-test-eice-sg" })
 }

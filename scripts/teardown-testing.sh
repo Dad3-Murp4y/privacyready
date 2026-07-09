@@ -7,7 +7,7 @@ echo ""
 
 # Stop EC2
 echo "1. Stopping GitLab EC2 instance..."
-INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=datawai-gitlab-primary" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text || true)
+INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=privacyready-gitlab-primary" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text || true)
 if [ -n "$INSTANCE_ID" ] && [ "$INSTANCE_ID" != "None" ]; then
   aws ec2 stop-instances --instance-ids $INSTANCE_ID
   echo "EC2 stop command sent."
@@ -17,9 +17,9 @@ fi
 
 # Stop RDS
 echo "2. Stopping GitLab RDS cluster..."
-CLUSTER_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier datawai-gitlab-postgres --query "DBClusters[0].Status" --output text 2>/dev/null || true)
+CLUSTER_STATUS=$(aws rds describe-db-clusters --db-cluster-identifier privacyready-gitlab-postgres --query "DBClusters[0].Status" --output text 2>/dev/null || true)
 if [ "$CLUSTER_STATUS" == "available" ]; then
-  aws rds stop-db-cluster --db-cluster-identifier datawai-gitlab-postgres
+  aws rds stop-db-cluster --db-cluster-identifier privacyready-gitlab-postgres
   echo "GitLab RDS stop command sent."
 else
   echo "GitLab RDS cluster is not available or already stopped (Status: $CLUSTER_STATUS)."
@@ -27,9 +27,9 @@ fi
 
 # Stop Main RDS Instance
 echo "3. Stopping main RDS database instance..."
-DB_STATUS=$(aws rds describe-db-instances --db-instance-identifier datawai-db --query "DBInstances[0].DBInstanceStatus" --output text 2>/dev/null || true)
+DB_STATUS=$(aws rds describe-db-instances --db-instance-identifier privacyready-db --query "DBInstances[0].DBInstanceStatus" --output text 2>/dev/null || true)
 if [ "$DB_STATUS" == "available" ]; then
-  aws rds stop-db-instance --db-instance-identifier datawai-db
+  aws rds stop-db-instance --db-instance-identifier privacyready-db
   echo "Main RDS stop command sent."
 else
   echo "Main RDS instance is not available or already stopped (Status: $DB_STATUS)."
@@ -49,7 +49,7 @@ terraform destroy \
   -target=aws_nat_gateway.main \
   -target=aws_elasticache_replication_group.gitlab \
   -auto-approve \
-  -var="domain_name=datawai.local"
+  -var="domain_name=privacyready.local"
 
 echo "=== Teardown Complete ==="
 echo "Your codebase and GitLab files are safe. Expensive resources (ALB, ECS, NAT Gateways, Redis) are destroyed and databases are stopped to minimize costs."

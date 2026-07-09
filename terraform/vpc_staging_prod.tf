@@ -6,7 +6,7 @@ resource "aws_vpc" "staging" {
   enable_dns_support   = true
 
   tags = merge(local.tags, {
-    Name        = "datawai-staging-vpc"
+    Name        = "privacyready-staging-vpc"
     Environment = "staging"
   })
 }
@@ -14,7 +14,7 @@ resource "aws_vpc" "staging" {
 resource "aws_internet_gateway" "staging" {
   count  = local.is_prod ? 1 : 0
   vpc_id = aws_vpc.staging[0].id
-  tags   = merge(local.tags, { Name = "datawai-staging-igw", Environment = "staging" })
+  tags   = merge(local.tags, { Name = "privacyready-staging-igw", Environment = "staging" })
 }
 
 # Public subnets (Staging ALB)
@@ -26,7 +26,7 @@ resource "aws_subnet" "staging_public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name        = "datawai-staging-public-${count.index + 1}"
+    Name        = "privacyready-staging-public-${count.index + 1}"
     Type        = "public"
     Environment = "staging"
   })
@@ -40,7 +40,7 @@ resource "aws_subnet" "staging_private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = merge(local.tags, {
-    Name        = "datawai-staging-private-${count.index + 1}"
+    Name        = "privacyready-staging-private-${count.index + 1}"
     Type        = "private"
     Environment = "staging"
   })
@@ -50,14 +50,14 @@ resource "aws_subnet" "staging_private" {
 resource "aws_eip" "staging_nat" {
   count  = local.is_prod ? 1 : 0
   domain = "vpc"
-  tags   = merge(local.tags, { Name = "datawai-staging-nat-eip", Environment = "staging" })
+  tags   = merge(local.tags, { Name = "privacyready-staging-nat-eip", Environment = "staging" })
 }
 
 resource "aws_nat_gateway" "staging" {
   count         = local.is_prod ? 1 : 0
   allocation_id = aws_eip.staging_nat[0].id
   subnet_id     = aws_subnet.staging_public[0].id
-  tags          = merge(local.tags, { Name = "datawai-staging-nat", Environment = "staging" })
+  tags          = merge(local.tags, { Name = "privacyready-staging-nat", Environment = "staging" })
 }
 
 resource "aws_route_table" "staging_public" {
@@ -67,7 +67,7 @@ resource "aws_route_table" "staging_public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.staging[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-staging-public-rt", Environment = "staging" })
+  tags = merge(local.tags, { Name = "privacyready-staging-public-rt", Environment = "staging" })
 }
 
 resource "aws_route_table_association" "staging_public" {
@@ -91,7 +91,7 @@ resource "aws_route_table" "staging_private" {
     cidr_block         = aws_vpc.management[0].cidr_block
     transit_gateway_id = aws_ec2_transit_gateway.main[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-staging-private-rt", Environment = "staging" })
+  tags = merge(local.tags, { Name = "privacyready-staging-private-rt", Environment = "staging" })
 }
 
 resource "aws_route_table_association" "staging_private" {

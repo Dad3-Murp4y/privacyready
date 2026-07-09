@@ -13,11 +13,11 @@ variable "region" {
 variable "domain_name" {
   description = "Domain name for the application"
   type        = string
-  default     = "datawai.co.uk"
+  default     = "privacyready.co.uk"
 }
 
 variable "alert_email" {
   description = "Email address to receive CloudWatch and Route 53 alerts"
   type        = string
-  default     = "alerts.datawai@gmail.com"
+  default     = "alerts.privacyready@gmail.com"
 }

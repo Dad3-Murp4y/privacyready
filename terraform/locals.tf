@@ -1,5 +1,5 @@
 locals {
-  app_name    = "datawai-api"
+  app_name    = "privacyready-api"
   environment = var.environment
   is_prod     = terraform.workspace == "production"
 
@@ -22,7 +22,7 @@ locals {
   alb_sg_id = local.is_prod ? aws_security_group.alb[0].id : aws_security_group.test_alb[0].id
 
   tags = {
-    Project       = "datawai"
+    Project       = "privacyready"
     Environment   = local.environment
     Workspace     = terraform.workspace
     PDPA          = "compliant"

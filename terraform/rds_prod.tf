@@ -1,15 +1,15 @@
 # RDS PostgreSQL database, subnet group, and password secret configurations
 resource "aws_db_subnet_group" "main" {
   count      = local.is_prod ? 1 : 0
-  name       = "datawai-db-subnet"
+  name       = "privacyready-db-subnet"
   subnet_ids = aws_subnet.private[*].id
 
-  tags = merge(local.tags, { Name = "datawai-db-subnet" })
+  tags = merge(local.tags, { Name = "privacyready-db-subnet" })
 }
 
 resource "aws_db_instance" "main" {
   count                 = local.is_prod ? 1 : 0
-  identifier            = "datawai-db"
+  identifier            = "privacyready-db"
   engine                = "postgres"
   engine_version        = "15.13"
   instance_class        = "db.t3.micro"
@@ -18,8 +18,8 @@ resource "aws_db_instance" "main" {
   storage_type          = "gp3"
   storage_encrypted     = true
 
-  db_name  = "datawai"
-  username = "datawai_admin"
+  db_name  = "privacyready"
+  username = "privacyready_admin"
   password = random_password.db[0].result
 
   vpc_security_group_ids = [aws_security_group.rds[0].id]
@@ -34,7 +34,7 @@ resource "aws_db_instance" "main" {
   deletion_protection = false
   skip_final_snapshot = true
 
-  tags = merge(local.tags, { Name = "datawai-db" })
+  tags = merge(local.tags, { Name = "privacyready-db" })
 }
 
 resource "random_password" "db" {
@@ -45,11 +45,11 @@ resource "random_password" "db" {
 
 resource "aws_secretsmanager_secret" "db_password" {
   count                   = local.is_prod ? 1 : 0
-  name                    = "datawai/db-password"
+  name                    = "privacyready/db-password"
   description             = "DataWai database password"
   recovery_window_in_days = 7
 
-  tags = merge(local.tags, { Name = "datawai-db-secret" })
+  tags = merge(local.tags, { Name = "privacyready-db-secret" })
 }
 
 resource "aws_secretsmanager_secret_version" "db_password" {

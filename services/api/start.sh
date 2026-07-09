@@ -2,7 +2,7 @@
 set -e
 
 # Construct DATABASE_URL dynamically from ECS environment variables
-export DATABASE_URL="postgresql://${DB_USER:-datawai_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-datawai}"
+export DATABASE_URL="postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}"
 
 echo "Database Host: $DB_HOST"
 echo "Running Prisma Database Push..."

@@ -36,7 +36,7 @@ resource "aws_kms_key" "dnssec" {
 resource "aws_route53_key_signing_key" "main" {
   hosted_zone_id             = aws_route53_zone.main.id
   key_management_service_arn = aws_kms_key.dnssec.arn
-  name                       = "datawai-dnssec"
+  name                       = "privacyready-dnssec"
 }
 
 resource "aws_route53_hosted_zone_dnssec" "main" {

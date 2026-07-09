@@ -25,7 +25,7 @@ async function testSecurity() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: 'admin@datawai.com',
+      email: 'admin@privacyready.com',
       password: 'SuperSecurePassword!123',
       fullName: 'Admin User',
       organizationName: 'DataWai Test Corp'

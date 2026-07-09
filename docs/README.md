@@ -42,7 +42,7 @@ graph TD
     SES([SES Email Delivery])
     
     %% Flow
-    User -->|Visits datawai.co.uk| DNS
+    User -->|Visits privacyready.co.uk| DNS
     DNS --> CDN
     CDN --> S3_Frontend
     CDN --> S3_Portal
@@ -64,7 +64,7 @@ graph TD
     
     CloudWatch -.->|Triggers| SNS
     SNS -.->|Sends Email| SES
-    SES -.->|Alerts| Admin([Admin: alerts.datawai@gmail.com])
+    SES -.->|Alerts| Admin([Admin: alerts.privacyready@gmail.com])
     
     classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:white;
     classDef service fill:#3F8624,stroke:#232F3E,stroke-width:2px,color:white;
@@ -98,7 +98,7 @@ All backend services are dockerized, pushed to AWS Elastic Container Registry (E
 The entire infrastructure is continuously monitored for health and performance anomalies:
 - **CloudWatch Alarms**: Triggers on critical events such as high CPU utilization, high memory usage, ALB 5xx error spikes, or low RDS storage capacity.
 - **Route 53 Health Checks**: Constantly ping the API endpoints to ensure uptime.
-- **Alert Routing**: Alarms publish messages to an **Amazon SNS** topic, which in turn leverages **Amazon SES** to send formatted email notifications directly to `alerts.datawai@gmail.com`.
+- **Alert Routing**: Alarms publish messages to an **Amazon SNS** topic, which in turn leverages **Amazon SES** to send formatted email notifications directly to `alerts.privacyready@gmail.com`.
 
 ---
 
@@ -163,7 +163,7 @@ To ensure maximum security, the CI/CD pipelines do not use root or administrator
 **How to retrieve CI/CD credentials:**
 The access keys for this user are automatically generated and stored securely in AWS Secrets Manager. To configure your GitLab CI/CD Variables:
 1. Go to the AWS Secrets Manager console.
-2. Locate the secret named `datawai/gitlab/ci-credentials`.
+2. Locate the secret named `privacyready/gitlab/ci-credentials`.
 3. Copy the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` into your GitLab Project's CI/CD Settings.
 
 ---

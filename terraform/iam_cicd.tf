@@ -10,7 +10,7 @@ resource "aws_iam_access_key" "gitlab_ci" {
 
 # Policy allowing the CI/CD user to update ECS and push to specific ECR repos
 resource "aws_iam_policy" "gitlab_ci" {
-  name        = "datawai-gitlab-ci-policy"
+  name        = "privacyready-gitlab-ci-policy"
   description = "Strict least privilege policy for GitLab CI/CD deployments"
 
   policy = jsonencode({
@@ -96,7 +96,7 @@ resource "aws_iam_user_policy_attachment" "gitlab_ci" {
 
 # Store the access keys securely in Secrets Manager
 resource "aws_secretsmanager_secret" "gitlab_ci_credentials" {
-  name                    = "datawai/gitlab/ci-credentials"
+  name                    = "privacyready/gitlab/ci-credentials"
   description             = "AWS Access Keys for the gitlab-ci-deployer IAM user"
   recovery_window_in_days = 0 # Force delete without recovery window for ease of development
 

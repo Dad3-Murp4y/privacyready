@@ -12,10 +12,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "datawai-terraform-state" # UPDATE this if the name is taken
+    bucket         = "privacyready-terraform-state" # UPDATE this if the name is taken
     key            = "platform/terraform.tfstate"
     region         = "ap-southeast-1"
     encrypt        = true
-    dynamodb_table = "datawai-terraform-locks"
+    dynamodb_table = "privacyready-terraform-locks"
   }
 }

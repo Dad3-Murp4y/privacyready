@@ -22,7 +22,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://api.datawai.co.uk/api/auth/login', {
+      const res = await fetch('https://api.privacyready.co.uk/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -59,7 +59,7 @@ export default function Login() {
     <div className="auth-container">
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
-        <a href="https://www.datawai.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+        <a href="https://www.privacyready.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
           <Home size={18} /> Back to Home
         </a>
       </div>

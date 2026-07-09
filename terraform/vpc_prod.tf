@@ -6,14 +6,14 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = merge(local.tags, {
-    Name = "datawai-vpc"
+    Name = "privacyready-vpc"
   })
 }
 
 resource "aws_internet_gateway" "main" {
   count  = local.is_prod ? 1 : 0
   vpc_id = aws_vpc.main[0].id
-  tags   = merge(local.tags, { Name = "datawai-igw" })
+  tags   = merge(local.tags, { Name = "privacyready-igw" })
 }
 
 # Public subnets (ALB)
@@ -25,7 +25,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name = "datawai-public-${count.index + 1}"
+    Name = "privacyready-public-${count.index + 1}"
     Type = "public"
   })
 }
@@ -38,7 +38,7 @@ resource "aws_subnet" "private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = merge(local.tags, {
-    Name = "datawai-private-${count.index + 1}"
+    Name = "privacyready-private-${count.index + 1}"
     Type = "private"
   })
 }
@@ -47,14 +47,14 @@ resource "aws_subnet" "private" {
 resource "aws_eip" "nat" {
   count  = local.is_prod ? 1 : 0
   domain = "vpc"
-  tags   = merge(local.tags, { Name = "datawai-nat-eip" })
+  tags   = merge(local.tags, { Name = "privacyready-nat-eip" })
 }
 
 resource "aws_nat_gateway" "main" {
   count         = local.is_prod ? 1 : 0
   allocation_id = aws_eip.nat[0].id
   subnet_id     = aws_subnet.public[0].id
-  tags          = merge(local.tags, { Name = "datawai-nat" })
+  tags          = merge(local.tags, { Name = "privacyready-nat" })
 }
 
 resource "aws_route_table" "public" {
@@ -68,7 +68,7 @@ resource "aws_route_table" "public" {
     cidr_block         = aws_vpc.management[0].cidr_block
     transit_gateway_id = aws_ec2_transit_gateway.main[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-public-rt" })
+  tags = merge(local.tags, { Name = "privacyready-public-rt" })
 }
 
 resource "aws_route_table_association" "public" {
@@ -92,7 +92,7 @@ resource "aws_route_table" "private" {
     cidr_block         = aws_vpc.management[0].cidr_block
     transit_gateway_id = aws_ec2_transit_gateway.main[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-private-rt" })
+  tags = merge(local.tags, { Name = "privacyready-private-rt" })
 }
 
 resource "aws_route_table_association" "private" {

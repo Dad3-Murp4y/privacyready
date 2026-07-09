@@ -5,7 +5,7 @@ data "aws_ec2_managed_prefix_list" "cloudfront_prod" {
 
 resource "aws_security_group" "alb" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-alb-"
+  name_prefix = "privacyready-alb-"
   vpc_id      = aws_vpc.main[0].id
   description = "ALB security group for production"
 
@@ -33,12 +33,12 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "datawai-alb-sg" })
+  tags = merge(local.tags, { Name = "privacyready-alb-sg" })
 }
 
 resource "aws_security_group" "ecs_tasks" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-ecs-"
+  name_prefix = "privacyready-ecs-"
   vpc_id      = aws_vpc.main[0].id
   description = "ECS tasks security group"
 
@@ -57,12 +57,12 @@ resource "aws_security_group" "ecs_tasks" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = merge(local.tags, { Name = "datawai-ecs-sg" })
+  tags = merge(local.tags, { Name = "privacyready-ecs-sg" })
 }
 
 resource "aws_security_group" "rds" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-rds-"
+  name_prefix = "privacyready-rds-"
   vpc_id      = aws_vpc.main[0].id
   description = "RDS security group"
 
@@ -74,12 +74,12 @@ resource "aws_security_group" "rds" {
     description     = "ECS tasks to RDS"
   }
 
-  tags = merge(local.tags, { Name = "datawai-rds-sg" })
+  tags = merge(local.tags, { Name = "privacyready-rds-sg" })
 }
 
 resource "aws_security_group" "elasticache" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-cache-"
+  name_prefix = "privacyready-cache-"
   vpc_id      = aws_vpc.main[0].id
   description = "ElastiCache security group"
 
@@ -91,12 +91,12 @@ resource "aws_security_group" "elasticache" {
     description     = "ECS tasks to ElastiCache"
   }
 
-  tags = merge(local.tags, { Name = "datawai-cache-sg" })
+  tags = merge(local.tags, { Name = "privacyready-cache-sg" })
 }
 
 resource "aws_security_group" "eice" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-eice-"
+  name_prefix = "privacyready-eice-"
   vpc_id      = aws_vpc.management[0].id
   description = "EC2 Instance Connect Endpoint SG"
 
@@ -107,5 +107,5 @@ resource "aws_security_group" "eice" {
     cidr_blocks = [aws_vpc.management[0].cidr_block]
   }
 
-  tags = merge(local.tags, { Name = "datawai-eice-sg" })
+  tags = merge(local.tags, { Name = "privacyready-eice-sg" })
 }

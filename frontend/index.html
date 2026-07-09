@@ -1992,7 +1992,7 @@ footer {
     <li><a href="#services" data-lang="en">Services</a><a href="#services" data-lang="th">บริการ</a><a href="#services" data-lang="ru">Услуги</a></li>
     <li><a href="#pdpa" data-lang="en">PDPA Guide</a><a href="#pdpa" data-lang="th">คู่มือ PDPA</a><a href="#pdpa" data-lang="ru">Руководство PDPA</a></li>
     <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-    <li><a href="https://portal.datawai.co.uk" data-lang="en">Login</a><a href="https://portal.datawai.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.datawai.co.uk" data-lang="ru">Войти</a></li>
+    <li><a href="https://portal.privacyready.co.uk" data-lang="en">Login</a><a href="https://portal.privacyready.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.privacyready.co.uk" data-lang="ru">Войти</a></li>
     <li><a href="#contact" class="nav-cta" data-lang="en">Consultation</a><a href="#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
     <li class="lang-switcher">
       <button class="lang-trigger" id="langTrigger" onclick="toggleLangOverlay()" aria-label="Change language" aria-expanded="false" aria-controls="langOverlay">
@@ -2128,7 +2128,7 @@ footer {
         </div>
         <ul class="scan-checks" id="scan-checks-list"></ul>
         <div class="scan-cta" id="scan-cta" style="display:none">
-          <a href="https://portal.datawai.co.uk/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
+          <a href="https://portal.privacyready.co.uk/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
             📊 <span data-lang="en" id="report-btn-en">Get Full Report</span>
             <span data-lang="th" id="report-btn-th">รับรายงานเต็ม</span>
             <span data-lang="ru" id="report-btn-ru">Полный отчёт</span>
@@ -2908,7 +2908,7 @@ async function startScan(e) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout for scanner
-    const resp = await fetch('https://api.datawai.co.uk/api/public/scan', {
+    const resp = await fetch('https://api.privacyready.co.uk/api/public/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetIdentifier: url.href, scanType: 'Website' }),
@@ -2969,7 +2969,7 @@ async function startScan(e) {
   const reportBtn = document.getElementById('scan-full-report-btn');
   if (reportBtn) {
     const scanId = apiResults?.id || '';
-    reportBtn.href = `https://portal.datawai.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}`;
+    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}`;
   }
 
   // Show CTA
@@ -3163,7 +3163,7 @@ const overlayFooters = {
 
 function setLang(lang) {
   document.body.setAttribute('lang', lang);
-  localStorage.setItem('datawai-lang', lang);
+  localStorage.setItem('privacyready-lang', lang);
 
   // Update trigger label
   const label = document.getElementById('currentLangLabel');
@@ -3221,7 +3221,7 @@ document.addEventListener('keydown', function(e) {
 
 // Restore saved language
 (function() {
-  const saved = localStorage.getItem('datawai-lang');
+  const saved = localStorage.getItem('privacyready-lang');
   if (saved && ['en', 'th', 'ru'].includes(saved)) {
     document.body.setAttribute('lang', saved);
     const label = document.getElementById('currentLangLabel');
@@ -3270,7 +3270,7 @@ function toggleMobileMenu() {
 
 // Cookie Consent
 function acceptCookies() {
-  document.cookie = "datawai-cookies=accepted; domain=.datawai.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  document.cookie = "privacyready-cookies=accepted; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
   document.getElementById('cookieBanner').classList.remove('show');
   document.body.style.overflow = '';
 }
@@ -3280,7 +3280,7 @@ function declineCookies() {
 }
 
 (function() {
-  const consentMatch = document.cookie.match(/(?:^|;\s*)datawai-cookies=([^;]*)/);
+  const consentMatch = document.cookie.match(/(?:^|;\s*)privacyready-cookies=([^;]*)/);
   const consent = consentMatch ? consentMatch[1] : null;
   if (!consent || consent === 'declined') {
     document.getElementById('cookieBanner').classList.add('show');

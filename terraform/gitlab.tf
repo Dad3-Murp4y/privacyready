@@ -15,7 +15,7 @@ resource "tls_private_key" "gitlab" {
 }
 
 resource "aws_key_pair" "gitlab" {
-  key_name   = "datawai-gitlab-key-${terraform.workspace}"
+  key_name   = "privacyready-gitlab-key-${terraform.workspace}"
   public_key = tls_private_key.gitlab.public_key_openssh
 }
 
@@ -62,7 +62,7 @@ fi
 ansible-playbook -c local -i localhost, \
   -e "domain_name=${var.domain_name}" \
   -e "db_host=${local.db_host}" \
-  -e "db_username=${local.is_prod ? "gitlab" : "datawai_admin"}" \
+  -e "db_username=${local.is_prod ? "gitlab" : "privacyready_admin"}" \
   -e "db_password=$DB_PASS" \
   -e "redis_host=${local.redis_host}" \
   -e "redis_password=$REDIS_PASS" \
@@ -70,21 +70,21 @@ ansible-playbook -c local -i localhost, \
 USERDATA
 
   tags = merge(local.tags, {
-    Name = "datawai-gitlab-primary"
+    Name = "privacyready-gitlab-primary"
     PDPA = "compliant"
   })
 }
 
 resource "aws_db_subnet_group" "gitlab" {
   count      = local.is_prod ? 1 : 0
-  name       = "datawai-gitlab-db-subnet"
+  name       = "privacyready-gitlab-db-subnet"
   subnet_ids = aws_subnet.management_private[*].id
-  tags       = merge(local.tags, { Name = "datawai-gitlab-db-subnet" })
+  tags       = merge(local.tags, { Name = "privacyready-gitlab-db-subnet" })
 }
 
 resource "aws_rds_cluster" "gitlab" {
   count                   = local.is_prod ? 1 : 0
-  cluster_identifier      = "datawai-gitlab-postgres"
+  cluster_identifier      = "privacyready-gitlab-postgres"
   engine                  = "aurora-postgresql"
   engine_version          = "15.13"
   database_name           = "gitlabhq_production"
@@ -107,7 +107,7 @@ resource "aws_rds_cluster" "gitlab" {
 
 resource "aws_rds_cluster_instance" "gitlab" {
   count              = local.is_prod ? 2 : 0
-  identifier         = "datawai-gitlab-db-instance-${count.index + 1}"
+  identifier         = "privacyready-gitlab-db-instance-${count.index + 1}"
   cluster_identifier = aws_rds_cluster.gitlab[0].id
   instance_class     = "db.t3.medium"
   engine             = aws_rds_cluster.gitlab[0].engine
@@ -116,13 +116,13 @@ resource "aws_rds_cluster_instance" "gitlab" {
 
 resource "aws_elasticache_subnet_group" "gitlab" {
   count      = local.is_prod ? 1 : 0
-  name       = "datawai-gitlab-cache-subnet"
+  name       = "privacyready-gitlab-cache-subnet"
   subnet_ids = aws_subnet.management_private[*].id
 }
 
 resource "aws_elasticache_replication_group" "gitlab" {
   count                      = local.is_prod ? 1 : 0
-  replication_group_id       = "datawai-gitlab-redis"
+  replication_group_id       = "privacyready-gitlab-redis"
   description                = "GitLab Redis cluster"
   engine                     = "redis"
   engine_version             = "7.0"
@@ -142,7 +142,7 @@ resource "aws_elasticache_replication_group" "gitlab" {
 
 resource "aws_s3_bucket" "gitlab_artifacts" {
   count  = local.is_prod ? 1 : 0
-  bucket = "datawai-gitlab-artifacts-${data.aws_caller_identity.current.account_id}"
+  bucket = "privacyready-gitlab-artifacts-${data.aws_caller_identity.current.account_id}"
 
   tags = merge(local.tags, {
     PDPA          = "compliant"
@@ -220,7 +220,7 @@ resource "aws_kms_key" "gitlab" {
 }
 
 resource "aws_kms_alias" "gitlab" {
-  name          = "alias/datawai-gitlab-pdpa-${terraform.workspace}"
+  name          = "alias/privacyready-gitlab-pdpa-${terraform.workspace}"
   target_key_id = aws_kms_key.gitlab.key_id
 }
 
@@ -238,7 +238,7 @@ resource "random_password" "gitlab_redis" {
 
 resource "aws_secretsmanager_secret" "gitlab_db_password" {
   count                   = local.is_prod ? 1 : 0
-  name                    = "datawai/gitlab/db-password"
+  name                    = "privacyready/gitlab/db-password"
   recovery_window_in_days = 7
 }
 
@@ -250,7 +250,7 @@ resource "aws_secretsmanager_secret_version" "gitlab_db_password" {
 
 resource "aws_secretsmanager_secret" "gitlab_redis_password" {
   count                   = local.is_prod ? 1 : 0
-  name                    = "datawai/gitlab/redis-password"
+  name                    = "privacyready/gitlab/redis-password"
   recovery_window_in_days = 7
 }
 
@@ -261,7 +261,7 @@ resource "aws_secretsmanager_secret_version" "gitlab_redis_password" {
 }
 
 resource "aws_iam_role" "gitlab" {
-  name = "datawai-gitlab-role-${terraform.workspace}"
+  name = "privacyready-gitlab-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -276,12 +276,12 @@ resource "aws_iam_role" "gitlab" {
 }
 
 resource "aws_iam_instance_profile" "gitlab" {
-  name = "datawai-gitlab-profile-${terraform.workspace}"
+  name = "privacyready-gitlab-profile-${terraform.workspace}"
   role = aws_iam_role.gitlab.name
 }
 
 resource "aws_iam_policy" "gitlab_kms_secrets" {
-  name = "datawai-gitlab-kms-secrets-${terraform.workspace}"
+  name = "privacyready-gitlab-kms-secrets-${terraform.workspace}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -308,7 +308,7 @@ resource "aws_iam_role_policy_attachment" "gitlab_ssm" {
 }
 
 resource "aws_security_group" "gitlab" {
-  name_prefix = "datawai-gitlab-"
+  name_prefix = "privacyready-gitlab-"
   vpc_id      = local.gitlab_vpc_id
   description = "GitLab security group"
 
@@ -349,7 +349,7 @@ resource "aws_security_group" "gitlab" {
 
 resource "aws_security_group" "gitlab_db" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-gitlab-db-"
+  name_prefix = "privacyready-gitlab-db-"
   vpc_id      = aws_vpc.management[0].id
 
   ingress {
@@ -362,7 +362,7 @@ resource "aws_security_group" "gitlab_db" {
 
 resource "aws_security_group" "gitlab_redis" {
   count       = local.is_prod ? 1 : 0
-  name_prefix = "datawai-gitlab-redis-"
+  name_prefix = "privacyready-gitlab-redis-"
   vpc_id      = aws_vpc.management[0].id
 
   ingress {

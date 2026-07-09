@@ -1,7 +1,7 @@
 # S3 Bucket for Static Frontend (Landing Page)
 resource "aws_s3_bucket" "frontend" {
-  bucket = "datawai-frontend-${data.aws_caller_identity.current.account_id}"
-  tags   = merge(local.tags, { Name = "datawai-frontend" })
+  bucket = "privacyready-frontend-${data.aws_caller_identity.current.account_id}"
+  tags   = merge(local.tags, { Name = "privacyready-frontend" })
 }
 
 resource "aws_s3_bucket_ownership_controls" "frontend" {
@@ -52,8 +52,8 @@ resource "aws_s3_bucket_policy" "frontend" {
 
 # S3 Bucket for Portal (React App)
 resource "aws_s3_bucket" "portal" {
-  bucket = "datawai-portal-${data.aws_caller_identity.current.account_id}"
-  tags   = merge(local.tags, { Name = "datawai-portal" })
+  bucket = "privacyready-portal-${data.aws_caller_identity.current.account_id}"
+  tags   = merge(local.tags, { Name = "privacyready-portal" })
 }
 
 resource "aws_s3_bucket_ownership_controls" "portal" {

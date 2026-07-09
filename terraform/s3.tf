@@ -1,8 +1,8 @@
 # S3 bucket configuration for application storage
 resource "aws_s3_bucket" "app" {
-  bucket = "datawai-app-data-${data.aws_caller_identity.current.account_id}"
+  bucket = "privacyready-app-data-${data.aws_caller_identity.current.account_id}"
 
-  tags = merge(local.tags, { Name = "datawai-app-data" })
+  tags = merge(local.tags, { Name = "privacyready-app-data" })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "app" {

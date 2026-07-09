@@ -12,14 +12,14 @@ export async function registerSecurity(app: FastifyInstance) {
         return;
       }
       const allowed = [
-        'https://portal.datawai.co.uk',
-        'https://www.datawai.co.uk',
+        'https://portal.privacyready.co.uk',
+        'https://www.privacyready.co.uk',
         'http://localhost:3001',
         'http://localhost:5173'
       ];
       try {
         const hostname = new URL(origin).hostname;
-        if (allowed.includes(origin) || hostname === 'datawai.co.uk' || hostname.endsWith('.datawai.co.uk')) {
+        if (allowed.includes(origin) || hostname === 'privacyready.co.uk' || hostname.endsWith('.privacyready.co.uk')) {
           cb(null, true);
         } else {
           cb(new Error('Not allowed by CORS'), false);

@@ -98,7 +98,7 @@ export default function Dashboard() {
         }
 
         // Fetch user profile
-        const meRes = await fetch('https://api.datawai.co.uk/api/auth/me', {
+        const meRes = await fetch('https://api.privacyready.co.uk/api/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (meRes.ok) {
@@ -109,7 +109,7 @@ export default function Dashboard() {
           return;
         }
 
-        const res = await fetch('https://api.datawai.co.uk/api/scan', {
+        const res = await fetch('https://api.privacyready.co.uk/api/scan', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -194,7 +194,7 @@ export default function Dashboard() {
         navigate('/login');
         return;
       }
-      const res = await fetch('https://api.datawai.co.uk/api/scan', {
+      const res = await fetch('https://api.privacyready.co.uk/api/scan', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -765,7 +765,7 @@ export default function Dashboard() {
                   <input 
                     type="text" 
                     required 
-                    placeholder={newAuditType === 'Website' ? 'https://example.com' : 'e.g. datawai.compliance'}
+                    placeholder={newAuditType === 'Website' ? 'https://example.com' : 'e.g. privacyready.compliance'}
                     value={newAuditUrl}
                     onChange={(e) => setNewAuditUrl(e.target.value)}
                     className="form-input"

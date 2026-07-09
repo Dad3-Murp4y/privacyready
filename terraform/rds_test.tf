@@ -1,15 +1,15 @@
 # RDS PostgreSQL database for Testing Workspace (Single-node)
 resource "aws_db_subnet_group" "test" {
   count      = local.is_prod ? 0 : 1
-  name       = "datawai-test-db-subnet"
+  name       = "privacyready-test-db-subnet"
   subnet_ids = aws_subnet.test_private[*].id
 
-  tags = merge(local.tags, { Name = "datawai-test-db-subnet" })
+  tags = merge(local.tags, { Name = "privacyready-test-db-subnet" })
 }
 
 resource "aws_db_instance" "test_db" {
   count                 = local.is_prod ? 0 : 1
-  identifier            = "datawai-test-db"
+  identifier            = "privacyready-test-db"
   engine                = "postgres"
   engine_version        = "15.13"
   instance_class        = "db.t3.micro"
@@ -18,8 +18,8 @@ resource "aws_db_instance" "test_db" {
   storage_type          = "gp3"
   storage_encrypted     = true
 
-  db_name  = "datawai"
-  username = "datawai_admin"
+  db_name  = "privacyready"
+  username = "privacyready_admin"
   password = random_password.test_db[0].result
 
   vpc_security_group_ids = [aws_security_group.test_rds[0].id]
@@ -34,7 +34,7 @@ resource "aws_db_instance" "test_db" {
   deletion_protection = false
   skip_final_snapshot = true
 
-  tags = merge(local.tags, { Name = "datawai-test-db" })
+  tags = merge(local.tags, { Name = "privacyready-test-db" })
 }
 
 resource "random_password" "test_db" {
@@ -45,11 +45,11 @@ resource "random_password" "test_db" {
 
 resource "aws_secretsmanager_secret" "test_db_password" {
   count                   = local.is_prod ? 0 : 1
-  name                    = "datawai/test-db-password"
+  name                    = "privacyready/test-db-password"
   description             = "DataWai test database password"
   recovery_window_in_days = 0 # No recovery window needed for testing
 
-  tags = merge(local.tags, { Name = "datawai-test-db-secret" })
+  tags = merge(local.tags, { Name = "privacyready-test-db-secret" })
 }
 
 resource "aws_secretsmanager_secret_version" "test_db_password" {

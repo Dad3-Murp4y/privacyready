@@ -6,7 +6,7 @@ resource "aws_ec2_transit_gateway" "main" {
   default_route_table_propagation = "enable"
   dns_support                     = "enable"
 
-  tags = merge(local.tags, { Name = "datawai-tgw" })
+  tags = merge(local.tags, { Name = "privacyready-tgw" })
 }
 
 # Attach Production VPC to Transit Gateway
@@ -16,7 +16,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "production" {
   vpc_id             = aws_vpc.main[0].id
   subnet_ids         = aws_subnet.private[*].id
 
-  tags = merge(local.tags, { Name = "datawai-production-tgw-attachment" })
+  tags = merge(local.tags, { Name = "privacyready-production-tgw-attachment" })
 }
 
 # Attach Staging VPC to Transit Gateway
@@ -26,7 +26,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "staging" {
   vpc_id             = aws_vpc.staging[0].id
   subnet_ids         = aws_subnet.staging_private[*].id
 
-  tags = merge(local.tags, { Name = "datawai-staging-tgw-attachment" })
+  tags = merge(local.tags, { Name = "privacyready-staging-tgw-attachment" })
 }
 
 # Attach Management VPC to Transit Gateway
@@ -36,6 +36,6 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "management" {
   vpc_id             = aws_vpc.management[0].id
   subnet_ids         = aws_subnet.management_private[*].id
 
-  tags = merge(local.tags, { Name = "datawai-management-tgw-attachment" })
+  tags = merge(local.tags, { Name = "privacyready-management-tgw-attachment" })
 }
 

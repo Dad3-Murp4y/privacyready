@@ -14,7 +14,7 @@ const overlayFooters = {
 
 function setLang(lang) {
   document.body.setAttribute('lang', lang);
-  localStorage.setItem('datawai-lang', lang);
+  localStorage.setItem('privacyready-lang', lang);
 
   // Update trigger label
   const label = document.getElementById('currentLangLabel');
@@ -72,7 +72,7 @@ document.addEventListener('keydown', function(e) {
 
 // Restore saved language
 (function() {
-  const saved = localStorage.getItem('datawai-lang');
+  const saved = localStorage.getItem('privacyready-lang');
   if (saved && ['en', 'th', 'ru'].includes(saved)) {
     document.body.setAttribute('lang', saved);
     const label = document.getElementById('currentLangLabel');
@@ -121,17 +121,17 @@ function toggleMobileMenu() {
 
 // Cookie Consent
 function acceptCookies() {
-  localStorage.setItem('datawai-cookies', 'accepted');
+  localStorage.setItem('privacyready-cookies', 'accepted');
   document.getElementById('cookieBanner').classList.remove('show');
 }
 
 function declineCookies() {
-  localStorage.setItem('datawai-cookies', 'declined');
+  localStorage.setItem('privacyready-cookies', 'declined');
   document.getElementById('cookieBanner').classList.remove('show');
 }
 
 (function() {
-  const consent = localStorage.getItem('datawai-cookies');
+  const consent = localStorage.getItem('privacyready-cookies');
   if (!consent) {
     setTimeout(function() {
       document.getElementById('cookieBanner').classList.add('show');
@@ -260,7 +260,7 @@ async function startScan(e) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 12000);
-    const resp = await fetch('https://api.datawai.com/v1/scan', {
+    const resp = await fetch('https://api.privacyready.com/v1/scan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: url.href }),

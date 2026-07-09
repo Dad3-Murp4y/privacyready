@@ -5,13 +5,13 @@ resource "aws_vpc" "test" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = merge(local.tags, { Name = "datawai-test-vpc" })
+  tags = merge(local.tags, { Name = "privacyready-test-vpc" })
 }
 
 resource "aws_internet_gateway" "test" {
   count  = local.is_prod ? 0 : 1
   vpc_id = aws_vpc.test[0].id
-  tags   = merge(local.tags, { Name = "datawai-test-igw" })
+  tags   = merge(local.tags, { Name = "privacyready-test-igw" })
 }
 
 # Public subnets (ALB & Bastion)
@@ -23,7 +23,7 @@ resource "aws_subnet" "test_public" {
   map_public_ip_on_launch = true
 
   tags = merge(local.tags, {
-    Name = "datawai-test-public-${count.index + 1}"
+    Name = "privacyready-test-public-${count.index + 1}"
     Type = "public"
   })
 }
@@ -36,7 +36,7 @@ resource "aws_subnet" "test_private" {
   availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = merge(local.tags, {
-    Name = "datawai-test-private-${count.index + 1}"
+    Name = "privacyready-test-private-${count.index + 1}"
     Type = "private"
   })
 }
@@ -45,14 +45,14 @@ resource "aws_subnet" "test_private" {
 resource "aws_eip" "test_nat" {
   count  = local.is_prod ? 0 : 1
   domain = "vpc"
-  tags   = merge(local.tags, { Name = "datawai-test-nat-eip" })
+  tags   = merge(local.tags, { Name = "privacyready-test-nat-eip" })
 }
 
 resource "aws_nat_gateway" "test" {
   count         = local.is_prod ? 0 : 1
   allocation_id = aws_eip.test_nat[0].id
   subnet_id     = aws_subnet.test_public[0].id
-  tags          = merge(local.tags, { Name = "datawai-test-nat" })
+  tags          = merge(local.tags, { Name = "privacyready-test-nat" })
 }
 
 resource "aws_route_table" "test_public" {
@@ -62,7 +62,7 @@ resource "aws_route_table" "test_public" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.test[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-test-public-rt" })
+  tags = merge(local.tags, { Name = "privacyready-test-public-rt" })
 }
 
 resource "aws_route_table_association" "test_public" {
@@ -78,7 +78,7 @@ resource "aws_route_table" "test_private" {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.test[0].id
   }
-  tags = merge(local.tags, { Name = "datawai-test-private-rt" })
+  tags = merge(local.tags, { Name = "privacyready-test-private-rt" })
 }
 
 resource "aws_route_table_association" "test_private" {
@@ -92,5 +92,5 @@ resource "aws_ec2_instance_connect_endpoint" "test" {
   subnet_id          = aws_subnet.test_private[0].id
   security_group_ids = [aws_security_group.test_eice[0].id]
 
-  tags = merge(local.tags, { Name = "datawai-test-eice" })
+  tags = merge(local.tags, { Name = "privacyready-test-eice" })
 }

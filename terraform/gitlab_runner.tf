@@ -21,13 +21,13 @@ yum install -y docker gitlab-runner
 USERDATA
 
   tags = {
-    Name = "datawai-gitlab-runner-${count.index + 1}"
+    Name = "privacyready-gitlab-runner-${count.index + 1}"
     PDPA = "compliant"
   }
 }
 
 resource "aws_s3_bucket" "gitlab_runner_cache" {
-  bucket = "datawai-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}-${terraform.workspace}"
+  bucket = "privacyready-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}-${terraform.workspace}"
 
   tags = {
     PDPA          = "compliant"
@@ -61,7 +61,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "gitlab_runner_cache" {
 }
 
 resource "aws_security_group" "gitlab_runner" {
-  name_prefix = "datawai-runner-"
+  name_prefix = "privacyready-runner-"
   vpc_id      = local.gitlab_vpc_id
   description = "GitLab runner security group"
 
@@ -83,7 +83,7 @@ resource "random_password" "gitlab_runner_token" {
 }
 
 resource "aws_secretsmanager_secret" "gitlab_runner_token" {
-  name                    = "datawai/gitlab/runner-token-${terraform.workspace}"
+  name                    = "privacyready/gitlab/runner-token-${terraform.workspace}"
   recovery_window_in_days = 7
 }
 
@@ -93,7 +93,7 @@ resource "aws_secretsmanager_secret_version" "gitlab_runner_token" {
 }
 
 resource "aws_iam_role" "gitlab_runner" {
-  name = "datawai-gitlab-runner-role-${terraform.workspace}"
+  name = "privacyready-gitlab-runner-role-${terraform.workspace}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -108,12 +108,12 @@ resource "aws_iam_role" "gitlab_runner" {
 }
 
 resource "aws_iam_instance_profile" "gitlab_runner" {
-  name = "datawai-gitlab-runner-profile-${terraform.workspace}"
+  name = "privacyready-gitlab-runner-profile-${terraform.workspace}"
   role = aws_iam_role.gitlab_runner.name
 }
 
 resource "aws_iam_policy" "gitlab_runner_s3" {
-  name = "datawai-gitlab-runner-s3-${terraform.workspace}"
+  name = "privacyready-gitlab-runner-s3-${terraform.workspace}"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

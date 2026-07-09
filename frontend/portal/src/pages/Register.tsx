@@ -35,7 +35,7 @@ export default function Register() {
     setError('');
     
     try {
-      const response = await fetch('https://api.datawai.co.uk/api/auth/register', {
+      const response = await fetch('https://api.privacyready.co.uk/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,7 +64,7 @@ export default function Register() {
     <div className="auth-container">
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
-        <a href="https://www.datawai.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+        <a href="https://www.privacyready.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
           <Home size={18} /> Back to Home
         </a>
       </div>

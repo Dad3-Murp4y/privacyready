@@ -11,7 +11,7 @@ resource "aws_route53_record" "ses_verification" {
 }
 
 resource "aws_sns_topic" "alerts" {
-  name = "datawai-alerts"
+  name = "privacyready-alerts"
 }
 
 resource "aws_sns_topic_subscription" "alerts_email" {
@@ -29,12 +29,12 @@ resource "aws_route53_health_check" "api" {
   request_interval  = "30"
 
   tags = {
-    Name = "datawai-api-health"
+    Name = "privacyready-api-health"
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "health_check" {
-  alarm_name          = "datawai-api-health-check-failed"
+  alarm_name          = "privacyready-api-health-check-failed"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
   metric_name         = "HealthCheckStatus"
@@ -50,7 +50,7 @@ resource "aws_cloudwatch_metric_alarm" "health_check" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "api_cpu" {
-  alarm_name          = "datawai-api-high-cpu"
+  alarm_name          = "privacyready-api-high-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -67,7 +67,7 @@ resource "aws_cloudwatch_metric_alarm" "api_cpu" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
-  alarm_name          = "datawai-alb-5xx-errors"
+  alarm_name          = "privacyready-alb-5xx-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "1"
   metric_name         = "HTTPCode_Target_5XX_Count"
@@ -83,7 +83,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_storage" {
-  alarm_name          = "datawai-rds-low-storage"
+  alarm_name          = "privacyready-rds-low-storage"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
   metric_name         = "FreeStorageSpace"
