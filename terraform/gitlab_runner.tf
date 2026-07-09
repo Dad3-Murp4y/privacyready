@@ -22,7 +22,7 @@ USERDATA
 
   tags = {
     Name = "privacyready-gitlab-runner-${count.index + 1}"
-    PDPA = "compliant"
+    GDPR = "compliant"
   }
 }
 
@@ -30,7 +30,7 @@ resource "aws_s3_bucket" "gitlab_runner_cache" {
   bucket = "privacyready-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}-${terraform.workspace}"
 
   tags = {
-    PDPA          = "compliant"
+    GDPR          = "compliant"
     DataResidency = "thailand"
   }
 }
@@ -73,7 +73,7 @@ resource "aws_security_group" "gitlab_runner" {
   }
 
   tags = {
-    PDPA = "compliant"
+    GDPR = "compliant"
   }
 }
 

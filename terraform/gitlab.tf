@@ -71,7 +71,7 @@ USERDATA
 
   tags = merge(local.tags, {
     Name = "privacyready-gitlab-primary"
-    PDPA = "compliant"
+    GDPR = "compliant"
   })
 }
 
@@ -100,7 +100,7 @@ resource "aws_rds_cluster" "gitlab" {
   skip_final_snapshot     = true
 
   tags = merge(local.tags, {
-    PDPA          = "compliant"
+    GDPR          = "compliant"
     DataResidency = "thailand"
   })
 }
@@ -136,7 +136,7 @@ resource "aws_elasticache_replication_group" "gitlab" {
   security_group_ids         = [aws_security_group.gitlab_redis[0].id]
 
   tags = merge(local.tags, {
-    PDPA = "compliant"
+    GDPR = "compliant"
   })
 }
 
@@ -145,7 +145,7 @@ resource "aws_s3_bucket" "gitlab_artifacts" {
   bucket = "privacyready-gitlab-artifacts-${data.aws_caller_identity.current.account_id}"
 
   tags = merge(local.tags, {
-    PDPA          = "compliant"
+    GDPR          = "compliant"
     DataResidency = "thailand"
   })
 }
@@ -181,7 +181,7 @@ resource "aws_s3_bucket_public_access_block" "gitlab_artifacts" {
 }
 
 resource "aws_kms_key" "gitlab" {
-  description             = "GitLab PDPA encryption key"
+  description             = "GitLab GDPR encryption key"
   deletion_window_in_days = 30
   enable_key_rotation     = true
 
@@ -214,13 +214,13 @@ resource "aws_kms_key" "gitlab" {
   })
 
   tags = merge(local.tags, {
-    PDPA    = "compliant"
+    GDPR    = "compliant"
     Purpose = "gitlab-encryption"
   })
 }
 
 resource "aws_kms_alias" "gitlab" {
-  name          = "alias/privacyready-gitlab-pdpa-${terraform.workspace}"
+  name          = "alias/privacyready-gitlab-gdpr-${terraform.workspace}"
   target_key_id = aws_kms_key.gitlab.key_id
 }
 
@@ -343,7 +343,7 @@ resource "aws_security_group" "gitlab" {
   }
 
   tags = merge(local.tags, {
-    PDPA = "compliant"
+    GDPR = "compliant"
   })
 }
 

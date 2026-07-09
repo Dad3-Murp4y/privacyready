@@ -14,7 +14,7 @@ class FacebookFinding:
     severity: str = ""      # critical, high, medium, low
     description: str = ""
     evidence: str = ""
-    pdpa_article: str = ""  # Which PDPA article is violated
+    gdpr_article: str = ""  # Which GDPR article is violated
     remediation: str = ""
 
 class FacebookScanner:
@@ -25,7 +25,7 @@ class FacebookScanner:
         self.findings: List[FacebookFinding] = []
     
     def scan_all(self) -> List[FacebookFinding]:
-        """Run complete Facebook PDPA audit"""
+        """Run complete Facebook GDPR audit"""
         self.scan_lead_forms()
         self.scan_messenger_settings()
         self.scan_pixel_configuration()
@@ -67,7 +67,7 @@ class FacebookScanner:
                     severity='critical' if sensitive_fields else 'high',
                     description=f"Lead form '{form.get('name')}' collects data without proper consent",
                     evidence=f"Privacy policy: {has_privacy}, Consent checkbox: {has_consent}, Sensitive fields: {sensitive_fields}",
-                    pdpa_article='Article 19 (Consent), Article 23 (Collection limitation)',
+                    gdpr_article='Article 19 (Consent), Article 23 (Collection limitation)',
                     remediation='Add privacy policy link and explicit consent checkbox before form submission'
                 ))
     
@@ -87,7 +87,7 @@ class FacebookScanner:
                 severity='medium',
                 description='Messenger chat plugin enabled — conversations may contain PII without consent',
                 evidence='Chat plugin is active on website',
-                pdpa_article='Article 19 (Consent)',
+                gdpr_article='Article 19 (Consent)',
                 remediation='Add pre-chat consent message: "By continuing, you agree to our privacy policy"'
             ))
     
@@ -111,7 +111,7 @@ class FacebookScanner:
                     severity='high',
                     description='Facebook Pixel using Advanced Matching without explicit consent',
                     evidence=f"Auto-matching fields: {auto_match}",
-                    pdpa_article='Article 19 (Consent), Article 37 (Security)',
+                    gdpr_article='Article 19 (Consent), Article 37 (Security)',
                     remediation='Implement consent banner before pixel fires; disable auto-matching until consent'
                 ))
     
@@ -151,7 +151,7 @@ class FacebookScanner:
                             severity='critical',
                             description=f'PII ({pii_type}) exposed in public post/comment',
                             evidence=f"Found {len(matches)} instances: {matches[:3]}",
-                            pdpa_article='Article 37 (Security), Article 41 (Data breach notification)',
+                            gdpr_article='Article 37 (Security), Article 41 (Data breach notification)',
                             remediation='Delete exposed comments, implement auto-moderation for PII, educate agents'
                         ))
                         break  # One finding per post is enough
@@ -176,7 +176,7 @@ class FacebookScanner:
                     severity='high',
                     description=f"Custom audience '{audience.get('name')}' has unverified data source",
                     evidence=f"Data source: {source}",
-                    pdpa_article='Article 19 (Consent), Article 25 (Data quality)',
+                    gdpr_article='Article 19 (Consent), Article 25 (Data quality)',
                     remediation='Document consent for every contact in audience; remove contacts without consent proof'
                 ))
     
@@ -199,7 +199,7 @@ class FacebookScanner:
                     severity='medium',
                     description=f"Large public group '{group.get('name')}' may expose member data",
                     evidence=f"Members: {group.get('member_count')}, Privacy: {group.get('privacy')}",
-                    pdpa_article='Article 37 (Security)',
+                    gdpr_article='Article 37 (Security)',
                     remediation='Convert to private group or implement member approval with privacy notice'
                 ))
     

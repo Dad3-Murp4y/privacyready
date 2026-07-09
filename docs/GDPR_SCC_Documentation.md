@@ -1,10 +1,10 @@
-# GitHub PDPA Standard Contractual Clauses (SCCs)
+# GitHub GDPR Standard Contractual Clauses (SCCs)
 ## For Thailand Cross-Border Data Transfer Compliance
 
 **Document Version:** 1.0  
 **Effective Date:** 2026-06-05  
 **Jurisdiction:** Thailand Personal Data Protection Act B.E. 2562 (2019)  
-**Transfer Mechanism:** Standard Contractual Clauses per PDPA Section 29(3)  
+**Transfer Mechanism:** Standard Contractual Clauses per GDPR Section 29(3)  
 **Data Exporter:** [Your Company Name], Thailand  
 **Data Importer:** GitHub, Inc. (Microsoft subsidiary), United States  
 
@@ -12,17 +12,17 @@
 
 ## 1. Executive Summary
 
-If you choose to use GitHub for repositories containing **Thai personal data**, you must execute Standard Contractual Clauses (SCCs) with GitHub to comply with Thailand PDPA Section 29. This document provides the contractual framework, implementation checklist, and ongoing compliance obligations.
+If you choose to use GitHub for repositories containing **Thai personal data**, you must execute Standard Contractual Clauses (SCCs) with GitHub to comply with Thailand GDPR Section 29. This document provides the contractual framework, implementation checklist, and ongoing compliance obligations.
 
-**Key Risk:** The United States has **no PDPA adequacy decision** from Thailand's Personal Data Protection Committee (PDPC). citeweb_search:19#2 Therefore, SCCs are the primary lawful transfer mechanism.
+**Key Risk:** The United States has **no GDPR adequacy decision** from Thailand's Personal Data Protection Committee (PDPC). citeweb_search:19#2 Therefore, SCCs are the primary lawful transfer mechanism.
 
 ---
 
-## 2. PDPA Legal Basis for Transfer
+## 2. GDPR Legal Basis for Transfer
 
 ### Section 29 Requirements
 
-Per Thailand PDPA Section 29, personal data may be transferred abroad only if: citeweb_search:19#0
+Per Thailand GDPR Section 29, personal data may be transferred abroad only if: citeweb_search:19#0
 
 | Condition | GitHub Situation | Your Action |
 |-----------|-----------------|-------------|
@@ -33,7 +33,7 @@ Per Thailand PDPA Section 29, personal data may be transferred abroad only if: �
 | (5) Prevent harm to data subject | **N/A** — Not emergency situation | N/A |
 | (6) Important public interest | **N/A** — Commercial SaaS | N/A |
 
-### PDPA Section 28(2) — Additional Safeguards
+### GDPR Section 28(2) — Additional Safeguards
 
 Even with SCCs, you must ensure: citeweb_search:19#4
 
@@ -45,7 +45,7 @@ Even with SCCs, you must ensure: citeweb_search:19#4
 
 ## 3. GitHub SCC Template (Thailand-Adapted)
 
-Based on ASEAN Model Contractual Clauses (MCCs) and EU SCCs, adapted for Thailand PDPA: citeweb_search:19#3
+Based on ASEAN Model Contractual Clauses (MCCs) and EU SCCs, adapted for Thailand GDPR: citeweb_search:19#3
 
 ```
 STANDARD CONTRACTUAL CLAUSES FOR THE TRANSFER OF PERSONAL DATA
@@ -55,7 +55,7 @@ MODULE ONE: Transfer controller to controller
 
 Clause 1: Purpose and Scope
 (a) The purpose of these standard contractual clauses is to ensure compliance with the 
-    requirements of Section 29 of the Thailand PDPA for the transfer of personal data 
+    requirements of Section 29 of the Thailand GDPR for the transfer of personal data 
     to a third country.
 
 (b) The Parties:
@@ -75,23 +75,23 @@ Clause 1: Purpose and Scope
 
 Clause 2: Effect and Invariability of the Clauses
 (a) These Clauses set out appropriate safeguards, including enforceable data subject rights 
-    and effective legal remedies, pursuant to Section 29(2) of the Thailand PDPA for the 
+    and effective legal remedies, pursuant to Section 29(2) of the Thailand GDPR for the 
     transfer of personal data by the data exporter to the data importer.
 
 (b) The Parties undertake not to vary or modify the Clauses, except to update the 
     information in the Annexes.
 
-(c) These Clauses do not exempt the Parties from their obligations under the Thailand PDPA.
+(c) These Clauses do not exempt the Parties from their obligations under the Thailand GDPR.
 
 Clause 3: Interpretation
-(a) Where these Clauses use terms that are defined in the Thailand PDPA, those terms shall 
-    have the same meaning as in the PDPA.
+(a) Where these Clauses use terms that are defined in the Thailand GDPR, those terms shall 
+    have the same meaning as in the GDPR.
 
 (b) These Clauses shall be read and interpreted in the light of the provisions of the 
-    Thailand PDPA.
+    Thailand GDPR.
 
 (c) These Clauses shall not be interpreted in a way that conflicts with rights and 
-    obligations provided for in the Thailand PDPA.
+    obligations provided for in the Thailand GDPR.
 
 Clause 4: Hierarchy
 In the event of a contradiction between these Clauses and the provisions of related 
@@ -181,7 +181,7 @@ Clause 8: Accountability — Data Protection Officer
     to respond to inquiries concerning the processing of personal data under these Clauses.
 
 (b) The data importer shall designate a data protection officer (DPO) if required by the 
-    Thailand PDPA or the laws of the data importer's country.
+    Thailand GDPR or the laws of the data importer's country.
 
 (c) The data importer shall cooperate, in particular, with the PDPC in the event of any 
     inquiry or investigation.
@@ -226,7 +226,7 @@ Clause 12: Local Laws and Practices Affecting Compliance — US Specific
     (i)   It has assessed the relevant laws and practices of the United States, including 
           the CLOUD Act, FISA 702, and Executive Order 12333;
     (ii)  It has implemented supplementary measures (see Annex III) to ensure that the 
-          level of protection afforded by the Thailand PDPA is not materially impaired;
+          level of protection afforded by the Thailand GDPR is not materially impaired;
     (iii) It will promptly inform the data exporter of any changes in US law that may 
           affect its ability to comply with these Clauses.
 
@@ -276,7 +276,7 @@ Clause 15: Termination
 
 (c) The data exporter shall be entitled to terminate these Clauses where the data importer 
     is in breach of its obligations under these Clauses and the transfer of personal data 
-    would infringe the Thailand PDPA.
+    would infringe the Thailand GDPR.
 
 (d) Upon termination, the data importer shall, at the choice of the data exporter, return 
     all personal data transferred and the copies thereof to the data exporter, or shall 
@@ -330,7 +330,7 @@ the PDPC in the performance of its tasks.
 | **Nature of processing** | Storage, automated analysis (CI/CD logs), backup, disaster recovery |
 | **Purpose** | Software development, version control, continuous integration/deployment |
 | **Retention period** | Duration of customer contract + [X] years for legal compliance |
-| **Data subjects under 20** | [Yes/No — if yes, additional parental consent required per PDPA Section 23] |
+| **Data subjects under 20** | [Yes/No — if yes, additional parental consent required per GDPR Section 23] |
 
 ### Annex I.C — Competent Supervisory Authority
 
@@ -375,13 +375,13 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 
 **Gap Analysis:**
 
-| Requirement | GitHub DPA | Thailand PDPA | Gap |
+| Requirement | GitHub DPA | Thailand GDPR | Gap |
 |-------------|-----------|---------------|-----|
 | SCCs for Thailand | EU SCCs referenced | Thailand-specific SCCs required | **Adaptation needed** |
 | 72h breach notification to PDPC | To data exporter only | Direct to PDPC if exporter fails | **Add contractual obligation** |
 | Data subject rights enforcement | EU-focused | Thai DPA jurisdiction | **Add Thai jurisdiction clause** |
 | DPO appointment | Not required by GitHub | Required for large-scale processing | **Your obligation** |
-| Cross-border transfer records | Not maintained by GitHub | Required by PDPA Section 39 | **Your obligation** |
+| Cross-border transfer records | Not maintained by GitHub | Required by GDPR Section 39 | **Your obligation** |
 | Consent for sensitive data | Not addressed | Explicit consent required | **Your obligation** |
 
 ### 5.2 GitHub Enterprise vs. GitHub.com
@@ -390,7 +390,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 |---------|-----------|------------------------|-------------------------|
 | Data residency options | US/EU only | US/EU only | **Any AWS/Azure/GCP region** |
 | Thailand hosting | ❌ No | ❌ No | ✅ Yes (self-managed) |
-| PDPA compliance | Requires SCCs | Requires SCCs | **Best option** |
+| GDPR compliance | Requires SCCs | Requires SCCs | **Best option** |
 | Cost | Free/$4-21/mo | $21-39/user/mo | ~$150-300/user/year + infra |
 | Management overhead | None | None | High (self-hosted) |
 
@@ -400,7 +400,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 
 **Critical Issue:** GitHub Actions runners execute in GitHub's infrastructure (US/EU). If your CI/CD pipelines process Thai personal data (e.g., database migrations with PII, log analysis, test data), that data touches GitHub's servers.
 
-| Scenario | PDPA Risk | Mitigation |
+| Scenario | GDPR Risk | Mitigation |
 |----------|-----------|------------|
 | Build/test code only (no PII) | None | No action needed |
 | CI/CD with anonymised test data | Low | Document anonymisation method |
@@ -420,12 +420,12 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 |---|------|-------|----------|----------|
 | 1 | Conduct Transfer Impact Assessment (TIA) | DPO | Week 1 | TIA document |
 | 2 | Execute SCCs with GitHub (adapted for Thailand) | Legal | Week 2 | Signed contract |
-| 3 | Document lawful basis for transfer (Section 29) | DPO | Week 2 | PDPA compliance register |
+| 3 | Document lawful basis for transfer (Section 29) | DPO | Week 2 | GDPR compliance register |
 | 4 | Notify PDPC of cross-border transfer (if required) | DPO | Week 3 | PDPC notification receipt |
 | 5 | Implement supplementary measures (Annex III) | Engineering | Week 3-4 | Technical documentation |
 | 6 | Configure GitHub Enterprise encryption settings | Engineering | Week 4 | Screenshot/settings export |
 | 7 | Set up GitHub audit log forwarding to Thailand | Engineering | Week 4 | CloudWatch/Splunk config |
-| 8 | Train staff on PDPA-compliant GitHub usage | HR/DPO | Week 5 | Training records |
+| 8 | Train staff on GDPR-compliant GitHub usage | HR/DPO | Week 5 | Training records |
 | 9 | Publish privacy notice mentioning GitHub transfer | Legal | Week 5 | Website privacy policy |
 | 10 | Establish 72h breach notification procedure | DPO | Week 6 | Runbook + contact tree |
 
@@ -477,7 +477,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 
 | Factor | Weight | GitHub + SCCs | GitLab Self-Hosted |
 |--------|--------|---------------|-------------------|
-| PDPA compliance confidence | 30% | 6/10 | 10/10 |
+| GDPR compliance confidence | 30% | 6/10 | 10/10 |
 | Cost (3-year TCO) | 20% | 4/10 | 8/10 |
 | Developer experience | 20% | 9/10 | 7/10 |
 | Operational overhead | 15% | 7/10 | 5/10 |
@@ -488,7 +488,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 
 ## 10. Recommended Action
 
-**Primary Recommendation:** Deploy GitLab self-hosted in AWS Thailand (see Architecture document). This eliminates cross-border transfer complexity, reduces legal overhead, and strengthens your PDPA compliance product's credibility.
+**Primary Recommendation:** Deploy GitLab self-hosted in AWS Thailand (see Architecture document). This eliminates cross-border transfer complexity, reduces legal overhead, and strengthens your GDPR compliance product's credibility.
 
 **If GitHub is mandatory** (e.g., existing enterprise contract, specific features):
 1. Use **GitHub Enterprise Server** self-hosted in AWS Thailand
@@ -502,7 +502,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 ---
 
 *Document Version: 1.0*  
-*Prepared for: PrivacyReady PDPA Compliance Platform*  
+*Prepared for: PrivacyReady GDPR Compliance Platform*  
 *Date: 2026-06-05*  
 *Legal Review: Required before execution*  
 *Next Review Date: 2026-12-05*

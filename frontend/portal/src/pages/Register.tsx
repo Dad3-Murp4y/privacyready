@@ -74,7 +74,7 @@ export default function Register() {
             <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
           </div>
           <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Start your PDPA compliance journey</p>
+          <p className="auth-subtitle">Start your GDPR compliance journey</p>
         </div>
 
         {error && (

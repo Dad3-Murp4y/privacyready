@@ -25,7 +25,7 @@ locals {
     Project       = "privacyready"
     Environment   = local.environment
     Workspace     = terraform.workspace
-    PDPA          = "compliant"
+    GDPR          = "compliant"
     DataResidency = "thailand"
     ManagedBy     = "terraform"
     Deployment    = "ecs-native-bluegreen"

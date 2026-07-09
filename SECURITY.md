@@ -1,6 +1,6 @@
 # PrivacyReady Security & Compliance Architecture
 
-This document outlines the security controls, automated scanning pipelines, and infrastructure-level protections implemented across the PrivacyReady platform to ensure PDPA compliance, data integrity, and high availability.
+This document outlines the security controls, automated scanning pipelines, and infrastructure-level protections implemented across the PrivacyReady platform to ensure GDPR compliance, data integrity, and high availability.
 
 ## 1. Secure Coding Practices
 
@@ -62,4 +62,4 @@ Our GitLab CI/CD pipeline enforces the following automated security checks on ev
 
 *   **Strong Authentication:** Passwords are mathematically hashed using `bcrypt` (cost factor 12). Registration enforces strong password complexity.
 *   **Role-Based Access Control (RBAC):** Fastify routes are protected by a custom RBAC middleware that inspects JWT claims to ensure users can only access resources matching their organization ID and permission level (`ADMIN` vs `MEMBER`).
-*   **Third-Party Scripts & PDPA Consent:** The React portal utilizes a Cookie Consent Banner to block invasive third-party tracking scripts until explicit user opt-in is granted.
+*   **Third-Party Scripts & GDPR Consent:** The React portal utilizes a Cookie Consent Banner to block invasive third-party tracking scripts until explicit user opt-in is granted.

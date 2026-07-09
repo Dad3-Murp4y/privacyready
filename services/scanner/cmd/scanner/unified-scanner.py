@@ -18,7 +18,7 @@ class UnifiedReport:
     findings: List[Dict]
     overall_risk_score: int  # 0-100
     risk_level: str
-    pdpa_compliance_percentage: float
+    gdpr_compliance_percentage: float
     estimated_fine_exposure: str  # "1M-5M THB", etc.
     action_items: List[str]
 
@@ -38,7 +38,7 @@ class UnifiedScorer:
             'low': 3,
         }
         
-        self.pdpa_fine_ranges = {
+        self.gdpr_fine_ranges = {
             'critical': '1M-5M THB',
             'high': '500K-1M THB',
             'medium': '100K-500K THB',
@@ -101,7 +101,7 @@ class UnifiedScorer:
             findings=all_findings,
             overall_risk_score=normalized_score,
             risk_level=risk_level,
-            pdpa_compliance_percentage=compliance_pct,
+            gdpr_compliance_percentage=compliance_pct,
             estimated_fine_exposure=fine_exposure,
             action_items=action_items
         )
@@ -129,7 +129,7 @@ class UnifiedScorer:
         
         # General compliance
         actions.append("Implement cross-platform consent management system")
-        actions.append("Create PDPA-compliant data retention policy (max 3 years for real estate)")
-        actions.append("Train all agents on PDPA requirements for social media")
+        actions.append("Create GDPR-compliant data retention policy (max 3 years for real estate)")
+        actions.append("Train all agents on GDPR requirements for social media")
         
         return actions

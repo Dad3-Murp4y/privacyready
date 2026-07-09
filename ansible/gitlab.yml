@@ -1,5 +1,5 @@
 ---
-- name: Provision GitLab Server (PDPA Compliant)
+- name: Provision GitLab Server (GDPR Compliant)
   hosts: all
   become: yes
   vars:
@@ -49,7 +49,7 @@
       args:
         creates: /usr/local/bin/aws
 
-    - name: Ensure PDPA external storage is formatted (XFS)
+    - name: Ensure GDPR external storage is formatted (XFS)
       filesystem:
         fstype: xfs
         dev: /dev/nvme1n1
@@ -75,7 +75,7 @@
         - /mnt/gitlab/logs
         - /mnt/gitlab/data
 
-    - name: Enable fail2ban for PDPA OS security
+    - name: Enable fail2ban for GDPR OS security
       systemd:
         name: fail2ban
         enabled: yes

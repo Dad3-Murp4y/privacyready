@@ -61,7 +61,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
         where: { id: scan.id },
         data: {
           status: 'COMPLETED',
-          score: result.pdpa_compliance_percentage,
+          score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
           findingsJson: result.findings,
           completedAt: new Date()
@@ -129,7 +129,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
         where: { id: scan.id },
         data: {
           status: 'COMPLETED',
-          score: result.pdpa_compliance_percentage,
+          score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
           findingsJson: result.findings,
           completedAt: new Date()

@@ -4,19 +4,19 @@ export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const consent = localStorage.getItem('pdpa_cookie_consent');
+    const consent = localStorage.getItem('gdpr_cookie_consent');
     if (!consent) {
       setIsVisible(true);
     }
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem('pdpa_cookie_consent', 'accepted');
+    localStorage.setItem('gdpr_cookie_consent', 'accepted');
     setIsVisible(false);
   };
 
   const handleDecline = () => {
-    localStorage.setItem('pdpa_cookie_consent', 'declined');
+    localStorage.setItem('gdpr_cookie_consent', 'declined');
     setIsVisible(false);
   };
 
@@ -43,7 +43,7 @@ export default function CookieConsent() {
         <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>Your Privacy Choices</h3>
         <p style={{ margin: 0, fontSize: '14px', color: '#cbd5e1', lineHeight: '1.5' }}>
           We use cookies to enhance your browsing experience, serve personalized ads or content, and analyze our traffic. 
-          By clicking "Accept All", you consent to our use of cookies in accordance with the PDPA.
+          By clicking "Accept All", you consent to our use of cookies in accordance with the GDPR.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>

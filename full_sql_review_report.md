@@ -9,7 +9,7 @@ As a Senior Database Administrator, I have thoroughly reviewed the provided Post
 
 ## I. Overview
 
-The schema defines tables for a PDPA Compliance Platform, covering organizations, users, subscriptions, various types of scans (website, social media), Data Subject Right (DSR) requests, and consent logging. The use of `UUID` for primary keys and `TIMESTAMP WITH TIME ZONE` for date fields is a good practice. The schema generally demonstrates a clear understanding of data modeling for a compliance-focused application.
+The schema defines tables for a GDPR Compliance Platform, covering organizations, users, subscriptions, various types of scans (website, social media), Data Subject Right (DSR) requests, and consent logging. The use of `UUID` for primary keys and `TIMESTAMP WITH TIME ZONE` for date fields is a good practice. The schema generally demonstrates a clear understanding of data modeling for a compliance-focused application.
 
 ## II. Table Relationships
 
@@ -124,7 +124,7 @@ The schema itself is generally robust from a SQL injection perspective, as it de
 
 3.  **Data Minimization & Privacy (`consent_logs.ip_address_hash`):**
     *   Hashing `ip_address_hash` is a good privacy measure. Ensure the hashing function is one-way and irreversible to truly protect privacy, and that the original IP is not logged elsewhere.
-    *   Consider the retention policy for `consent_logs` and other sensitive data. GDPR/PDPA requires data to be kept no longer than necessary.
+    *   Consider the retention policy for `consent_logs` and other sensitive data. GDPR/GDPR requires data to be kept no longer than necessary.
 
 4.  **Role-Based Access Control (`users.role`):**
     *   The `role` column is present, which implies RBAC. Ensure the application rigorously enforces these roles at every API endpoint and data access layer, preventing unauthorized actions. The database schema facilitates this by allowing role assignment, but enforcement is strictly an application concern.
@@ -139,7 +139,7 @@ The schema itself is generally robust from a SQL injection perspective, as it de
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- PrivacyReady PDPA Compliance Platform
+-- PrivacyReady GDPR Compliance Platform
 -- Initial PostgreSQL Schema Definition
 
 -- Enable UUID extension for unique identifiers
@@ -234,7 +234,7 @@ CREATE TABLE dsr_requests (
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING', -- PENDING, IN_REVIEW, APPROVED, REJECTED, COMPLETED
     reason_text TEXT,
     internal_notes TEXT,
-    due_date TIMESTAMP WITH TIME ZONE NOT NULL, -- PDPA mandates strict deadlines (e.g. 30 days)
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL, -- GDPR mandates strict deadlines (e.g. 30 days)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP WITH TIME ZONE
 );

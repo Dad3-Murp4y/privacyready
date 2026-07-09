@@ -67,7 +67,7 @@ def scan_website(req: WebsiteScanRequest):
         return {
             "overall_risk_score": 0,
             "risk_level": "LOW",
-            "pdpa_compliance_percentage": 100,
+            "gdpr_compliance_percentage": 100,
             "estimated_fine_exposure": "None",
             "findings": [],
             "action_items": ["No compliance issues found."]
@@ -136,7 +136,7 @@ def scan_social(req: SocialScanRequest):
         return {
             "overall_risk_score": 0,
             "risk_level": "LOW",
-            "pdpa_compliance_percentage": 100,
+            "gdpr_compliance_percentage": 100,
             "estimated_fine_exposure": "None",
             "findings": [],
             "action_items": ["Connect social accounts to perform an audit."]

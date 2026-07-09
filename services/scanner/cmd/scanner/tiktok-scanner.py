@@ -12,7 +12,7 @@ class TikTokFinding:
     severity: str = ""
     description: str = ""
     evidence: str = ""
-    pdpa_article: str = ""
+    gdpr_article: str = ""
     remediation: str = ""
 
 class TikTokScanner:
@@ -44,7 +44,7 @@ class TikTokScanner:
                         severity='medium',
                         description='Bio link contains tracking parameters without consent notice',
                         evidence=f"Link: {href}",
-                        pdpa_article='Article 23 (Collection limitation)',
+                        gdpr_article='Article 23 (Collection limitation)',
                         remediation='Add privacy notice: "This link uses analytics tracking"'
                     ))
         except Exception as e:
@@ -54,7 +54,7 @@ class TikTokScanner:
                 severity='low',
                 description=f'Could not scan TikTok profile: {str(e)}',
                 evidence='',
-                pdpa_article='',
+                gdpr_article='',
                 remediation='Manual review required'
             ))
     
@@ -69,7 +69,7 @@ class TikTokScanner:
             severity='medium',
             description='Public video comments may contain PII — manual review required',
             evidence='TikTok API restrictions prevent automated comment scanning',
-            pdpa_article='Article 37 (Security)',
+            gdpr_article='Article 37 (Security)',
             remediation='Manually review recent video comments; delete any containing phone/email/ID; enable comment moderation'
         ))
     
@@ -81,6 +81,6 @@ class TikTokScanner:
             severity='medium',
             description='Business account may collect lead data without proper consent flow',
             evidence='TikTok Business Center settings not accessible via public API',
-            pdpa_article='Article 19 (Consent)',
+            gdpr_article='Article 19 (Consent)',
             remediation='Review Business Center: Ensure lead forms have consent checkboxes; verify data retention settings'
         ))

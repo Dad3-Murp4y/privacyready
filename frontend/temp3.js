@@ -1,7 +1,7 @@
 
 const SCAN_CHECKS_DEF = [
   { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
-    detail: { en: 'PDPA requires explicit consent before setting cookies',   th: 'PDPA กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'PDPA требует явного согласия перед установкой куки' } },
+    detail: { en: 'GDPR requires explicit consent before setting cookies',   th: 'GDPR กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'GDPR требует явного согласия перед установкой куки' } },
   { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
     detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
   { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
@@ -12,8 +12,8 @@ const SCAN_CHECKS_DEF = [
     detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
   { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
     detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
-  { id: 'thai_pdpa_ref',   label: { en: 'PDPA reference in policy',       th: 'การอ้างอิง PDPA ในนโยบาย',   ru: 'Ссылка на PDPA в политике' },
-    detail: { en: 'Privacy policy should reference Thailand\'s PDPA law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย PDPA', ru: 'Политика должна ссылаться на закон PDPA Таиланда' } },
+  { id: 'thai_gdpr_ref',   label: { en: 'GDPR reference in policy',       th: 'การอ้างอิง GDPR ในนโยบาย',   ru: 'Ссылка на GDPR в политике' },
+    detail: { en: 'Privacy policy should reference Thailand\'s GDPR law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย GDPR', ru: 'Политика должна ссылаться на закон GDPR Таиланда' } },
 ];
 
 const SOCIAL_SCAN_CHECKS_DEF = [
@@ -118,9 +118,9 @@ const overlayLabels = {
 };
 
 const overlayFooters = {
-  en: 'PrivacyReady — Thailand PDPA Compliance',
-  th: 'PrivacyReady — การปฏิบัติตาม PDPA ไทย',
-  ru: 'PrivacyReady — Соответствие PDPA Таиланда'
+  en: 'PrivacyReady — Thailand GDPR Compliance',
+  th: 'PrivacyReady — การปฏิบัติตาม GDPR ไทย',
+  ru: 'PrivacyReady — Соответствие GDPR Таиланда'
 };
 
 function setLang(lang) {
@@ -296,10 +296,10 @@ if ('IntersectionObserver' in window) {
     observer.observe(el);
   });
 }
-// ── FREE PDPA SCANNER ENGINE ──
+// ── FREE GDPR SCANNER ENGINE ──
 const SCAN_CHECKS_DEF = [
   { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
-    detail: { en: 'PDPA requires explicit consent before setting cookies',   th: 'PDPA กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'PDPA требует явного согласия перед установкой куки' } },
+    detail: { en: 'GDPR requires explicit consent before setting cookies',   th: 'GDPR กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'GDPR требует явного согласия перед установкой куки' } },
   { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
     detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
   { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
@@ -310,8 +310,8 @@ const SCAN_CHECKS_DEF = [
     detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
   { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
     detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
-  { id: 'thai_pdpa_ref',   label: { en: 'PDPA reference in policy',       th: 'การอ้างอิง PDPA ในนโยบาย',   ru: 'Ссылка на PDPA в политике' },
-    detail: { en: 'Privacy policy should reference Thailand\'s PDPA law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย PDPA', ru: 'Политика должна ссылаться на закон PDPA Таиланда' } },
+  { id: 'thai_gdpr_ref',   label: { en: 'GDPR reference in policy',       th: 'การอ้างอิง GDPR ในนโยบาย',   ru: 'Ссылка на GDPR в политике' },
+    detail: { en: 'Privacy policy should reference Thailand\'s GDPR law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย GDPR', ru: 'Политика должна ссылаться на закон GDPR Таиланда' } },
 ];
 
 const iconFor = { pass: '✅', fail: '❌', warn: '⚠️', running: '', pending: '○' };
@@ -407,7 +407,7 @@ async function startScan(e) {
       else if (c.id === 'data_controller') status = Math.random() > 0.5 ? 'warn' : 'fail';
       else if (c.id === 'third_party')     status = Math.random() > 0.35 ? 'fail' : 'warn';
       else if (c.id === 'dsr_link')        status = Math.random() > 0.6 ? 'fail' : 'pass';
-      else if (c.id === 'thai_pdpa_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
+      else if (c.id === 'thai_gdpr_ref')   status = Math.random() > 0.7 ? 'fail' : 'warn';
       else status = 'warn';
     }
 

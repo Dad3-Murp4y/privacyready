@@ -10,7 +10,7 @@ class WebsiteFinding:
     severity: str = ""
     description: str = ""
     evidence: str = ""
-    pdpa_article: str = ""
+    gdpr_article: str = ""
     remediation: str = ""
 
 class WebsiteScanner:
@@ -37,7 +37,7 @@ class WebsiteScanner:
                 severity='low',
                 description=f'Could not reach website: {str(e)}',
                 evidence='',
-                pdpa_article='',
+                gdpr_article='',
                 remediation='Verify the domain is accessible'
             ))
         return self.findings
@@ -50,7 +50,7 @@ class WebsiteScanner:
                 severity='high',
                 description='Website is not forcing HTTPS encryption',
                 evidence=f'Final resolved URL: {final_url}',
-                pdpa_article='Article 37 (Security)',
+                gdpr_article='Article 37 (Security)',
                 remediation='Enable SSL/TLS certificate and force HTTPS redirect'
             ))
             
@@ -71,7 +71,7 @@ class WebsiteScanner:
                 severity='medium',
                 description=f'Found third-party tracking scripts: {", ".join(set(trackers_found))}',
                 evidence=f'{len(trackers_found)} script(s) found in DOM',
-                pdpa_article='Article 19 (Consent)',
+                gdpr_article='Article 19 (Consent)',
                 remediation='Implement a cookie consent banner blocking these scripts until user opts in'
             ))
 
@@ -91,8 +91,8 @@ class WebsiteScanner:
                     url=self.url,
                     finding_type='form_consent',
                     severity='medium',
-                    description='Forms detected without explicit PDPA consent checkboxes',
+                    description='Forms detected without explicit GDPR consent checkboxes',
                     evidence=f'{len(forms)} form(s) found without privacy agreement checkbox',
-                    pdpa_article='Article 19 (Consent)',
+                    gdpr_article='Article 19 (Consent)',
                     remediation='Add mandatory consent checkbox linking to Privacy Policy before form submission'
                 ))

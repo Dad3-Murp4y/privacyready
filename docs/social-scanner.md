@@ -8,14 +8,14 @@
 │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘ │
 │                              │                                      │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │              UNIFIED PDPA RISK ENGINE                        │   │
+│  │              UNIFIED GDPR RISK ENGINE                        │   │
 │  │  • Cross-platform data mapping                                │   │
 │  │  • Consent gap analysis                                       │   │
 │  │  • Breach probability scoring                                 │   │
 │  └─────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
 
-| Data Point                 | PDPA Risk | How to Detect                              |
+| Data Point                 | GDPR Risk | How to Detect                              |
 | -------------------------- | --------- | ------------------------------------------ |
 | **Lead Ads forms**         | High      | Graph API → `leadgen_forms` endpoint       |
 | **Messenger bots**         | High      | Page settings → `messaging_feature_status` |
@@ -25,7 +25,7 @@
 | **Group member lists**     | High      | Group API → member export capability       |
 | **Marketplace listings**   | Medium    | Listing description + contact methods      |
 
-| Data Point                 | PDPA Risk | Detection Method                     |
+| Data Point                 | GDPR Risk | Detection Method                     |
 | -------------------------- | --------- | ------------------------------------ |
 | **LINE OA rich menus**     | High      | OA Manager API → menu configuration  |
 | **Auto-reply messages**    | High      | Messaging API → auto-reply settings  |
@@ -35,7 +35,7 @@
 | **LINE Pay**               | Critical  | Payment API → transaction data       |
 | **Group chat admin**       | Medium    | Group settings → member visibility   |
 
-| Data Point                | PDPA Risk | Detection                                 |
+| Data Point                | GDPR Risk | Detection                                 |
 | ------------------------- | --------- | ----------------------------------------- |
 | **Bio link tracking**     | Medium    | Bio URL → UTM parameters, tracking pixels |
 | **DM auto-responses**     | High      | Business account settings                 |
@@ -48,7 +48,7 @@
 │           Khun Somchai — Bangkok Real Estate                │
 ├─────────────────────────────────────────────────────────────┤
 │ OVERALL RISK SCORE: 78/100  🔴 CRITICAL                     │
-│ PDPA Compliance: 32%                                        │
+│ GDPR Compliance: 32%                                        │
 │ Estimated Fine Exposure: 1M-5M THB                          │
 ├─────────────────────────────────────────────────────────────┤
 │ PLATFORM BREAKDOWN                                          │
@@ -80,7 +80,7 @@
 │ • Automated consent management across all platforms         │
 │ • Encrypted data vault for lead information                 │
 │ • Auto-generated privacy policies (Thai + English)          │
-│ • PDPA-compliant website with lead capture                  │
+│ • GDPR-compliant website with lead capture                  │
 │                                                             │
 │ Price: 3,900 THB/month (Growth plan)                        │
 │ ROI: Prevents 1M+ THB fine + builds customer trust          │

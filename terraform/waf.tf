@@ -1,7 +1,7 @@
 # AWS WAFv2 Regional Web ACL to protect endpoints from DDoS and unauthorized geo-access
 resource "aws_wafv2_web_acl" "main" {
-  name        = "privacyready-pdpa-waf"
-  description = "WAF rules for PrivacyReady PDPA compliance"
+  name        = "privacyready-gdpr-waf"
+  description = "WAF rules for PrivacyReady GDPR compliance"
   scope       = "REGIONAL"
 
   default_action {

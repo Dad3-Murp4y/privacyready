@@ -115,7 +115,7 @@ Okay, I'll analyze the provided code for type errors and bugs and report my find
 *   **Bug**: The `platform_weights` and `severity_scores` values are hardcoded. While this is the scoring logic, these values might need fine-tuning and should ideally be configurable (e.g., via a config file or environment variables).
 *   **Bug/Potential Issue**: `max_possible` is calculated as `25 * weight` per finding. This implies a single finding of maximum severity on a given platform contributes 25 points. However, if there are multiple critical findings on one platform, `max_possible` can exceed 100 for that platform's contribution to `total_score`, potentially skewing the `normalized_score`. It might be better to cap the maximum score contribution per platform or adjust how `max_possible` is defined.
 *   **Bug/Potential Issue**: `normalized_score = min(100, int((total_score / max_possible) * 100))` caps at 100, but `total_score` and `max_possible` are simple sums. If there are many low-severity findings, `total_score` could theoretically exceed `max_possible` if `max_possible` is based on something like *one* critical finding per platform. The `max_possible` seems to assume a fixed maximum score *per finding category*, but `total_score` sums all findings. This needs careful review to ensure the scoring model behaves as intended.
-*   **Bug/Potential Issue**: `compliance_pct = max(0, 100 - (critical_high * 10) - (total_findings * 2))` seems to be an arbitrary calculation. It's unclear how `- (critical_high * 10) - (total_findings * 2)` accurately represents a PDPA compliance percentage. This needs a clear definition and justification.
+*   **Bug/Potential Issue**: `compliance_pct = max(0, 100 - (critical_high * 10) - (total_findings * 2))` seems to be an arbitrary calculation. It's unclear how `- (critical_high * 10) - (total_findings * 2)` accurately represents a GDPR compliance percentage. This needs a clear definition and justification.
 *   **Improvement**: `_generate_action_items` has hardcoded remediation suggestions. These should ideally be dynamic based on the specific findings or fetched from a knowledge base.
 
 #### `services/scanner/cmd/scanner/website-scanner.py`
@@ -129,7 +129,7 @@ In summary, the codebase has a good structure and uses modern frameworks. The pr
 2.  **Dashboard Scan Logic**: Incorrect social media payload construction in the API and brittle URL pattern validation in the frontend.
 3.  **Security Defaults**: Hardcoded JWT secret, missing DB password default, and unsafe Prisma `db push` in the `start.sh` script for the API service.
 4.  **Scanner Module Imports**: The Python scanner service uses an unconventional dynamic import method which could be simplified by renaming files to use underscores.
-5.  **Heuristic Checks**: Multiple scanner modules rely on string matching or heuristics that might not be robust enough for comprehensive PDPA compliance checks.
+5.  **Heuristic Checks**: Multiple scanner modules rely on string matching or heuristics that might not be robust enough for comprehensive GDPR compliance checks.
 6.  **Type Safety**: Several `as any` casts in TypeScript could be replaced with proper type definitions for better type safety.
 
 Addressing these issues will improve the robustness, security, and accuracy of the PrivacyReady platform.

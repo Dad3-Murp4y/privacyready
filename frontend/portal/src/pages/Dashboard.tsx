@@ -359,7 +359,7 @@ export default function Dashboard() {
 
             <div className="metric-grid animate-fade-up stagger-1" style={{ marginBottom: '32px' }}>
               <div className="metric-card">
-                <div className="metric-label">PDPA Score</div>
+                <div className="metric-label">GDPR Score</div>
                 <div className={`metric-value ${selectedAudit.score >= 80 ? 'good' : selectedAudit.score >= 50 ? 'warn' : 'danger'}`}>
                   {selectedAudit.score}%
                 </div>
@@ -435,7 +435,7 @@ export default function Dashboard() {
               <div>
                 <h1 className="page-title">Compliance Overview</h1>
                 <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>
-                  Track your PDPA health across web and social properties.
+                  Track your GDPR health across web and social properties.
                 </p>
               </div>
               <button className="btn btn-primary" onClick={() => setShowAuditModal(true)}>
@@ -445,7 +445,7 @@ export default function Dashboard() {
 
             <div className="metric-grid animate-fade-up stagger-1">
               <div className="metric-card">
-                <div className="metric-label">Overall PDPA Score</div>
+                <div className="metric-label">Overall GDPR Score</div>
                 <div className="metric-value good">{overallScore}%</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '12px' }}>
                   Based on {audits.length} active audit assets
@@ -485,7 +485,7 @@ export default function Dashboard() {
                   <div className="empty-state">
                     <Globe className="empty-icon" />
                     <div className="empty-title">No Scans Found</div>
-                    <div className="empty-desc">Your dashboard is empty. Run your first automated PDPA compliance scan to uncover vulnerabilities.</div>
+                    <div className="empty-desc">Your dashboard is empty. Run your first automated GDPR compliance scan to uncover vulnerabilities.</div>
                     <button className="btn btn-primary" onClick={() => setShowAuditModal(true)}>Start Scan</button>
                   </div>
                 ) : (
@@ -561,7 +561,7 @@ export default function Dashboard() {
                     <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Asset Type</th>
                     <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Scan Date</th>
                     <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Compliance Score</th>
-                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>PDPA Status</th>
+                    <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>GDPR Status</th>
                     <th style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
                   </tr>
                 </thead>
@@ -620,7 +620,7 @@ export default function Dashboard() {
               <div>
                 <h1 className="page-title">Data Subject Request Manager</h1>
                 <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '15px' }}>
-                  Receive, audit, and log consumer requests under PDPA privacy standards.
+                  Receive, audit, and log consumer requests under GDPR privacy standards.
                 </p>
               </div>
               <button className="btn btn-primary" onClick={() => setShowDsrModal(true)}>
@@ -716,7 +716,7 @@ export default function Dashboard() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }} className="animate-fade-up">
           <div style={{ background: 'linear-gradient(180deg, var(--mid) 0%, var(--navy) 100%)', border: '1px solid var(--glass-border)', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '40px', position: 'relative', boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
             
-            <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>Run PDPA Audit</h2>
+            <h2 style={{ fontSize: '28px', fontWeight: 'bold', marginBottom: '8px', fontFamily: 'var(--font-heading)' }}>Run GDPR Audit</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '15px', marginBottom: '32px' }}>
               Select target type and input identifier to start scanning.
             </p>

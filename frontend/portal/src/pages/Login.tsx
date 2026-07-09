@@ -122,7 +122,7 @@ export default function Login() {
                 <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
               </div>
               <h1 className="auth-title">Welcome back</h1>
-              <p className="auth-subtitle">Log in to manage your PDPA compliance</p>
+              <p className="auth-subtitle">Log in to manage your GDPR compliance</p>
             </div>
 
             <form className="auth-form" onSubmit={handleLogin} autoComplete="off">

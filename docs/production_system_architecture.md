@@ -1,6 +1,6 @@
 # Production System Architecture
 
-The PrivacyReady Production Environment (`terraform.workspace == "production"`) is a highly available, deeply isolated, and scalable architecture designed for enterprise-grade PDPA compliance. Unlike the consolidated testing environment, the production environment heavily utilizes network segmentation to separate management tools from user-facing services.
+The PrivacyReady Production Environment (`terraform.workspace == "production"`) is a highly available, deeply isolated, and scalable architecture designed for enterprise-grade GDPR compliance. Unlike the consolidated testing environment, the production environment heavily utilizes network segmentation to separate management tools from user-facing services.
 
 ---
 

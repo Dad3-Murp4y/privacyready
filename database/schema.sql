@@ -1,4 +1,4 @@
--- PrivacyReady PDPA Compliance Platform
+-- PrivacyReady GDPR Compliance Platform
 -- Initial PostgreSQL Schema Definition
 
 -- Enable UUID extension for unique identifiers
@@ -74,7 +74,7 @@ CREATE TABLE dsr_requests (
     status VARCHAR(50) NOT NULL DEFAULT 'PENDING', -- PENDING, IN_REVIEW, APPROVED, REJECTED, COMPLETED
     reason_text TEXT,
     internal_notes TEXT,
-    due_date TIMESTAMP WITH TIME ZONE NOT NULL, -- PDPA mandates strict deadlines (e.g. 30 days)
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL, -- GDPR mandates strict deadlines (e.g. 30 days)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     resolved_at TIMESTAMP WITH TIME ZONE
 );

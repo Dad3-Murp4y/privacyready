@@ -13,7 +13,7 @@ class LINEFinding:
     severity: str = ""
     description: str = ""
     evidence: str = ""
-    pdpa_article: str = ""
+    gdpr_article: str = ""
     remediation: str = ""
 
 class LINEScanner:
@@ -55,7 +55,7 @@ class LINEScanner:
                             severity='high',
                             description=f"Rich menu '{menu.get('name')}' action lacks privacy policy link",
                             evidence=f"Action type: {action_type}, URI: {uri}",
-                            pdpa_article='Article 23 (Collection limitation), Article 30 (Privacy notice)',
+                            gdpr_article='Article 23 (Collection limitation), Article 30 (Privacy notice)',
                             remediation='Add privacy policy link to all data-collecting rich menu actions'
                         ))
     
@@ -77,7 +77,7 @@ class LINEScanner:
                 severity='high',
                 description='Auto-reply bot may collect PII without explicit consent',
                 evidence='Auto-reply is enabled',
-                pdpa_article='Article 19 (Consent)',
+                gdpr_article='Article 19 (Consent)',
                 remediation='Add consent confirmation before collecting any PII in auto-reply flows'
             ))
     
@@ -90,9 +90,9 @@ class LINEScanner:
             channel_id=self.channel_id,
             finding_type='chat_history_retention_unknown',
             severity='medium',
-            description='Unable to verify chat history retention period — may exceed PDPA limits',
+            description='Unable to verify chat history retention period — may exceed GDPR limits',
             evidence='Chat history retention settings not accessible via API',
-            pdpa_article='Article 34 (Storage limitation)',
+            gdpr_article='Article 34 (Storage limitation)',
             remediation='Manually verify OA settings: Chat history should be deleted after purpose is fulfilled (typically 1-3 years for real estate)'
         ))
     
@@ -112,7 +112,7 @@ class LINEScanner:
                 severity='high',
                 description=f'Large follower base ({len(followers)}) without verifiable consent records',
                 evidence=f'Total followers: {len(followers)}',
-                pdpa_article='Article 19 (Consent), Article 24 (Records of processing)',
+                gdpr_article='Article 19 (Consent), Article 24 (Records of processing)',
                 remediation='Export follower list and cross-reference with consent database; remove followers without consent proof'
             ))
     
@@ -128,7 +128,7 @@ class LINEScanner:
             severity='medium',
             description='LINE Login scopes may collect excessive PII',
             evidence='Unable to verify requested scopes via API',
-            pdpa_article='Article 23 (Collection limitation)',
+            gdpr_article='Article 23 (Collection limitation)',
             remediation='Audit Login channel: Only request minimum necessary scopes; document consent for each scope'
         ))
     
@@ -143,6 +143,6 @@ class LINEScanner:
             severity='medium',
             description='LINE groups managed by this OA may expose member data',
             evidence='Group member lists and chat history may be accessible to admins',
-            pdpa_article='Article 37 (Security)',
+            gdpr_article='Article 37 (Security)',
             remediation='Review all LINE groups: Ensure members are aware of data collection; implement group rules with privacy notice'
         ))

@@ -1,6 +1,6 @@
 # PrivacyReady Platform - System Architecture & Overview
 
-PrivacyReady is a comprehensive PDPA (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
+PrivacyReady is a comprehensive GDPR (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
 
 ---
 
@@ -80,14 +80,14 @@ graph TD
 ## 📦 Component Breakdown
 
 ### 1. Static Frontend & Portals (AWS S3 + CloudFront)
-- **Landing Page (`frontend/index.html`)**: A static, trilingual (EN, TH, RU) frontend hosting the Free PDPA Scanner UI. It includes a **mandatory, cross-domain cookie consent wall** that blocks site functionality until cookies are accepted.
+- **Landing Page (`frontend/index.html`)**: A static, trilingual (EN, TH, RU) frontend hosting the Free GDPR Scanner UI. It includes a **mandatory, cross-domain cookie consent wall** that blocks site functionality until cookies are accepted.
 - **Client Portal (`frontend/portal`)**: A React-based Single Page Application (SPA) for authenticated users to manage their compliance workflows.
 - **Deployment**: Both are hosted securely in private AWS S3 buckets. Public access is facilitated exclusively through CloudFront distributions using Origin Access Identities (OAI) for caching, low latency, and SSL/TLS termination.
 
 ### 2. Backend Microservices (AWS ECS Fargate)
 All backend services are dockerized, pushed to AWS Elastic Container Registry (ECR), and run as serverless containers on **AWS ECS Fargate**.
 - **Core API Service (`services/api`)**: Written in Node.js (Fastify). Handles authentication, core business logic, user consent tracking, and proxies requests to other microservices.
-- **Scanner Service (`services/scanner`)**: Written in Python (FastAPI). Performs deep PDPA compliance checks on user infrastructure (Websites, Facebook, LINE, TikTok) and aggregates risks into a compliance score.
+- **Scanner Service (`services/scanner`)**: Written in Python (FastAPI). Performs deep GDPR compliance checks on user infrastructure (Websites, Facebook, LINE, TikTok) and aggregates risks into a compliance score.
 - **DSR Service (`services/dsr`)**: Written in Python (FastAPI). Manages Data Subject Rights (DSR) workflows, such as automated data deletion and access requests.
 
 ### 3. Data Storage (AWS RDS & ElastiCache)
@@ -102,9 +102,9 @@ The entire infrastructure is continuously monitored for health and performance a
 
 ---
 
-## 🔒 Security & Data Residency (PDPA Compliance)
+## 🔒 Security & Data Residency (GDPR Compliance)
 
-To comply with Thailand's PDPA requirements regarding cross-border data transfers and security:
+To comply with Thailand's GDPR requirements regarding cross-border data transfers and security:
 
 1. **Geographic Data Residency**: All production data, including S3 buckets, RDS clusters, and ECS containers, are strictly provisioned in AWS `ap-southeast-1` (Singapore) or `ap-southeast-7` (Thailand) to maintain ASEAN data sovereignty.
 2. **Encryption**: 
@@ -170,8 +170,8 @@ The access keys for this user are automatically generated and stored securely in
 
 ## 📂 Documentation Directory Reference
 
-- `docs/01_AWS_Thailand_GitLab_Architecture.md`: AWS infrastructure and PDPA justification.
-- `docs/02_GitHub_PDPA_SCC_Documentation.md`: GitHub Standard Contractual Clauses (SCC) for cross-border code hosting.
+- `docs/01_AWS_Thailand_GitLab_Architecture.md`: AWS infrastructure and GDPR justification.
+- `docs/02_GitHub_GDPR_SCC_Documentation.md`: GitHub Standard Contractual Clauses (SCC) for cross-border code hosting.
 - `docs/03_Route53_ACM_CloudFront_Setup_Guide.md`: Frontend S3/CloudFront deployment guide.
 - `docs/production_system_architecture.md`: In-depth multi-VPC architecture diagrams and specifications for the production environment.
 - `docs/social-scanner.md`: Threat models and API specs for the social media scanners.
