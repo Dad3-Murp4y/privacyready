@@ -46,7 +46,7 @@ resource "random_password" "test_db" {
 resource "aws_secretsmanager_secret" "test_db_password" {
   count                   = local.is_prod ? 0 : 1
   name                    = "privacyready/test-db-password"
-  description             = "DataWai test database password"
+  description             = "PrivacyReady test database password"
   recovery_window_in_days = 0 # No recovery window needed for testing
 
   tags = merge(local.tags, { Name = "privacyready-test-db-secret" })

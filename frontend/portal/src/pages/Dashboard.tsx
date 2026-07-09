@@ -186,7 +186,7 @@ export default function Dashboard() {
 
     setIsScanning(true);
     setScanProgress(30);
-    setScanLogs(['[INFO] Initializing DataWai remote scanning core...', '[INFO] Connecting to backend scanner microservice...']);
+    setScanLogs(['[INFO] Initializing PrivacyReady remote scanning core...', '[INFO] Connecting to backend scanner microservice...']);
 
     try {
       const token = localStorage.getItem('token');
@@ -268,7 +268,7 @@ export default function Dashboard() {
       <aside className="sidebar animate-fade-up">
         <div className="sidebar-logo">
           <ShieldCheck size={28} color="var(--sky)" />
-          DataWai Portal
+          PrivacyReady Portal
         </div>
         
         {userProfile && (

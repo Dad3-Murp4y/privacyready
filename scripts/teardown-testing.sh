@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== DataWai Teardown for Testing ==="
+echo "=== PrivacyReady Teardown for Testing ==="
 echo "This script will STOP the GitLab EC2 and RDS instances, and DESTROY the ALB, ECS service, NAT Gateway, and Redis cluster to save costs."
 echo ""
 

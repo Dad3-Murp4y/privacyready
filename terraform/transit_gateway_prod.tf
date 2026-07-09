@@ -1,7 +1,7 @@
 # Transit Gateway to connect Production, Staging, and Management VPCs
 resource "aws_ec2_transit_gateway" "main" {
   count                           = local.is_prod ? 1 : 0
-  description                     = "DataWai Inter-VPC Transit Gateway"
+  description                     = "PrivacyReady Inter-VPC Transit Gateway"
   default_route_table_association = "enable"
   default_route_table_propagation = "enable"
   dns_support                     = "enable"

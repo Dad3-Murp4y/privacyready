@@ -1,4 +1,4 @@
-# Bootstrap New AWS Account for DataWai Platform
+# Bootstrap New AWS Account for PrivacyReady Platform
 
 # 1. Create the Remote State Infrastructure
 # First, use the AWS CLI to manually create the S3 bucket and DynamoDB table that Terraform will use for state locking.

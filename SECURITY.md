@@ -1,6 +1,6 @@
-# DataWai Security & Compliance Architecture
+# PrivacyReady Security & Compliance Architecture
 
-This document outlines the security controls, automated scanning pipelines, and infrastructure-level protections implemented across the DataWai platform to ensure PDPA compliance, data integrity, and high availability.
+This document outlines the security controls, automated scanning pipelines, and infrastructure-level protections implemented across the PrivacyReady platform to ensure PDPA compliance, data integrity, and high availability.
 
 ## 1. Secure Coding Practices
 
@@ -27,7 +27,7 @@ const user = await prisma.user.findUnique({
 
 ### Cross-Site Scripting (XSS) Prevention
 **Language:** TypeScript (React)
-The DataWai frontend is built in React. React natively escapes all variables embedded in JSX by converting them to string literals before rendering, automatically mitigating XSS. 
+The PrivacyReady frontend is built in React. React natively escapes all variables embedded in JSX by converting them to string literals before rendering, automatically mitigating XSS. 
 *Rule:* We strictly prohibit the use of `dangerouslySetInnerHTML` unless explicitly sanitized using `DOMPurify`.
 
 ### Command Injection Prevention

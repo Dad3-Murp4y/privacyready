@@ -28,7 +28,7 @@ async function testSecurity() {
       email: 'admin@privacyready.com',
       password: 'SuperSecurePassword!123',
       fullName: 'Admin User',
-      organizationName: 'DataWai Test Corp'
+      organizationName: 'PrivacyReady Test Corp'
     })
   });
   

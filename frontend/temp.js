@@ -7,9 +7,9 @@ const overlayLabels = {
 };
 
 const overlayFooters = {
-  en: 'DataWai — Thailand PDPA Compliance',
-  th: 'DataWai — การปฏิบัติตาม PDPA ไทย',
-  ru: 'DataWai — Соответствие PDPA Таиланда'
+  en: 'PrivacyReady — Thailand PDPA Compliance',
+  th: 'PrivacyReady — การปฏิบัติตาม PDPA ไทย',
+  ru: 'PrivacyReady — Соответствие PDPA Таиланда'
 };
 
 function setLang(lang) {

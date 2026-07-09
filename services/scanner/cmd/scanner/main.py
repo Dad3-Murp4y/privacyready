@@ -27,7 +27,7 @@ tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok
 website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
 unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
 
-app = FastAPI(title="DataWai Scanner API", version="2.1.0")
+app = FastAPI(title="PrivacyReady Scanner API", version="2.1.0")
 
 class SocialScanRequest(BaseModel):
     customer_id: str

@@ -29,7 +29,7 @@ resource "aws_s3_bucket_website_configuration" "frontend" {
 }
 
 resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "OAI for DataWai static sites"
+  comment = "OAI for PrivacyReady static sites"
 }
 
 resource "aws_s3_bucket_policy" "frontend" {

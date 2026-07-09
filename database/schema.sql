@@ -1,4 +1,4 @@
--- DataWai PDPA Compliance Platform
+-- PrivacyReady PDPA Compliance Platform
 -- Initial PostgreSQL Schema Definition
 
 -- Enable UUID extension for unique identifiers

@@ -46,7 +46,7 @@ resource "random_password" "db" {
 resource "aws_secretsmanager_secret" "db_password" {
   count                   = local.is_prod ? 1 : 0
   name                    = "privacyready/db-password"
-  description             = "DataWai database password"
+  description             = "PrivacyReady database password"
   recovery_window_in_days = 7
 
   tags = merge(local.tags, { Name = "privacyready-db-secret" })

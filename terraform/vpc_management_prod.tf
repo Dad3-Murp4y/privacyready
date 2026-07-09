@@ -1,4 +1,4 @@
-# Management VPC and Networking configuration for DataWai GitLab & CI/CD tools
+# Management VPC and Networking configuration for PrivacyReady GitLab & CI/CD tools
 resource "aws_vpc" "management" {
   count                = local.is_prod ? 1 : 0
   cidr_block           = "10.2.0.0/16"

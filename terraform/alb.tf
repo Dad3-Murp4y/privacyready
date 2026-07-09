@@ -79,7 +79,7 @@ resource "aws_lb_listener" "http" {
 # ── Managed Route 53 Hosted Zone & Records ────────────────────
 resource "aws_route53_zone" "main" {
   name    = var.domain_name
-  comment = "DataWai public DNS zone - PDPA compliant"
+  comment = "PrivacyReady public DNS zone - PDPA compliant"
   tags    = local.tags
 }
 

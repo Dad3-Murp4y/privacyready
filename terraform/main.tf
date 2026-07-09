@@ -1,4 +1,4 @@
-# DataWai Platform Infrastructure main deployment entrypoint.
+# PrivacyReady Platform Infrastructure main deployment entrypoint.
 # Infrastructure resources are modularized across logical domain files:
 # - vpc.tf          : Networking configuration
 # - security.tf     : Security groups and network access rules

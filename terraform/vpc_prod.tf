@@ -1,4 +1,4 @@
-# VPC and Networking configuration for DataWai
+# VPC and Networking configuration for PrivacyReady
 resource "aws_vpc" "main" {
   count                = local.is_prod ? 1 : 0
   cidr_block           = "10.0.0.0/16"

@@ -1,4 +1,4 @@
-# Staging VPC and Networking configuration for DataWai
+# Staging VPC and Networking configuration for PrivacyReady
 resource "aws_vpc" "staging" {
   count                = local.is_prod ? 1 : 0
   cidr_block           = "10.1.0.0/16"

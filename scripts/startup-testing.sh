@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "=== DataWai Startup for Testing ==="
+echo "=== PrivacyReady Startup for Testing ==="
 echo "This script will START the GitLab EC2 and RDS instances, and RECREATE the ALB, ECS service, NAT Gateway, and Redis cluster using Terraform."
 echo ""
 

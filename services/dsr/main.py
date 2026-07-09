@@ -4,7 +4,7 @@ from typing import Literal, Optional
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, EmailStr
 
-app = FastAPI(title="DataWai DSR Service", version="2.1.0")
+app = FastAPI(title="PrivacyReady DSR Service", version="2.1.0")
 
 
 class DSRRequest(BaseModel):

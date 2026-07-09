@@ -139,7 +139,7 @@ The schema itself is generally robust from a SQL injection perspective, as it de
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
--- DataWai PDPA Compliance Platform
+-- PrivacyReady PDPA Compliance Platform
 -- Initial PostgreSQL Schema Definition
 
 -- Enable UUID extension for unique identifiers

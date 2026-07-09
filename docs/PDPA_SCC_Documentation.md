@@ -502,7 +502,7 @@ GitHub provides a Data Protection Addendum: citeweb_search:19#8
 ---
 
 *Document Version: 1.0*  
-*Prepared for: DataWai PDPA Compliance Platform*  
+*Prepared for: PrivacyReady PDPA Compliance Platform*  
 *Date: 2026-06-05*  
 *Legal Review: Required before execution*  
 *Next Review Date: 2026-12-05*

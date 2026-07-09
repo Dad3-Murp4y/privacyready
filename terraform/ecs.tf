@@ -160,7 +160,7 @@ resource "aws_ecs_service" "app" {
 # ── Service Discovery (for internal communication) ─────────
 resource "aws_service_discovery_private_dns_namespace" "main" {
   name        = "privacyready.local"
-  description = "Service discovery for DataWai microservices"
+  description = "Service discovery for PrivacyReady microservices"
   vpc         = local.vpc_id
 
   tags = merge(local.tags, { Name = "privacyready-service-discovery" })

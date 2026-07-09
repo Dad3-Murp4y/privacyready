@@ -1,12 +1,12 @@
-# DataWai Platform - System Architecture & Overview
+# PrivacyReady Platform - System Architecture & Overview
 
-DataWai is a comprehensive PDPA (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
+PrivacyReady is a comprehensive PDPA (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
 
 ---
 
 ## 🏛️ System Architecture
 
-The DataWai platform is built using a microservices architecture and deployed entirely on **AWS (Amazon Web Services)**. This ensures high availability, strict data residency within the Asia Pacific region, and enterprise-grade security.
+The PrivacyReady platform is built using a microservices architecture and deployed entirely on **AWS (Amazon Web Services)**. This ensures high availability, strict data residency within the Asia Pacific region, and enterprise-grade security.
 
 ### Core AWS Infrastructure
 
@@ -157,8 +157,8 @@ The infrastructure blueprints include a fully isolated, self-hosted GitLab insta
 #### Least Privilege CI/CD Pipeline Configuration
 To ensure maximum security, the CI/CD pipelines do not use root or administrator AWS keys. Instead, Terraform provisions a dedicated, strict **least-privilege IAM user** (`gitlab-ci-deployer`). This user only has permission to:
 - Authenticate to Elastic Container Registry (ECR).
-- Push images *only* to the three specific DataWai microservice repositories.
-- Trigger `UpdateService` *only* on the specific DataWai ECS services.
+- Push images *only* to the three specific PrivacyReady microservice repositories.
+- Trigger `UpdateService` *only* on the specific PrivacyReady ECS services.
 
 **How to retrieve CI/CD credentials:**
 The access keys for this user are automatically generated and stored securely in AWS Secrets Manager. To configure your GitLab CI/CD Variables:
