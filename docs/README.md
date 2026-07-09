@@ -106,7 +106,7 @@ The entire infrastructure is continuously monitored for health and performance a
 
 To comply with Thailand's GDPR requirements regarding cross-border data transfers and security:
 
-1. **Geographic Data Residency**: All production data, including S3 buckets, RDS clusters, and ECS containers, are strictly provisioned in AWS `ap-southeast-1` (Singapore) or `ap-southeast-7` (Thailand) to maintain ASEAN data sovereignty.
+1. **Geographic Data Residency**: All production data, including S3 buckets, RDS clusters, and ECS containers, are strictly provisioned in AWS `eu-west-2` (Singapore) or `eu-west-2` (Thailand) to maintain ASEAN data sovereignty.
 2. **Encryption**: 
    - **In Transit**: All endpoints are secured with modern TLS v1.2+ via AWS ACM certificates. HTTP traffic is strictly redirected to HTTPS at the Load Balancer level.
    - **At Rest**: EBS volumes, RDS clusters, ElastiCache, and S3 buckets are encrypted using AWS Key Management Service (KMS).

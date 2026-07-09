@@ -129,7 +129,7 @@ dast-security-check:
 build-api:
   extends: .build-scan-push
   variables:
-    SERVICE_NAME: "datawai-api"
+    SERVICE_NAME: "privacyready-api"
     BUILD_CONTEXT: "services/api"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -139,7 +139,7 @@ build-api:
 build-dsr:
   extends: .build-scan-push
   variables:
-    SERVICE_NAME: "datawai-dsr"
+    SERVICE_NAME: "privacyready-dsr"
     BUILD_CONTEXT: "services/dsr"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -149,7 +149,7 @@ build-dsr:
 build-scanner:
   extends: .build-scan-push
   variables:
-    SERVICE_NAME: "datawai-scanner"
+    SERVICE_NAME: "privacyready-scanner"
     BUILD_CONTEXT: "services/scanner"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -165,7 +165,7 @@ deploy-api:
   image: amazon/aws-cli:latest
   script:
     - echo "Deploying updated API task definition and triggering ECS update..."
-    - aws ecs update-service --cluster datawai-cluster --service datawai-api --force-new-deployment --region ap-southeast-1
+    - aws ecs update-service --cluster privacyready-cluster --service privacyready-api --force-new-deployment --region ap-southeast-1
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -176,7 +176,7 @@ deploy-dsr:
   image: amazon/aws-cli:latest
   script:
     - echo "Deploying updated DSR task definition and triggering ECS update..."
-    - aws ecs update-service --cluster datawai-cluster --service datawai-dsr --force-new-deployment --region ap-southeast-1
+    - aws ecs update-service --cluster privacyready-cluster --service privacyready-dsr --force-new-deployment --region ap-southeast-1
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -187,7 +187,7 @@ deploy-scanner:
   image: amazon/aws-cli:latest
   script:
     - echo "Deploying updated Scanner task definition and triggering ECS update..."
-    - aws ecs update-service --cluster datawai-cluster --service datawai-scanner --force-new-deployment --region ap-southeast-1
+    - aws ecs update-service --cluster privacyready-cluster --service privacyready-scanner --force-new-deployment --region ap-southeast-1
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:

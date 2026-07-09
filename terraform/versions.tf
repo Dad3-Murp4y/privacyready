@@ -14,7 +14,7 @@ terraform {
   backend "s3" {
     bucket         = "privacyready-terraform-state" # UPDATE this if the name is taken
     key            = "platform/terraform.tfstate"
-    region         = "ap-southeast-1"
+    region         = "eu-west-2"
     encrypt        = true
     dynamodb_table = "privacyready-terraform-locks"
   }

@@ -7,7 +7,7 @@ variable "environment" {
 variable "region" {
   description = "AWS region"
   type        = string
-  default     = "ap-southeast-1"
+  default     = "eu-west-2"
 }
 
 variable "domain_name" {

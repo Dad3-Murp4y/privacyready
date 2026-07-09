@@ -20,11 +20,11 @@ else
 fi
 
 # Fetch passwords securely
-export AWS_DEFAULT_REGION=ap-southeast-1
+export AWS_DEFAULT_REGION=eu-west-2
 DB_PASS=$(aws secretsmanager get-secret-value --secret-id privacyready/gitlab/db-password --query SecretString --output text)
 REDIS_PASS=$(aws secretsmanager get-secret-value --secret-id privacyready/gitlab/redis-password --query SecretString --output text)
 
-DB_ENDPOINT="privacyready-gitlab-postgres.cluster-cr8coc0yypsj.ap-southeast-1.rds.amazonaws.com"
+DB_ENDPOINT="privacyready-gitlab-postgres.cluster-cr8coc0yypsj.eu-west-2.rds.amazonaws.com"
 REDIS_ENDPOINT="master.privacyready-gitlab-redis.ljym3u.apse1.cache.amazonaws.com"
 
 # Run GitLab Container
