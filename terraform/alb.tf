@@ -81,6 +81,10 @@ resource "aws_route53_zone" "main" {
   name    = var.domain_name
   comment = "PrivacyReady public DNS zone - GDPR compliant"
   tags    = local.tags
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 resource "aws_route53_record" "api" {
@@ -121,9 +125,10 @@ resource "aws_route53_record" "cert_validation" {
 
   zone_id = aws_route53_zone.main.zone_id
   name    = each.value.name
-  type    = each.value.type
-  records = [each.value.record]
-  ttl     = 60
+  type            = each.value.type
+  records         = [each.value.record]
+  ttl             = 60
+  allow_overwrite = true
 }
 
 # NOTE: aws_acm_certificate_validation is intentionally omitted so Terraform does not hang waiting for you to update Nameservers.
@@ -168,7 +173,7 @@ resource "aws_acm_certificate_validation" "main" {
 # ── GitLab Routing ──────────────────────────────────────────
 
 resource "aws_lb_target_group" "gitlab" {
-  name        = "privacyready-tg-gitlab-${terraform.workspace}"
+  name        = "pr-tg-gitlab-${terraform.workspace}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -194,9 +199,11 @@ resource "aws_lb_target_group" "gitlab" {
 }
 
 resource "aws_lb_target_group_attachment" "gitlab" {
-  target_group_arn = aws_lb_target_group.gitlab.arn
-  target_id        = aws_instance.gitlab.private_ip
-  port             = 80
+  count             = var.gitlab_enabled ? 1 : 0
+  target_group_arn  = aws_lb_target_group.gitlab.arn
+  target_id         = aws_instance.gitlab[0].private_ip
+  port              = 80
+  availability_zone = "all"
 }
 
 resource "aws_lb_listener_rule" "gitlab" {

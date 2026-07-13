@@ -103,7 +103,7 @@
             gitlab_rails['db_adapter'] = 'postgresql';
             gitlab_rails['db_encoding'] = 'unicode';
             gitlab_rails['db_username'] = '{{ db_username }}';
-            gitlab_rails['db_database'] = 'privacyready';
+            gitlab_rails['db_database'] = 'privacyready_gitlab';
             gitlab_rails['db_host'] = '{{ db_host }}';
             gitlab_rails['db_password'] = '{{ db_password }}';
             {% if redis_host != 'none' %}

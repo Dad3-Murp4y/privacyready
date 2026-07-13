@@ -434,7 +434,7 @@ resource "aws_ecs_task_definition" "dsr" {
 # ── ECS Target Groups ───────────────────────────────────────
 
 resource "aws_lb_target_group" "scanner" {
-  name        = "privacyready-tg-scanner-${terraform.workspace}"
+  name        = "pr-tg-scanner-${terraform.workspace}"
   port        = 8080
   protocol    = "HTTP"
   vpc_id      = local.vpc_id
@@ -454,7 +454,7 @@ resource "aws_lb_target_group" "scanner" {
 }
 
 resource "aws_lb_target_group" "dsr" {
-  name        = "privacyready-tg-dsr-${terraform.workspace}"
+  name        = "pr-tg-dsr-${terraform.workspace}"
   port        = 8000
   protocol    = "HTTP"
   vpc_id      = local.vpc_id

@@ -20,8 +20,9 @@ resource "aws_key_pair" "gitlab" {
 }
 
 resource "aws_instance" "gitlab" {
+  count                  = var.gitlab_enabled ? 1 : 0
   ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = local.is_prod ? "t3.xlarge" : "t3.large"
+  instance_type          = "t3.micro"
   subnet_id              = local.gitlab_subnet_id
   vpc_security_group_ids = [aws_security_group.gitlab.id]
   key_name               = aws_key_pair.gitlab.key_name
@@ -45,7 +46,7 @@ resource "aws_instance" "gitlab" {
   user_data = <<-USERDATA
 #!/bin/bash
 yum update -y
-yum install -y ansible jq
+yum install -y ansible jq postgresql15
 
 cat << 'EOF' > /tmp/gitlab.yml
 ${file("${path.module}/../ansible/gitlab.yml")}
@@ -59,10 +60,20 @@ else
   REDIS_PASS="none"
 fi
 
+# Ensure postgres is ready and database privacyready_gitlab exists
+export PGPASSWORD="$DB_PASS"
+until psql -h "${local.db_host}" -U "privacyready_admin" -d "privacyready" -c "SELECT 1" &>/dev/null; do
+  echo "Waiting for postgres..."
+  sleep 5
+done
+
+psql -h "${local.db_host}" -U "privacyready_admin" -d "privacyready" -tc "SELECT 1 FROM pg_database WHERE datname = 'privacyready_gitlab'" | grep -q 1 || \
+psql -h "${local.db_host}" -U "privacyready_admin" -d "privacyready" -c "CREATE DATABASE privacyready_gitlab;"
+
 ansible-playbook -c local -i localhost, \
   -e "domain_name=${var.domain_name}" \
   -e "db_host=${local.db_host}" \
-  -e "db_username=${local.is_prod ? "gitlab" : "privacyready_admin"}" \
+  -e "db_username=privacyready_admin" \
   -e "db_password=$DB_PASS" \
   -e "redis_host=${local.redis_host}" \
   -e "redis_password=$REDIS_PASS" \
@@ -73,46 +84,14 @@ USERDATA
     Name = "privacyready-gitlab-primary"
     GDPR = "compliant"
   })
+
+  lifecycle {
+    # Prevent accidental replacement when AMI updates — use targeted apply instead
+    ignore_changes = [ami, user_data]
+  }
 }
 
-resource "aws_db_subnet_group" "gitlab" {
-  count      = local.is_prod ? 1 : 0
-  name       = "privacyready-gitlab-db-subnet"
-  subnet_ids = aws_subnet.management_private[*].id
-  tags       = merge(local.tags, { Name = "privacyready-gitlab-db-subnet" })
-}
-
-resource "aws_rds_cluster" "gitlab" {
-  count                   = local.is_prod ? 1 : 0
-  cluster_identifier      = "privacyready-gitlab-postgres"
-  engine                  = "aurora-postgresql"
-  engine_version          = "15.13"
-  database_name           = "gitlabhq_production"
-  master_username         = "gitlab"
-  master_password         = random_password.gitlab_db[0].result
-  backup_retention_period = 30
-  preferred_backup_window = "03:00-04:00"
-  vpc_security_group_ids  = [aws_security_group.gitlab_db[0].id]
-  db_subnet_group_name    = aws_db_subnet_group.gitlab[0].name
-  storage_encrypted       = true
-  kms_key_id              = aws_kms_key.gitlab.arn
-  deletion_protection     = false
-  skip_final_snapshot     = true
-
-  tags = merge(local.tags, {
-    GDPR          = "compliant"
-    DataResidency = "thailand"
-  })
-}
-
-resource "aws_rds_cluster_instance" "gitlab" {
-  count              = local.is_prod ? 2 : 0
-  identifier         = "privacyready-gitlab-db-instance-${count.index + 1}"
-  cluster_identifier = aws_rds_cluster.gitlab[0].id
-  instance_class     = "db.t3.medium"
-  engine             = aws_rds_cluster.gitlab[0].engine
-  engine_version     = aws_rds_cluster.gitlab[0].engine_version
-}
+# Dedicated GitLab DB resources removed to support hosting on shared database
 
 resource "aws_elasticache_subnet_group" "gitlab" {
   count      = local.is_prod ? 1 : 0
@@ -121,7 +100,7 @@ resource "aws_elasticache_subnet_group" "gitlab" {
 }
 
 resource "aws_elasticache_replication_group" "gitlab" {
-  count                      = local.is_prod ? 1 : 0
+  count                      = local.is_prod && var.gitlab_enabled ? 1 : 0
   replication_group_id       = "privacyready-gitlab-redis"
   description                = "GitLab Redis cluster"
   engine                     = "redis"
@@ -224,28 +203,10 @@ resource "aws_kms_alias" "gitlab" {
   target_key_id = aws_kms_key.gitlab.key_id
 }
 
-resource "random_password" "gitlab_db" {
-  count   = local.is_prod ? 1 : 0
-  length  = 32
-  special = false
-}
-
 resource "random_password" "gitlab_redis" {
   count   = local.is_prod ? 1 : 0
   length  = 32
   special = false
-}
-
-resource "aws_secretsmanager_secret" "gitlab_db_password" {
-  count                   = local.is_prod ? 1 : 0
-  name                    = "privacyready/gitlab/db-password"
-  recovery_window_in_days = 7
-}
-
-resource "aws_secretsmanager_secret_version" "gitlab_db_password" {
-  count         = local.is_prod ? 1 : 0
-  secret_id     = aws_secretsmanager_secret.gitlab_db_password[0].id
-  secret_string = random_password.gitlab_db[0].result
 }
 
 resource "aws_secretsmanager_secret" "gitlab_redis_password" {
@@ -347,18 +308,7 @@ resource "aws_security_group" "gitlab" {
   })
 }
 
-resource "aws_security_group" "gitlab_db" {
-  count       = local.is_prod ? 1 : 0
-  name_prefix = "privacyready-gitlab-db-"
-  vpc_id      = aws_vpc.management[0].id
-
-  ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.gitlab.id]
-  }
-}
+# Dedicated GitLab DB security group removed
 
 resource "aws_security_group" "gitlab_redis" {
   count       = local.is_prod ? 1 : 0

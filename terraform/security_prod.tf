@@ -74,6 +74,14 @@ resource "aws_security_group" "rds" {
     description     = "ECS tasks to RDS"
   }
 
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.management[0].cidr_block]
+    description = "Management VPC to RDS (for GitLab)"
+  }
+
   tags = merge(local.tags, { Name = "privacyready-rds-sg" })
 }
 

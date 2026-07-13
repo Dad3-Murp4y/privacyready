@@ -94,6 +94,6 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage" {
   alarm_description   = "RDS free storage is below 5GB"
   alarm_actions       = [aws_sns_topic.alerts.arn]
   dimensions = {
-    DBInstanceIdentifier = local.is_prod ? aws_rds_cluster_instance.gitlab[0].identifier : aws_db_instance.test_db[0].identifier
+    DBInstanceIdentifier = local.is_prod ? aws_db_instance.main[0].identifier : aws_db_instance.test_db[0].identifier
   }
 }

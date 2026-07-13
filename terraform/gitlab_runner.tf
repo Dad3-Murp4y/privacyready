@@ -1,9 +1,9 @@
 # GitLab Runner instances and S3 caching configurations
 resource "aws_instance" "gitlab_runner" {
-  count                  = local.is_prod ? 2 : 0
+  count                  = local.is_prod && var.gitlab_enabled ? 2 : 0
   ami                    = data.aws_ami.amazon_linux_2023.id
   instance_type          = "t3.micro"
-  subnet_id              = local.private_subnet_ids[count.index]
+  subnet_id              = local.gitlab_private_subnet_ids[count.index]
   vpc_security_group_ids = [aws_security_group.gitlab_runner.id]
   iam_instance_profile   = aws_iam_instance_profile.gitlab_runner.name
 
