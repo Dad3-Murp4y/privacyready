@@ -88,6 +88,10 @@ USERDATA
   lifecycle {
     # Prevent accidental replacement when AMI updates — use targeted apply instead
     ignore_changes = [ami, user_data]
+    # Preserve the instance across destroy cycles — the EBS volumes contain GitLab data.
+    # Before running `terraform destroy`, run: scripts/pre-destroy.sh
+    # After re-deploying, run: scripts/post-import.sh to re-attach this instance to state.
+    prevent_destroy = true
   }
 }
 

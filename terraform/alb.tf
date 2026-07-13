@@ -83,7 +83,7 @@ resource "aws_route53_zone" "main" {
   tags    = local.tags
 
   lifecycle {
-    prevent_destroy = false
+    prevent_destroy = true
   }
 }
 
