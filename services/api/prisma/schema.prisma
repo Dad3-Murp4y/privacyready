@@ -9,13 +9,14 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   name      String
   industry  String?
   users     User[]
   scans     Scan[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  dsrRequests DsrRequest[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 }
 
 model User {
@@ -42,4 +43,21 @@ model Scan {
   organizationId   String?
   createdAt        DateTime     @default(now())
   completedAt      DateTime?
+}
+
+model DsrRequest {
+  id             String       @id @default(uuid())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId String
+  subjectEmail   String
+  subjectName    String?
+  requestType    String // ACCESS, ERASURE, RECTIFICATION, PORTABILITY, RESTRICTION
+  status         String       @default("PENDING") // PENDING, IN_REVIEW, APPROVED, REJECTED, COMPLETED
+  reasonText     String?
+  internalNotes  String?
+  dueDate        DateTime // GDPR mandates strict deadlines (e.g. 30 days)
+  createdAt      DateTime     @default(now())
+  resolvedAt     DateTime?
+
+  @@index([organizationId, status])
 }

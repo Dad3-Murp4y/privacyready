@@ -130,6 +130,24 @@ export default function Dashboard() {
           }));
           setAudits(mappedAudits);
         }
+
+        const dsrRes = await fetch('https://api.privacyready.co.uk/api/dsr', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (dsrRes.ok) {
+          const dsrData = await dsrRes.json();
+          const mappedDsrs = dsrData.map((d: any) => ({
+            id: d.id,
+            type: d.requestType,
+            email: d.subjectEmail,
+            date: new Date(d.createdAt).toLocaleString(),
+            status: d.status === 'COMPLETED' ? 'Completed'
+              : d.status === 'IN_REVIEW' ? 'In Progress'
+              : 'Pending',
+            description: d.reasonText
+          }));
+          setDsrs(mappedDsrs);
+        }
       } catch (err) {
         console.error('Failed to fetch audits:', err);
       }
@@ -247,23 +265,53 @@ export default function Dashboard() {
   };
 
   // Create DSR
-  const handleCreateDsr = (e: React.FormEvent) => {
+  const handleCreateDsr = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDsrEmail) return;
 
-    const newDsr: DSR = {
-      id: `dsr-${Math.floor(Math.random() * 90000) + 10000}`,
-      type: newDsrType,
-      email: newDsrEmail,
-      date: new Date().toLocaleString(),
-      status: 'Pending',
-      description: newDsrDescription
-    };
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
 
-    setDsrs(prev => [newDsr, ...prev]);
-    setShowDsrModal(false);
-    setNewDsrEmail('');
-    setNewDsrDescription('');
+    try {
+      const res = await fetch('https://api.privacyready.co.uk/api/dsr', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          subjectEmail: newDsrEmail,
+          requestType: newDsrType.toUpperCase(),
+          reasonText: newDsrDescription
+        })
+      });
+
+      if (!res.ok) {
+        alert('Failed to log DSR request. Please try again.');
+        return;
+      }
+
+      const created = await res.json();
+      const newDsr: DSR = {
+        id: created.id,
+        type: newDsrType,
+        email: newDsrEmail,
+        date: new Date(created.createdAt).toLocaleString(),
+        status: 'Pending',
+        description: newDsrDescription
+      };
+
+      setDsrs(prev => [newDsr, ...prev]);
+      setShowDsrModal(false);
+      setNewDsrEmail('');
+      setNewDsrDescription('');
+    } catch (err) {
+      console.error('Failed to create DSR:', err);
+      alert('Failed to log DSR request. Please try again.');
+    }
   };
 
   return (
@@ -684,8 +732,30 @@ export default function Dashboard() {
                               Details
                             </button>
                             <button 
-                              onClick={() => {
-                                setDsrs(prev => prev.map(d => d.id === dsr.id ? { ...d, status: 'Completed' as const } : d));
+                              onClick={async () => {
+                                const token = localStorage.getItem('token');
+                                if (!token) {
+                                  navigate('/login');
+                                  return;
+                                }
+                                try {
+                                  const res = await fetch(`https://api.privacyready.co.uk/api/dsr/${dsr.id}`, {
+                                    method: 'PATCH',
+                                    headers: {
+                                      'Content-Type': 'application/json',
+                                      Authorization: `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ status: 'COMPLETED' })
+                                  });
+                                  if (!res.ok) {
+                                    alert('Failed to update DSR status.');
+                                    return;
+                                  }
+                                  setDsrs(prev => prev.map(d => d.id === dsr.id ? { ...d, status: 'Completed' as const } : d));
+                                } catch (err) {
+                                  console.error('Failed to update DSR:', err);
+                                  alert('Failed to update DSR status.');
+                                }
                               }}
                               disabled={dsr.status === 'Completed'}
                               style={{ 
