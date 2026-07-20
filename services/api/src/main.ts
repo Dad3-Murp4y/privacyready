@@ -12,7 +12,14 @@ import { adminRoutes } from './routes/admin.js';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
 const host = process.env.HOST ?? '0.0.0.0';
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_for_local_dev_only_1234';
+
+if (!process.env.JWT_SECRET) {
+  throw new Error(
+    'JWT_SECRET environment variable is required and must not be empty. ' +
+    'Refusing to start with a hardcoded fallback secret.'
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 async function buildServer() {
   const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();

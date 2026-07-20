@@ -153,10 +153,14 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = useState('');
 
   // Dynamically compute metrics
-  const overallScore = audits.length > 0 
-    ? Math.round(audits.reduce((acc, curr) => acc + curr.score, 0) / audits.length) 
-    : 100;
-  const websiteVulnerabilities = audits.filter(a => a.type === 'Website' && a.status === 'Warning').length * 2 + (audits.length > 0 ? 1 : 0);
+  const overallScore = audits.length > 0
+    ? Math.round(audits.reduce((acc, curr) => acc + curr.score, 0) / audits.length)
+    : null; // null, not 100 — an unscanned org has no known compliance score yet
+  // Count of individual failed checks across website audits — reflects
+  // actual findings rather than an arbitrary derived number.
+  const websiteVulnerabilities = audits
+    .filter(a => a.type === 'Website')
+    .reduce((count, audit) => count + (audit.checks?.filter(c => !c.passed).length ?? 0), 0);
   const pendingDsrs = dsrs.filter(d => d.status === 'Pending' || d.status === 'In Progress').length;
 
   // Handle Sign Out
@@ -446,9 +450,9 @@ export default function Dashboard() {
             <div className="metric-grid animate-fade-up stagger-1">
               <div className="metric-card">
                 <div className="metric-label">Overall GDPR Score</div>
-                <div className="metric-value good">{overallScore}%</div>
+                <div className="metric-value good">{overallScore === null ? '—' : `${overallScore}%`}</div>
                 <div style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '12px' }}>
-                  Based on {audits.length} active audit assets
+                  {audits.length > 0 ? `Based on ${audits.length} active audit assets` : 'Run your first audit to get a score'}
                 </div>
               </div>
               
