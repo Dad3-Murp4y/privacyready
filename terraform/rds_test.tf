@@ -57,3 +57,24 @@ resource "aws_secretsmanager_secret_version" "test_db_password" {
   secret_id     = aws_secretsmanager_secret.test_db_password[0].id
   secret_string = random_password.test_db[0].result
 }
+
+resource "random_password" "test_jwt" {
+  count   = local.is_prod ? 0 : 1
+  length  = 64
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "test_jwt_secret" {
+  count                   = local.is_prod ? 0 : 1
+  name                    = "privacyready/test-jwt-secret"
+  description             = "PrivacyReady test API JWT signing secret"
+  recovery_window_in_days = 0
+
+  tags = merge(local.tags, { Name = "privacyready-test-jwt-secret" })
+}
+
+resource "aws_secretsmanager_secret_version" "test_jwt_secret" {
+  count         = local.is_prod ? 0 : 1
+  secret_id     = aws_secretsmanager_secret.test_jwt_secret[0].id
+  secret_string = random_password.test_jwt[0].result
+}

@@ -16,6 +16,8 @@ locals {
   db_secret_name = local.is_prod ? try(aws_secretsmanager_secret.db_password[0].name, "gitlab-disabled") : aws_secretsmanager_secret.test_db_password[0].name
   db_secret_arn  = local.is_prod ? try(aws_secretsmanager_secret.db_password[0].arn, "gitlab-disabled") : aws_secretsmanager_secret.test_db_password[0].arn
 
+  jwt_secret_arn = local.is_prod ? try(aws_secretsmanager_secret.jwt_secret[0].arn, "gitlab-disabled") : aws_secretsmanager_secret.test_jwt_secret[0].arn
+
   redis_host        = local.is_prod ? try(aws_elasticache_replication_group.gitlab[0].primary_endpoint_address, "gitlab-disabled") : aws_elasticache_cluster.test_cache[0].cache_nodes[0].address
   redis_secret_name = local.is_prod ? aws_secretsmanager_secret.gitlab_redis_password[0].name : "none"
 

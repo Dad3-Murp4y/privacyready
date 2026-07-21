@@ -102,6 +102,10 @@ resource "aws_ecs_task_definition" "app" {
       {
         name      = "DB_PASSWORD"
         valueFrom = local.db_secret_arn
+      },
+      {
+        name      = "JWT_SECRET"
+        valueFrom = local.jwt_secret_arn
       }
     ]
 
@@ -233,7 +237,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 
 resource "aws_iam_policy" "ecs_secrets_access" {
   name        = "privacyready-ecs-secrets-policy"
-  description = "Allows ECS execution role to retrieve DB password secret"
+  description = "Allows ECS execution role to retrieve DB password and JWT signing secret"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -244,7 +248,8 @@ resource "aws_iam_policy" "ecs_secrets_access" {
         "kms:Decrypt"
       ]
       Resource = [
-        local.db_secret_arn
+        local.db_secret_arn,
+        local.jwt_secret_arn
       ]
     }]
   })
