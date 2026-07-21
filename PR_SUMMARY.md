@@ -59,3 +59,17 @@
 - **Set `superadmin_email` in Terraform and register with that email** to get initial platform admin access — nothing else grants SUPERADMIN.
 - Run `npx prisma generate` in a real dev environment — same sandbox limitation as before.
 - The temp-password flow in `team.ts` has no email delivery yet — admin has to manually share the password shown once in the UI. Worth wiring up real email invites before this goes to real customers.
+
+---
+
+## Session 3 — email verification via SES
+
+### `cdb67ba` — Email verification for registration and team invites
+- Asked to use SNS for this — used SES instead, since SNS's email protocol only delivers to pre-subscribed, individually-confirmed addresses and can't send one-off verification emails to arbitrary new users. Domain was already SES-verified for inbound mail in `monitoring.tf`, so no new setup needed there.
+- Registration now creates an unverified user, emails a verification link (24h expiry), and returns no session token until verified. `/auth/login` rejects unverified accounts.
+- Team invites (`POST /api/team`) now actually email the temp password + verification link via SES, resolving the "no email delivery yet" gap noted above.
+- New `VerifyEmail.tsx` page/route, updated `Register.tsx` to show a "check your email" screen.
+- IAM policy added to the ECS **task** role (not execution role) scoped narrowly to `ses:SendEmail`/`SendRawEmail` from the `noreply@` address.
+
+### ⚠️ Before this ships (new)
+- **SES sandbox mode**: a new AWS account's SES can only send to individually-verified recipient addresses until you request production access in the SES console (Account dashboard → Request production access, not doable via Terraform, usually approved within a day). Until then, verification emails to arbitrary Gmail addresses will silently fail. Verify your own email as a test recipient first if you want to test this before requesting production access.
