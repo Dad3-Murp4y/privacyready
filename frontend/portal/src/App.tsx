@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Team from './pages/Team';
+import VerifyEmail from './pages/VerifyEmail';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import CookieConsent from './components/CookieConsent';
@@ -27,6 +28,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route 

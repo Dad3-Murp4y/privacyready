@@ -1,7 +1,12 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { prisma } from '../db.js';
+import { sendVerificationEmail } from '../email.js';
+
+const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
+const VERIFY_TOKEN_TTL_HOURS = 24;
 
 // TypeBox schemas for validation and sanitization
 const RegisterSchema = {
@@ -23,6 +28,23 @@ const LoginSchema = {
     password: Type.String()
   })
 };
+
+function hashToken(token: string) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+async function issueVerificationEmail(userId: string, email: string, fullName: string) {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 60 * 60 * 1000);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { emailVerifyTokenHash: hashToken(rawToken), emailVerifyExpires: expires }
+  });
+
+  const verifyUrl = `${PORTAL_URL}/verify-email?token=${rawToken}&uid=${userId}`;
+  await sendVerificationEmail(email, fullName, verifyUrl);
+}
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   
@@ -64,8 +86,65 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return newUser;
     });
 
-    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
-    return { token };
+    try {
+      await issueVerificationEmail(user.id, user.email, user.fullName);
+    } catch (err) {
+      request.log.error(err, 'Failed to send verification email');
+      // Don't fail registration if email sending has a transient issue --
+      // the user can request a new link via /auth/resend-verification.
+    }
+
+    // No session token issued here on purpose -- login is blocked until
+    // the email is verified, so there's nothing useful a token would do yet.
+    return reply.status(201).send({
+      message: 'Account created. Check your email to verify your address before logging in.'
+    });
+  });
+
+  app.get('/auth/verify-email', async (request, reply) => {
+    const { token, uid } = request.query as { token?: string; uid?: string };
+    if (!token || !uid) {
+      return reply.status(400).send({ error: 'Missing verification token' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: uid } });
+    if (!user || !user.emailVerifyTokenHash || !user.emailVerifyExpires) {
+      return reply.status(400).send({ error: 'Invalid or already-used verification link' });
+    }
+
+    if (user.emailVerifyExpires < new Date()) {
+      return reply.status(400).send({ error: 'Verification link expired. Request a new one.' });
+    }
+
+    if (hashToken(token) !== user.emailVerifyTokenHash) {
+      return reply.status(400).send({ error: 'Invalid verification link' });
+    }
+
+    await prisma.user.update({
+      where: { id: uid },
+      data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+    });
+
+    return { message: 'Email verified. You can now log in.' };
+  });
+
+  const ResendSchema = { body: Type.Object({ email: Type.String({ format: 'email' }) }) };
+
+  app.post('/auth/resend-verification', { schema: ResendSchema }, async (request, reply) => {
+    const { email } = request.body as any;
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Same response whether or not the account exists, so this can't be
+    // used to enumerate registered emails.
+    if (user && !user.emailVerified) {
+      try {
+        await issueVerificationEmail(user.id, user.email, user.fullName);
+      } catch (err) {
+        request.log.error(err, 'Failed to resend verification email');
+      }
+    }
+
+    return { message: 'If that email is registered and unverified, a new verification link has been sent.' };
   });
 
   // Apply rate limit just to login
@@ -88,6 +167,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     const isValid = await bcrypt.compare(password, user.passwordHash);
     if (!isValid) {
       return reply.code(401).send({ error: 'Invalid credentials' });
+    }
+
+    if (!user.emailVerified) {
+      return reply.code(403).send({ error: 'Please verify your email before logging in. Check your inbox, or request a new link via /auth/resend-verification.' });
     }
 
     const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });

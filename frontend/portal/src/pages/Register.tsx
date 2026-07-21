@@ -8,6 +8,7 @@ export default function Register() {
   const [fullName, setFullName] = useState('');
   const [orgName, setOrgName] = useState('');
   const [error, setError] = useState('');
+  const [registered, setRegistered] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,13 +53,34 @@ export default function Register() {
         throw new Error(data.error || 'Registration failed');
       }
       
-      localStorage.setItem('token', data.token);
       localStorage.removeItem('freeScanId');
-      navigate('/dashboard');
+      setRegistered(true);
     } catch (err: any) {
       setError(err.message);
     }
   };
+
+  if (registered) {
+    return (
+      <div className="auth-container">
+        <div className="auth-glow" />
+        <div className="auth-card">
+          <div className="auth-header">
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+              <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
+            </div>
+            <h1 className="auth-title">Check your email</h1>
+            <p className="auth-subtitle">
+              We've sent a verification link to <strong>{email}</strong>. Click it to activate your account, then log in.
+            </p>
+          </div>
+          <div className="auth-footer">
+            <a href="/login" onClick={(e) => { e.preventDefault(); navigate('/login'); }}>Back to log in</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">

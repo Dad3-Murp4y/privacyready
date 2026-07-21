@@ -96,7 +96,10 @@ resource "aws_ecs_task_definition" "app" {
       { name = "PORT", value = "8080" },
       { name = "DB_HOST", value = local.db_host },
       { name = "REDIS_HOST", value = local.redis_host },
-      { name = "SUPERADMIN_EMAIL", value = var.superadmin_email }
+      { name = "SUPERADMIN_EMAIL", value = var.superadmin_email },
+      { name = "PORTAL_URL", value = "https://portal.${var.domain_name}" },
+      { name = "SES_FROM_EMAIL", value = "noreply@${var.domain_name}" },
+      { name = "AWS_REGION", value = var.region }
     ]
 
     secrets = [
@@ -276,6 +279,34 @@ resource "aws_iam_role" "ecs_task" {
   })
 
   tags = merge(local.tags, { Name = "privacyready-ecs-task" })
+}
+
+# Lets the running app send transactional email (verification links,
+# team invites) via SES from the already-verified domain identity in
+# monitoring.tf. Scoped to just SendEmail/SendRawEmail -- this role
+# can't touch SES configuration, receipt rules, or other identities.
+resource "aws_iam_policy" "ecs_ses_send" {
+  name        = "privacyready-ecs-ses-send-policy"
+  description = "Allows the API task to send transactional email via SES"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["ses:SendEmail", "ses:SendRawEmail"]
+      Resource = "*"
+      Condition = {
+        StringEquals = {
+          "ses:FromAddress" = "noreply@${var.domain_name}"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_ses_send" {
+  role       = aws_iam_role.ecs_task.name
+  policy_arn = aws_iam_policy.ecs_ses_send.arn
 }
 
 # ── CloudWatch Alarms ───────────────────────────────────────

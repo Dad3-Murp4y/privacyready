@@ -20,15 +20,18 @@ model Organization {
 }
 
 model User {
-  id             String       @id @default(uuid())
-  email          String       @unique
-  passwordHash   String
-  fullName       String
-  role           String       @default("MEMBER")
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId String
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                   String       @id @default(uuid())
+  email                String       @unique
+  passwordHash         String
+  fullName             String
+  role                 String       @default("MEMBER")
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId       String
+  emailVerified        Boolean      @default(false)
+  emailVerifyTokenHash String?      // SHA-256 hash of the token sent by email -- never store the raw token
+  emailVerifyExpires   DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 }
 
 model Scan {

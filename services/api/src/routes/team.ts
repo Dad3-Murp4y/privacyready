@@ -3,6 +3,14 @@ import { Type } from '@sinclair/typebox';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
+import { sendTeamInviteEmail } from '../email.js';
+
+const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
+const VERIFY_TOKEN_TTL_HOURS = 24;
+
+function hashToken(token: string) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
 
 // Client-side ("my organization") team management -- distinct from
 // admin.ts, which is platform-wide and SUPERADMIN-only. This lets an
@@ -48,10 +56,8 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     })
   };
 
-  // Create a teammate directly in the caller's org. There's no email
-  // service wired up yet, so this generates a temporary password and
-  // returns it once in the response -- share it with them out of
-  // band. They should change it after first login.
+  // Create a teammate directly in the caller's org and email them an
+  // invite with a temporary password + verification link.
   app.post('/api/team', { schema: CreateTeammateSchema }, async (request, reply) => {
     const user = request.user as any;
     const { email, fullName, role } = request.body as any;
@@ -69,6 +75,8 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     const tempPassword = crypto.randomBytes(9).toString('base64url'); // 12-char random temp password
     const passwordHash = await bcrypt.hash(tempPassword, 12);
 
+    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+
     const teammate = await prisma.user.create({
       data: {
         email,
@@ -78,6 +86,26 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
         organizationId: user.org
       }
     });
+
+    // Same verification requirement as self-registration -- an org
+    // admin vouching for someone doesn't prove they typed the right
+    // email address, so the invitee still has to confirm it themselves.
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: teammate.id },
+      data: { emailVerifyTokenHash: hashToken(rawToken), emailVerifyExpires: expires }
+    });
+
+    const verifyUrl = `${PORTAL_URL}/verify-email?token=${rawToken}&uid=${teammate.id}`;
+    try {
+      await sendTeamInviteEmail(email, fullName, org?.name || 'your organization', tempPassword, verifyUrl);
+    } catch (err) {
+      request.log.error(err, 'Failed to send team invite email');
+      // Don't fail the whole request -- the temp password is still
+      // returned below so the admin can share it manually if the
+      // email didn't go out.
+    }
 
     return reply.status(201).send({
       id: teammate.id,

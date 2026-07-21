@@ -234,9 +234,9 @@ export default function Team() {
               </>
             ) : (
               <>
-                <h3 className="scan-card-title" style={{ marginBottom: '12px' }}>Teammate added</h3>
+                <h3 className="scan-card-title" style={{ marginBottom: '12px' }}>Invite sent</h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '16px' }}>
-                  Share this temporary password with them directly -- it won't be shown again. They should change it after logging in.
+                  We've emailed them a verification link and this temporary password. You can also share it directly as a backup -- it won't be shown again.
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--mid)', border: '1px solid var(--glass-border)', borderRadius: '8px', padding: '12px', marginBottom: '20px' }}>
                   <code style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: '14px', color: 'var(--sky)' }}>{tempPassword}</code>
