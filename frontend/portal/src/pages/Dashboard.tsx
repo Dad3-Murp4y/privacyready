@@ -394,15 +394,15 @@ export default function Dashboard() {
                 </p>
               </div>
               <div style={{ 
-                background: selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                background: selectedAudit.status === 'Passed' ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
                 color: selectedAudit.status === 'Passed' ? 'var(--success)' : 'var(--warning)',
                 padding: '12px 24px',
                 borderRadius: '16px',
-                border: `1px solid ${selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.2)' : 'rgba(255, 214, 0, 0.2)'}`,
+                border: `1px solid ${selectedAudit.status === 'Passed' ? 'rgba(39, 174, 96, 0.2)' : 'rgba(230, 126, 34, 0.2)'}`,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-end',
-                boxShadow: `0 0 20px ${selectedAudit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)'}`
+                boxShadow: `0 0 20px ${selectedAudit.status === 'Passed' ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)'}`
               }}>
                 <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', opacity: 0.8 }}>Compliance Status</span>
                 <span style={{ fontSize: '28px', fontWeight: 'bold', fontFamily: 'var(--font-heading)' }}>{selectedAudit.status}</span>
@@ -448,7 +448,7 @@ export default function Dashboard() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>{check.name}</h3>
                     <span style={{ 
-                      background: check.passed ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                      background: check.passed ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
                       color: check.passed ? 'var(--success)' : 'var(--warning)',
                       padding: '4px 8px',
                       borderRadius: '6px',
@@ -544,7 +544,7 @@ export default function Dashboard() {
                   audits.map((audit) => (
                   <div key={audit.id} onClick={() => setSelectedAudit(audit)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', transition: 'all 0.3s' }} className="hover-lift">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(124, 77, 255, 0.2))', color: 'var(--sky)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, rgba(108, 143, 216, 0.2), rgba(232, 197, 160, 0.2))', color: 'var(--sky)' }}>
                         <Globe size={24} />
                       </div>
                       <div>
@@ -560,11 +560,11 @@ export default function Dashboard() {
                       <div style={{ 
                         color: audit.status === 'Passed' ? 'var(--success)' : 'var(--warning)', 
                         fontWeight: '600',
-                        background: audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                        background: audit.status === 'Passed' ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
                         padding: '8px 16px',
                         borderRadius: '20px',
                         fontSize: '13px',
-                        boxShadow: `0 0 10px ${audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.05)' : 'rgba(255, 214, 0, 0.05)'}`
+                        boxShadow: `0 0 10px ${audit.status === 'Passed' ? 'rgba(39, 174, 96, 0.05)' : 'rgba(230, 126, 34, 0.05)'}`
                       }}>
                         {audit.status}
                       </div>
@@ -637,7 +637,7 @@ export default function Dashboard() {
                       <td style={{ padding: '20px 24px' }}>
                         <span style={{ 
                           color: audit.status === 'Passed' ? 'var(--success)' : 'var(--warning)',
-                          background: audit.status === 'Passed' ? 'rgba(0, 230, 118, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                          background: audit.status === 'Passed' ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
                           padding: '6px 12px',
                           borderRadius: '12px',
                           fontSize: '13px',
@@ -651,7 +651,7 @@ export default function Dashboard() {
                           onClick={() => setAudits(prev => prev.filter(item => item.id !== audit.id))}
                           style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', transition: 'background 0.2s' }}
                           title="Delete Audit"
-                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255, 23, 68, 0.1)'}
+                          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(192, 57, 43, 0.1)'}
                           onMouseOut={(e) => e.currentTarget.style.background = 'none'}
                         >
                           <Trash2 size={16} />
@@ -712,7 +712,7 @@ export default function Dashboard() {
                         <td style={{ padding: '20px 24px' }}>
                           <span style={{ 
                             color: dsr.status === 'Completed' ? 'var(--success)' : dsr.status === 'In Progress' ? 'var(--sky)' : 'var(--warning)',
-                            background: dsr.status === 'Completed' ? 'rgba(0, 230, 118, 0.1)' : dsr.status === 'In Progress' ? 'rgba(0, 229, 255, 0.1)' : 'rgba(255, 214, 0, 0.1)',
+                            background: dsr.status === 'Completed' ? 'rgba(39, 174, 96, 0.1)' : dsr.status === 'In Progress' ? 'rgba(108, 143, 216, 0.1)' : 'rgba(230, 126, 34, 0.1)',
                             padding: '6px 12px',
                             borderRadius: '12px',
                             fontSize: '13px',
@@ -804,7 +804,7 @@ export default function Dashboard() {
                 
                 {/* Progress bar */}
                 <div style={{ background: 'rgba(255,255,255,0.05)', height: '10px', borderRadius: '5px', overflow: 'hidden', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
-                  <div style={{ background: 'linear-gradient(90deg, var(--sky), var(--accent))', width: `${scanProgress}%`, height: '100%', transition: 'width 0.4s ease-out', boxShadow: '0 0 10px rgba(0, 229, 255, 0.5)' }} />
+                  <div style={{ background: 'linear-gradient(90deg, var(--sky), var(--accent))', width: `${scanProgress}%`, height: '100%', transition: 'width 0.4s ease-out', boxShadow: '0 0 10px rgba(108, 143, 216, 0.5)' }} />
                 </div>
 
                 {/* Simulated Logs console */}

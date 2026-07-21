@@ -47,7 +47,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           passwordHash,
           fullName,
           organizationId: org.id,
-          role: email.toLowerCase() === 'all.privacyready@gmail.com' ? 'SUPERADMIN' : 'ADMIN'
+          role: process.env.SUPERADMIN_EMAIL && email.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase()
+            ? 'SUPERADMIN'
+            : 'ADMIN'
         }
       });
       

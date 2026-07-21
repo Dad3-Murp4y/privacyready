@@ -22,6 +22,12 @@ variable "alert_email" {
   default     = "alerts.privacyready@gmail.com"
 }
 
+variable "superadmin_email" {
+  description = "Email address that gets SUPERADMIN role on registration. No default on purpose -- this repo is public, so this must be supplied via TF_VAR_superadmin_email or an untracked .tfvars file, never committed."
+  type        = string
+  sensitive   = true
+}
+
 variable "gitlab_enabled" {
   description = "Set to false to hibernate GitLab (EC2 + Aurora) and save ~£200/month. EBS volumes, secrets, and DNS records are preserved."
   type        = bool

@@ -95,7 +95,8 @@ resource "aws_ecs_task_definition" "app" {
       { name = "NODE_ENV", value = "production" },
       { name = "PORT", value = "8080" },
       { name = "DB_HOST", value = local.db_host },
-      { name = "REDIS_HOST", value = local.redis_host }
+      { name = "REDIS_HOST", value = local.redis_host },
+      { name = "SUPERADMIN_EMAIL", value = var.superadmin_email }
     ]
 
     secrets = [
