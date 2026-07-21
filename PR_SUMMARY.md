@@ -37,3 +37,25 @@
 - **Footer logo mismatch**: `frontend/index.html`'s footer reads "DataWai" while the surrounding copy says "PrivacyReady" — looks like a copy-paste from the other product.
 - `services/dsr` Python microservice's future is undecided (see above).
 - Design pass was scoped to *colors only* — layout, empty states, and the `alert()` calls for errors are still open from an earlier review.
+
+---
+
+## Session 2 — footer pages, admin/team management, dashboard retint
+
+### `f3dfb91` — Real footer pages, DataWai logo fix, shared CSS/JS
+- Fixed the DataWai→PrivacyReady logo bug in **both** the nav bar and footer (it was site-wide, not just the footer)
+- Built real pages for every footer placeholder: `about.html`, `contact.html`, `faq.html`, `privacy-policy.html`, `terms.html`, `cookies.html`, plus `coming-soon.html` for features that don't exist yet (API Access, Compliance Certificate, Fine Calculator, Webinars, Careers) instead of faking them
+- Privacy Policy and Terms are explicitly marked "draft, not solicitor-reviewed" on the page itself
+- Extracted the ~1900-line inline `<style>` block into `styles.css` and the shared nav/language/cookie-banner script into `main.js` — both linked, not duplicated, across every page now
+
+### `c46f498` (superadmin fix) + `f0d67c1` — Real admin/team management
+- Removed the hardcoded `all.privacyready@gmail.com` superadmin email (real security risk on a public repo) — replaced with `SUPERADMIN_EMAIL`, sourced from a required Terraform variable that never gets committed
+- **Platform admin** (`admin.ts`): SUPERADMIN can now promote/demote any user's role and delete users/organizations via the UI — no longer dependent on one hardcoded email for bootstrapping future admins
+- **Org-level team management** (new `team.ts` + `Team.tsx` page): a client's own ADMIN can add/remove teammates in their org without needing platform access — generates a one-time temp password (no email service exists yet, so it's shown once for the admin to share manually)
+- `AdminDashboard.tsx` rewritten with Users + Organizations tabs
+- Retinted the dashboard to the landing site's actual navy/blue/lotus palette instead of neon cyan/violet
+
+### Before this ships
+- **Set `superadmin_email` in Terraform and register with that email** to get initial platform admin access — nothing else grants SUPERADMIN.
+- Run `npx prisma generate` in a real dev environment — same sandbox limitation as before.
+- The temp-password flow in `team.ts` has no email delivery yet — admin has to manually share the password shown once in the UI. Worth wiring up real email invites before this goes to real customers.
