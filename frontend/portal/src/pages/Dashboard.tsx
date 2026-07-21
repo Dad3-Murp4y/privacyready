@@ -12,7 +12,9 @@ import {
   Loader2,
   Trash2,
   ArrowRight,
-  Clock
+  Clock,
+  Users,
+  Shield
 } from 'lucide-react';
 
 interface AuditCheck {
@@ -364,6 +366,14 @@ export default function Dashboard() {
           >
             <UserCheck className="nav-icon" size={20} /> DSR Manager
           </button>
+          <a href="/team" className="nav-item">
+            <Users className="nav-icon" size={20} /> Team
+          </a>
+          {userProfile?.role === 'SUPERADMIN' && (
+            <a href="/admin" className="nav-item">
+              <Shield className="nav-icon" size={20} /> Admin Panel
+            </a>
+          )}
         </nav>
 
         <a href="#" className="nav-item" onClick={handleSignOut} style={{ marginTop: 'auto', color: 'var(--text-secondary)' }}>

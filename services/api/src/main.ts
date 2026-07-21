@@ -9,6 +9,7 @@ import { registerHealthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { registerScanRoutes } from './routes/scan.js';
 import { registerDsrRoutes } from './routes/dsr.js';
+import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
@@ -42,6 +43,7 @@ async function buildServer() {
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(registerScanRoutes);
   await app.register(registerDsrRoutes);
+  await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
 
   return app;

@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Team from './pages/Team';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import CookieConsent from './components/CookieConsent';
@@ -41,6 +42,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/team" 
+          element={
+            <ProtectedRoute>
+              <Team />
             </ProtectedRoute>
           } 
         />
