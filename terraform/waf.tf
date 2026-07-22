@@ -27,27 +27,16 @@ resource "aws_wafv2_web_acl" "main" {
     }
   }
 
-  rule {
-    name     = "GeoBlockNonThailand"
-    priority = 2
-    action {
-      block {}
-    }
-    statement {
-      not_statement {
-        statement {
-          geo_match_statement {
-            country_codes = ["TH", "GB", "SG", "US"]
-          }
-        }
-      }
-    }
-    visibility_config {
-      cloudwatch_metrics_enabled = true
-      metric_name                = "GeoBlock"
-      sampled_requests_enabled   = true
-    }
-  }
+  # NOTE: a country allow-list rule used to live here (only TH/GB/SG/US
+  # could reach the site at all) -- leftover from the DataWai (Thailand)
+  # setup this was originally copied from. PrivacyReady is a UK B2B SaaS
+  # product with a global prospect/customer base, so blocking most of
+  # the world by default was actively costing business. Removed in
+  # favor of the rate limiting and bot control rules below, which
+  # provide abuse protection without blocking legitimate visitors by
+  # geography. If you want geo-blocking for a specific reason (e.g.
+  # sanctioned countries), add a narrow deny-list rule instead of an
+  # allow-list.
 
   rule {
     name     = "AWSManagedRulesBotControlRuleSet"

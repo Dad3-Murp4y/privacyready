@@ -1,4 +1,9 @@
-As a Senior Database Administrator, I have thoroughly reviewed the provided PostgreSQL schema definitions. Below are my findings, optimization recommendations, and security considerations, presented in a structured Markdown report.
+# Database Schema Review — January 2026
+
+> **Historical record.** Point-in-time review of the Prisma/PostgreSQL
+> schema. Some recommendations here (e.g. the `DsrRequest` model) have
+> since been implemented — see `PR_SUMMARY.md` at the repo root for what's
+> current before assuming a finding is still open.
 
 ---
 

@@ -1,6 +1,7 @@
 stages:
   - lint-and-test
   - security-scan
+  - infrastructure
   - build-and-scan
   - deploy
   - cost-saver
@@ -93,14 +94,64 @@ dast-security-check:
   image: curlimages/curl:latest
   script:
     - echo "Running DAST endpoint validation..."
-    - curl -s -I https://api.datawai.co.uk/health | grep -i "HTTP/1.1 200\|HTTP/2 200"
+    - curl -s -I https://api.privacyready.co.uk/health | grep -i "HTTP/1.1 200\|HTTP/2 200"
     - echo "Checking security headers..."
-    - curl -s -I https://api.datawai.co.uk/health | grep -i "strict-transport-security\|x-content-type-options\|x-frame-options" || true
+    - curl -s -I https://api.privacyready.co.uk/health | grep -i "strict-transport-security\|x-content-type-options\|x-frame-options" || true
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
 # ---------------------------------------------
-# 3. BUILD, SCAN, AND PUSH (TRIVY + ECR)
+# 3. INFRASTRUCTURE (TERRAFORM VIA MAKEFILE)
+# ---------------------------------------------
+# All infra changes run through the same `make` targets a developer
+# would run locally (see root Makefile) -- CI is never a second,
+# different path to the same infrastructure.
+
+.terraform-base:
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache make bash aws-cli
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - terraform/**/*
+
+terraform-plan:
+  extends: .terraform-base
+  stage: infrastructure
+  script:
+    - make plan ENV=production
+
+terraform-apply:
+  extends: .terraform-base
+  stage: infrastructure
+  script:
+    - make apply ENV=production
+  when: manual
+  environment:
+    name: production
+    action: start
+
+# Destroys ALL production infrastructure. Deliberately not tied to the
+# terraform/**/* path rule -- this must always require someone to
+# explicitly click "run" in the GitLab UI, never fire as a side effect
+# of an unrelated terraform change.
+terraform-destroy:
+  image: hashicorp/terraform:1.9
+  stage: infrastructure
+  before_script:
+    - apk add --no-cache make bash aws-cli
+  script:
+    - make destroy ENV=production CONFIRM=yes
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+  environment:
+    name: production
+    action: stop
+
+# ---------------------------------------------
+# 4. BUILD, SCAN, AND PUSH (TRIVY + ECR)
 # ---------------------------------------------
 
 .build-scan-push:
@@ -111,11 +162,12 @@ dast-security-check:
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
-    ECR_REGISTRY: "138973100176.dkr.ecr.ap-southeast-1.amazonaws.com"
+    AWS_DEFAULT_REGION: "eu-west-2"
   before_script:
     - apk add --no-cache aws-cli curl
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.0
-    - aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin $ECR_REGISTRY
+    - export ECR_REGISTRY="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.eu-west-2.amazonaws.com"
+    - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
   script:
     - echo "Building $SERVICE_NAME..."
     - docker build -t $ECR_REGISTRY/$SERVICE_NAME:$CI_COMMIT_SHA $BUILD_CONTEXT
@@ -150,62 +202,61 @@ build-scanner:
   extends: .build-scan-push
   variables:
     SERVICE_NAME: "privacyready-scanner"
-    BUILD_CONTEXT: "services/scanner"
+    BUILD_CONTEXT: "services/scanner/cmd/scanner"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/scanner/**/*
 
 # ---------------------------------------------
-# 4. DEPLOY STAGE
+# 5. DEPLOY STAGE (via Makefile's `roll` target --
+#    same command a developer would run locally after a manual push)
 # ---------------------------------------------
 
-deploy-api:
+.deploy-base:
   stage: deploy
-  image: amazon/aws-cli:latest
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache make bash aws-cli
+
+deploy-api:
+  extends: .deploy-base
   script:
-    - echo "Deploying updated API task definition and triggering ECS update..."
-    - aws ecs update-service --cluster privacyready-cluster --service privacyready-api --force-new-deployment --region ap-southeast-1
+    - make roll SERVICE=api
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/api/**/*
 
 deploy-dsr:
-  stage: deploy
-  image: amazon/aws-cli:latest
+  extends: .deploy-base
   script:
-    - echo "Deploying updated DSR task definition and triggering ECS update..."
-    - aws ecs update-service --cluster privacyready-cluster --service privacyready-dsr --force-new-deployment --region ap-southeast-1
+    - make roll SERVICE=dsr
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/dsr/**/*
 
 deploy-scanner:
-  stage: deploy
-  image: amazon/aws-cli:latest
+  extends: .deploy-base
   script:
-    - echo "Deploying updated Scanner task definition and triggering ECS update..."
-    - aws ecs update-service --cluster privacyready-cluster --service privacyready-scanner --force-new-deployment --region ap-southeast-1
+    - make roll SERVICE=scanner
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/scanner/**/*
 
 # ---------------------------------------------
-# 5. COST-SAVER STAGES (MANUAL CLEANUP)
+# 6. COST-SAVER STAGES (MANUAL CLEANUP)
 # ---------------------------------------------
 
 environment-shutdown:
   stage: cost-saver
   image: alpine:latest
   before_script:
-    - apk add --no-cache aws-cli terraform bash curl jq
+    - apk add --no-cache aws-cli terraform make bash curl jq
   script:
-    - echo "Executing Environment Teardown to Save Costs..."
-    - chmod +x ./scripts/teardown-testing.sh
-    - ./scripts/teardown-testing.sh
+    - make teardown-testing
   when: manual
   environment:
     name: testing-teardown
@@ -215,11 +266,9 @@ environment-startup:
   stage: cost-saver
   image: alpine:latest
   before_script:
-    - apk add --no-cache aws-cli terraform bash curl jq
+    - apk add --no-cache aws-cli terraform make bash curl jq
   script:
-    - echo "Restoring Environment and Re-deploying Services..."
-    - chmod +x ./scripts/startup-testing.sh
-    - ./scripts/startup-testing.sh
+    - make startup-testing
   when: manual
   environment:
     name: testing-teardown

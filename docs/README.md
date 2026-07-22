@@ -1,12 +1,12 @@
 # PrivacyReady Platform - System Architecture & Overview
 
-PrivacyReady is a comprehensive GDPR (Personal Data Protection Act) compliance platform tailored for the Thai market. It provides automated website and social media scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed specifically for strict data residency and security compliance.
+PrivacyReady is a comprehensive UK GDPR compliance platform for small and mid-sized businesses. It provides automated website compliance scanning, consent management, data subject rights (DSR) workflows, and infrastructure blueprints designed for UK data residency and security compliance.
 
 ---
 
 ## 🏛️ System Architecture
 
-The PrivacyReady platform is built using a microservices architecture and deployed entirely on **AWS (Amazon Web Services)**. This ensures high availability, strict data residency within the Asia Pacific region, and enterprise-grade security.
+The PrivacyReady platform is built using a microservices architecture and deployed entirely on **AWS (Amazon Web Services)**. This ensures high availability, strict data residency within the UK, and enterprise-grade security.
 
 ### Core AWS Infrastructure
 
@@ -143,7 +143,7 @@ A self-hosted [n8n](https://n8n.io) workflow automation instance runs on ECS Far
 
 ## 🔒 Security & Data Residency (GDPR Compliance)
 
-To comply with Thailand's GDPR requirements regarding cross-border data transfers and security:
+To comply with UK GDPR requirements regarding data residency and security:
 
 1. **Geographic Data Residency**: All production data, including S3 buckets, RDS clusters, and ECS containers, are strictly provisioned in AWS `eu-west-2` (London) to maintain UK GDPR data sovereignty.
 2. **Encryption**: 
@@ -290,9 +290,8 @@ terraform apply                 # reconcile any tag/record drift
 
 ## 📂 Documentation Directory Reference
 
-- `docs/01_AWS_Thailand_GitLab_Architecture.md`: AWS infrastructure and GDPR justification.
-- `docs/02_GitHub_GDPR_SCC_Documentation.md`: GitHub Standard Contractual Clauses (SCC) for cross-border code hosting.
-- `docs/03_Route53_ACM_CloudFront_Setup_Guide.md`: Frontend S3/CloudFront deployment guide.
-- `docs/production_system_architecture.md`: In-depth multi-VPC architecture diagrams and specifications for the production environment.
-- `docs/social-scanner.md`: Threat models and API specs for the social media scanners.
-- `docs/validation-report.md`: Automated testing and QA sign-offs.
+- `docs/BOOTSTRAP.md`: steps to bootstrap a fresh AWS account for this platform.
+- `docs/production_system_architecture.md`: in-depth multi-VPC architecture diagrams and specifications for the production environment.
+- `docs/social-scanner.md`: threat models and API specs for the social media scanners.
+- `docs/validation-report.md`: automated testing and QA sign-offs.
+- `docs/audits/`: point-in-time code/security review reports (historical — check `PR_SUMMARY.md` at the repo root for what's since been fixed).

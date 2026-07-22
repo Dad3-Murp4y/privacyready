@@ -9,5 +9,7 @@ __pycache__/
 *.tfstate.*
 *.tfvars
 *.auto.tfvars
+tfplan
+*.tfplan
 coverage/
 *.log

@@ -1,4 +1,10 @@
-Okay, I'll analyze the provided code for type errors and bugs and report my findings in Markdown.
+# Code Review — January 2026
+
+> **Historical record.** This was a point-in-time automated review. Several
+> issues it flagged (hardcoded JWT secret, `db push --accept-data-loss` on
+> every boot, the hardcoded superadmin email) have since been fixed — see
+> `PR_SUMMARY.md` at the repo root for what's current. Treat line/file
+> references below as of the review date, not necessarily today's code.
 
 ### Analysis Report
 
