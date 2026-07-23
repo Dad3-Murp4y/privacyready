@@ -1,6 +1,17 @@
 # Production System Architecture
 
-The PrivacyReady Production Environment (`terraform.workspace == "production"`) is a highly available, deeply isolated, and scalable architecture designed for enterprise-grade GDPR compliance. Unlike the consolidated testing environment, the production environment heavily utilizes network segmentation to separate management tools from user-facing services.
+> **Note on accuracy**: this doc describes the production environment's
+> networking topology accurately (multi-VPC via Transit Gateway is
+> real and unchanged by the persistent/environments refactor -- see
+> `terraform/README.md`). The database section below describing
+> Amazon Aurora is **not** accurate to the actual implementation,
+> which uses a single `aws_db_instance` (plain RDS PostgreSQL,
+> Multi-AZ) rather than Aurora's writer/reader replica architecture --
+> this mismatch predates the persistent/environments refactor, not
+> introduced by it. Worth either building real Aurora to match this
+> doc, or rewriting this section to match the simpler reality.
+
+The PrivacyReady Production Environment (`terraform/environments/production`) is a highly available, deeply isolated, and scalable architecture designed for enterprise-grade GDPR compliance. Unlike the consolidated testing environment, the production environment heavily utilizes network segmentation to separate management tools from user-facing services.
 
 ---
 

@@ -42,7 +42,7 @@ npm run dev
 
 ## Infrastructure
 
-Everything runs on AWS, managed by Terraform, with a `production` and a `test` workspace (see `terraform/locals.tf`'s `is_prod` flag -- most resources are conditioned on it rather than duplicated). See:
+Everything runs on AWS, managed by Terraform. Three independent state files: `terraform/persistent` (GitLab, DNS, SES, ACM, ECR -- stood up once, essentially never destroyed), and `terraform/environments/{test,production}` (VPC, RDS, ECS, ALB, CloudFront -- fully disposable, each destroy/recreate has no way to reach the other environment or the persistent layer). See `terraform/README.md` for the full layout and `terraform/modules/` for the shared vpc/rds/elasticache modules. See:
 
 - **`docs/BOOTSTRAP.md`** -- standing up infrastructure in a fresh AWS account
 - **`docs/production_system_architecture.md`** -- architecture diagrams and specifications

@@ -106,21 +106,52 @@ dast-security-check:
 # All infra changes run through the same `make` targets a developer
 # would run locally (see root Makefile) -- CI is never a second,
 # different path to the same infrastructure.
+#
+# Split to match terraform/persistent vs terraform/environments/*:
+# persistent (GitLab/DNS/SES/ECR) essentially never changes and is
+# manual-only with its own path rule; the production app environment
+# plans automatically on every terraform/environments/production
+# change and applies on manual approval.
 
 .terraform-base:
   image: hashicorp/terraform:1.9
   before_script:
     - apk add --no-cache make bash aws-cli
+
+persistent-plan:
+  extends: .terraform-base
+  stage: infrastructure
+  script:
+    - make persistent-plan
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - terraform/**/*
+        - terraform/persistent/**/*
+        - terraform/modules/**/*
+      when: manual
+
+persistent-apply:
+  extends: .terraform-base
+  stage: infrastructure
+  script:
+    - make persistent-apply
+  when: manual
+  environment:
+    name: persistent
+    action: start
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 terraform-plan:
   extends: .terraform-base
   stage: infrastructure
   script:
     - make plan ENV=production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - terraform/environments/production/**/*
+        - terraform/modules/**/*
 
 terraform-apply:
   extends: .terraform-base
@@ -131,16 +162,21 @@ terraform-apply:
   environment:
     name: production
     action: start
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - terraform/environments/production/**/*
+        - terraform/modules/**/*
 
-# Destroys ALL production infrastructure. Deliberately not tied to the
-# terraform/**/* path rule -- this must always require someone to
-# explicitly click "run" in the GitLab UI, never fire as a side effect
-# of an unrelated terraform change.
+# Destroys only environments/production's app infrastructure --
+# GitLab/DNS/SES/ECR live in a completely separate state
+# (terraform/persistent) that this command has no reference to and
+# cannot reach. Deliberately not tied to a path-change rule -- this
+# must always require someone to explicitly click "run", never fire
+# as a side effect of an unrelated terraform change.
 terraform-destroy:
-  image: hashicorp/terraform:1.9
+  extends: .terraform-base
   stage: infrastructure
-  before_script:
-    - apk add --no-cache make bash aws-cli
   script:
     - make destroy ENV=production CONFIRM=yes
   rules:
@@ -222,7 +258,7 @@ build-scanner:
 deploy-api:
   extends: .deploy-base
   script:
-    - make roll SERVICE=api
+    - make roll SERVICE=api ENV=production
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -231,7 +267,7 @@ deploy-api:
 deploy-dsr:
   extends: .deploy-base
   script:
-    - make roll SERVICE=dsr
+    - make roll SERVICE=dsr ENV=production
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -240,7 +276,7 @@ deploy-dsr:
 deploy-scanner:
   extends: .deploy-base
   script:
-    - make roll SERVICE=scanner
+    - make roll SERVICE=scanner ENV=production
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:

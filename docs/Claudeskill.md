@@ -1,5 +1,5 @@
 # Skill Name: PrivacyReady DevOps & Platform Architect
-# Description: Production-grade DevOps, containerisation, and IaC engineering for the PrivacyReady platform (UK GDPR compliance platform). Encapsulates AWS multi-service architecture, UK data residency, Node.js/Python microservices, and cost-optimised Terraform workspaces.
+# Description: Production-grade DevOps, containerisation, and IaC engineering for the PrivacyReady platform (UK GDPR compliance platform). Encapsulates AWS multi-service architecture, UK data residency, Node.js/Python microservices, and cost-optimised, independently-stated Terraform environments.
 #
 # Note: PrivacyReady (this platform) is UK-only. A separate product
 # (DataWai) covers Thailand PDPA compliance with its own AWS account
@@ -12,7 +12,7 @@ Activate this skill automatically whenever the user references:
 - **Frontend Layer:** S3 Landing Page (`index.html` with EN/TH/RU languages) or the React Client Portal SPA behind CloudFront.
 - **Backend Services:** Node.js Core API (`services/api` using Fastify), Python Scanner API (`services/scanner` using FastAPI), or Python DSR API (`services/dsr` using FastAPI).
 - **Data & Caching:** PostgreSQL RDS or ElastiCache Redis configurations.
-- **Infrastructure / Deployments:** Terraform modules, workspaces (`production` vs `test`), GitLab CI pipeline setups, or `gitlab-ci-deployer` IAM profiles.
+- **Infrastructure / Deployments:** Terraform modules (`terraform/modules`), the persistent layer (`terraform/persistent`), app environments (`terraform/environments/{test,production}`), GitLab CI pipeline setups, or `gitlab-ci-deployer` IAM profiles.
 
 ## Core Mandates & Architecture Guardrails
 
@@ -25,17 +25,18 @@ Activate this skill automatically whenever the user references:
 - **Node.js (Fastify Core API):** Build multi-stage Dockerfiles compiling dependencies on a build layer, pruning development packages, and deploying onto minimal base images (e.g., `node:iron-alpine`). Run under the unprivileged `node` user.
 - **Python (FastAPI Scanner & DSR):** Build multi-stage Dockerfiles compiling dependencies inside a virtual environment (`venv`) or building wheels, then copying them into clean `python:3.11-slim` runtimes. Never run as `root`.
 
-### 3. Terraform & Cost Optimization Workspaces
-- **Production Workspace (`production`):** Enforce multi-AZ high availability where cost justifies it.
-- **Test Workspace (`test`):** Collapse networks into a single VPC. Provision low-cost single-node databases and turn off non-essential EC2 components to minimize development spend.
-- **State Locking:** S3 remote backend with native S3 lockfile locking (`use_lockfile = true`, Terraform >= 1.10) -- no DynamoDB lock table needed.
+### 3. Terraform Architecture & Cost Optimization
+- **Persistent layer (`terraform/persistent`):** GitLab, Route53, SES, ACM, ECR, Transit Gateway, management VPC. Its own state. Never touched by an app environment's destroy.
+- **Production environment (`terraform/environments/production`):** Enforce multi-AZ high availability where cost justifies it.
+- **Test environment (`terraform/environments/test`):** Collapse networks into a single VPC. Provision low-cost single-node databases and turn off non-essential EC2 components to minimize development spend. Its own subdomain (test.privacyready.co.uk) so it can coexist with production without DNS collisions.
+- **State Locking:** S3 remote backend with native S3 lockfile locking (`use_lockfile = true`, Terraform >= 1.10) -- no DynamoDB lock table needed. Each of the three layers above has its own state key under the same bucket.
 
 ### 4. Least-Privilege CI/CD (GitLab)
 - **Deployment Credentials:** Restrict IAM permissions for the `gitlab-ci-deployer` user. They must only have access to authenticate against ECR, push to the three application repositories (`api`, `scanner`, `dsr`), and run `UpdateService` on those exact ECS workloads. No global administrative or wildcard `*` structural modifications allowed within CI runs.
 
 ## Execution Workflow
 
-1. **Context Check:** Pinpoint the microservice (Node.js vs Python) or structural block (Terraform workspace, CloudFront CDN, Monitoring) being addressed.
+1. **Context Check:** Pinpoint the microservice (Node.js vs Python) or structural block (persistent layer, an app environment, CloudFront CDN, Monitoring) being addressed.
 2. **Strategy Blueprint:** State an optimization plan in exactly 3 concise bullet points before delivering any technical modifications.
 3. **Delivery:** Provide fully commented, ready-to-deploy code blocks matching PrivacyReady's tech stack architecture.
 4. **Validation Routine:** Always include a short "How to Test" snippet listing the precise shell or AWS CLI commands needed to verify your changes.
