@@ -13,3 +13,4 @@ tfplan
 *.tfplan
 coverage/
 *.log
+terraform.tfvars

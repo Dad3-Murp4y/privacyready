@@ -143,14 +143,24 @@ resource "aws_iam_policy" "n8n_execution_secrets" {
   name = "${local.n8n_name}-${local.n8n_env}-execution-secrets"
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [
-        aws_secretsmanager_secret.n8n_encryption_key.arn,
-        aws_secretsmanager_secret.n8n_db_credentials.arn,
-      ]
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [
+          aws_secretsmanager_secret.n8n_encryption_key.arn,
+          aws_secretsmanager_secret.n8n_db_credentials.arn,
+          module.rds.db_secret_arn,
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt"]
+        Resource = [
+          aws_kms_key.n8n.arn
+        ]
+      }
+    ]
   })
 }
 
@@ -186,8 +196,8 @@ resource "aws_iam_policy" "n8n_bedrock" {
           "bedrock:InvokeModelWithResponseStream"
         ]
         Resource = [
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0",
-          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0",
+          "arn:aws:bedrock:${var.region}::foundation-model/anthropic.claude-3-haiku-20240307-v1:0"
         ]
       }
     ]
@@ -252,6 +262,16 @@ resource "aws_security_group" "n8n_ecs" {
   lifecycle {
     create_before_destroy = true
   }
+}
+
+resource "aws_security_group_rule" "n8n_to_rds" {
+  type                     = "ingress"
+  from_port                = 5432
+  to_port                  = 5432
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.rds.id
+  source_security_group_id = aws_security_group.n8n_ecs.id
+  description              = "n8n ECS tasks to main RDS"
 }
 
 # --------------------------------------------------
@@ -372,7 +392,7 @@ resource "aws_security_group" "n8n_redis" {
 # --------------------------------------------------
 
 locals {
-  n8n_db_host    = var.create_n8n_rds ? aws_db_instance.n8n[0].address : var.existing_rds_host
+  n8n_db_host    = var.create_n8n_rds ? aws_db_instance.n8n[0].address : module.rds.address
   n8n_redis_host = var.create_n8n_redis ? aws_elasticache_cluster.n8n_redis[0].cache_nodes[0].address : var.existing_redis_host
 }
 
@@ -402,8 +422,8 @@ resource "aws_ecs_task_definition" "n8n" {
       { name = "DB_TYPE", value = "postgresdb" },
       { name = "DB_POSTGRESDB_HOST", value = local.n8n_db_host },
       { name = "DB_POSTGRESDB_PORT", value = "5432" },
-      { name = "DB_POSTGRESDB_DATABASE", value = "n8n" },
-      { name = "DB_POSTGRESDB_USER", value = "n8n" },
+      { name = "DB_POSTGRESDB_DATABASE", value = var.create_n8n_rds ? "n8n" : module.rds.db_name },
+      { name = "DB_POSTGRESDB_USER", value = var.create_n8n_rds ? "n8n" : module.rds.username },
       { name = "DB_POSTGRESDB_SSL_ENABLED", value = "true" },
       { name = "DB_POSTGRESDB_SSL_REJECT_UNAUTHORIZED", value = "false" },
       { name = "N8N_HOST", value = "${local.n8n_name}-${local.n8n_env}.${var.domain_name}" },
@@ -419,8 +439,10 @@ resource "aws_ecs_task_definition" "n8n" {
       { name = "GENERIC_TIMEZONE", value = "Europe/London" },
       { name = "TZ", value = "Europe/London" },
       { name = "N8N_DEFAULT_BINARY_DATA_MODE", value = "s3" },
+      { name = "N8N_AVAILABLE_BINARY_DATA_MODES", value = "filesystem,s3" },
+      { name = "N8N_BINARY_DATA_STORAGE_PATH", value = "/home/node/.n8n/binaryData" },
       { name = "N8N_EXTERNAL_STORAGE_S3_BUCKET", value = aws_s3_bucket.n8n_binary.id },
-      { name = "N8N_EXTERNAL_STORAGE_S3_REGION", value = var.aws_region },
+      { name = "N8N_EXTERNAL_STORAGE_S3_REGION", value = var.region },
       { name = "N8N_METRICS", value = "true" },
       { name = "N8N_LOG_LEVEL", value = local.n8n_env == "production" ? "info" : "debug" }
     ]
@@ -428,7 +450,7 @@ resource "aws_ecs_task_definition" "n8n" {
     secrets = [
       {
         name      = "DB_POSTGRESDB_PASSWORD"
-        valueFrom = "${aws_secretsmanager_secret.n8n_db_credentials.arn}:password::"
+        valueFrom = var.create_n8n_rds ? "${aws_secretsmanager_secret.n8n_db_credentials.arn}:password::" : module.rds.db_secret_arn
       },
       {
         name      = "N8N_ENCRYPTION_KEY"
@@ -444,7 +466,7 @@ resource "aws_ecs_task_definition" "n8n" {
       logDriver = "awslogs"
       options = {
         "awslogs-group"         = aws_cloudwatch_log_group.n8n.name
-        "awslogs-region"        = var.aws_region
+        "awslogs-region"        = var.region
         "awslogs-stream-prefix" = "n8n"
       }
     }
@@ -577,7 +599,7 @@ resource "aws_vpc_endpoint" "bedrock_runtime" {
   count = var.enable_bedrock != false ? 1 : 0
 
   vpc_id              = module.vpc.vpc_id
-  service_name        = "com.amazonaws.${var.aws_region}.bedrock-runtime"
+  service_name        = "com.amazonaws.${var.region}.bedrock-runtime"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = module.vpc.private_subnet_ids
   security_group_ids  = [aws_security_group.n8n_bedrock_endpoint[0].id]

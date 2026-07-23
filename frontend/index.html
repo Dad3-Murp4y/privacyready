@@ -228,6 +228,22 @@
           <span class="scan-score" id="scan-score-badge"></span>
         </div>
         <ul class="scan-checks" id="scan-checks-list"></ul>
+        <!-- blur nudge: shown after scan completes -->
+        <div class="scan-blur-nudge" id="scan-blur-nudge" style="display:none" aria-label="Sign up to unlock full report">
+          <div class="scan-blur-nudge-inner">
+            <span class="scan-blur-lock">🔒</span>
+            <div class="scan-blur-text">
+              <span data-lang="en"><strong>Unlock full findings</strong> — sign up free to see all details &amp; remediation steps</span>
+              <span data-lang="th"><strong>ปลดล็อกผลลัพธ์ทั้งหมด</strong> — สมัครฟรีเพื่อดูรายละเอียดและแนวทางแก้ไข</span>
+              <span data-lang="ru"><strong>Разблокируйте полные результаты</strong> — зарегистрируйтесь бесплатно</span>
+            </div>
+            <a href="https://portal.privacyready.co.uk/register?source=free-scan" class="scan-blur-btn" target="_blank" rel="noopener">
+              <span data-lang="en">Sign Up Free →</span>
+              <span data-lang="th">สมัครฟรี →</span>
+              <span data-lang="ru">Регистрация →</span>
+            </a>
+          </div>
+        </div>
         <div class="scan-cta" id="scan-cta" style="display:none">
           <a href="https://portal.privacyready.co.uk/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
             📊 <span data-lang="en" id="report-btn-en">Get Full Report</span>
@@ -982,6 +998,8 @@ async function startScan(e) {
 
   panel.classList.add('visible');
   ctaEl.style.display = 'none';
+  const blurNudgeReset = document.getElementById('scan-blur-nudge');
+  if (blurNudgeReset) blurNudgeReset.style.display = 'none';
   scoreBadge.textContent = '';
   scoreBadge.className = 'scan-score';
   targetEl.textContent = url.hostname;
@@ -1056,7 +1074,19 @@ async function startScan(e) {
     if (status === 'pass') passed++;
     row.className = 'scan-check ' + status;
     row.querySelector('.check-icon').textContent = iconFor[status] || '⚠️';
+
+    // Blur detail text for teaser effect (after first 2 items)
+    if (i >= 2) {
+      const detail = row.querySelector('.check-detail');
+      if (detail) detail.classList.add('blurred');
+    }
   }
+
+  // Blur all detail spans after animation completes — real data, premium paywall
+  checksList.querySelectorAll('.check-detail').forEach(el => el.classList.add('blurred'));
+  checksList.querySelectorAll('.check-label').forEach((el, idx) => {
+    if (idx >= 3) el.classList.add('blurred');
+  });
 
   // Score badge
   const total = SCAN_CHECKS_DEF.length;
@@ -1073,7 +1103,9 @@ async function startScan(e) {
     reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}`;
   }
 
-  // Show CTA
+  // Show blur nudge banner and CTA
+  const blurNudge = document.getElementById('scan-blur-nudge');
+  if (blurNudge) blurNudge.style.display = 'flex';
   ctaEl.style.display = 'flex';
 
   // Reset button

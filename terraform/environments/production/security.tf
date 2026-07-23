@@ -46,6 +46,22 @@ resource "aws_security_group" "ecs_tasks" {
     description     = "ALB to ECS tasks"
   }
 
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    self            = true
+    description     = "Internal API to Scanner communication"
+  }
+
+  ingress {
+    from_port       = 8000
+    to_port         = 8000
+    protocol        = "tcp"
+    self            = true
+    description     = "Internal API to DSR communication"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

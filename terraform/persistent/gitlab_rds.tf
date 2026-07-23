@@ -26,7 +26,7 @@ resource "aws_security_group" "gitlab_rds" {
   count       = var.gitlab_enabled ? 1 : 0
   name_prefix = "privacyready-gitlab-rds-"
   vpc_id      = module.management_vpc.vpc_id
-  description = "GitLab's dedicated RDS security group"
+  description = "GitLab dedicated RDS security group"
 
   ingress {
     from_port       = 5432

@@ -1896,3 +1896,65 @@ footer {
 .skip-link:focus {
   top: 0;
 }
+
+/* ── Blur paywall: scan result teaser ─────────────────────────────────── */
+.check-detail.blurred,
+.check-label.blurred {
+  filter: blur(4px);
+  user-select: none;
+  transition: filter 0.4s ease;
+  pointer-events: none;
+}
+
+.scan-blur-nudge {
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.scan-blur-nudge-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(22, 33, 62, 0.92), rgba(15, 52, 96, 0.88));
+  border: 1px solid rgba(100, 180, 255, 0.25);
+  border-radius: 12px;
+  padding: 14px 18px;
+  backdrop-filter: blur(12px);
+  flex-wrap: wrap;
+}
+
+.scan-blur-lock {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.scan-blur-text {
+  flex: 1;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.45;
+  min-width: 180px;
+}
+
+.scan-blur-text strong {
+  color: #fff;
+}
+
+.scan-blur-btn {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, #4fc3f7, #0288d1);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scan-blur-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(79, 195, 247, 0.4);
+}

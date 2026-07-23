@@ -15,7 +15,10 @@ export async function registerSecurity(app: FastifyInstance) {
         'https://portal.privacyready.co.uk',
         'https://www.privacyready.co.uk',
         'http://localhost:3001',
-        'http://localhost:5173'
+        'http://localhost:5173',
+        // CloudFront domains — needed while DNS nameservers are still propagating
+        'https://d2kdrhnufwgxlm.cloudfront.net',
+        'https://d31hapjj2foyik.cloudfront.net',
       ];
       try {
         const hostname = new URL(origin).hostname;

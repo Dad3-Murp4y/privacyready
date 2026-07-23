@@ -24,7 +24,7 @@ echo "Applying schema..."
 # bigger), run `npx prisma migrate dev --name init` against a dev
 # database to generate prisma/migrations/, commit that, then switch
 # this back to `prisma migrate deploy`.
-npx prisma db push
+npx prisma db push --accept-data-loss
 
 echo "Starting Fastify server..."
 exec node dist/main.js

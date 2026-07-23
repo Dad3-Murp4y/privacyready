@@ -115,7 +115,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  # aliases             = ["www.${var.domain_name}", var.domain_name]
+  aliases             = ["www.${var.domain_name}", var.domain_name]
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -164,7 +164,7 @@ resource "aws_cloudfront_distribution" "portal" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  # aliases             = ["portal.${var.domain_name}"]
+  aliases             = ["portal.${var.domain_name}"]
 
   # Support client-side routing
   custom_error_response {

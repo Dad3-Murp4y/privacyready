@@ -85,7 +85,6 @@ USERDATA
 
   lifecycle {
     ignore_changes  = [ami, user_data]
-    prevent_destroy = true
   }
 }
 
@@ -96,14 +95,15 @@ resource "aws_elasticache_subnet_group" "gitlab" {
 }
 
 resource "aws_elasticache_replication_group" "gitlab" {
-  count                      = var.gitlab_enabled ? 1 : 0
-  replication_group_id       = "privacyready-gitlab-redis"
-  description                = "GitLab Redis cluster"
-  engine                     = "redis"
-  engine_version             = "7.0"
-  node_type                  = "cache.t4g.micro"
-  num_cache_clusters         = 2
-  automatic_failover_enabled = true
+  count                       = var.gitlab_enabled ? 1 : 0
+  replication_group_id        = "privacyready-gitlab-redis"
+  description                 = "GitLab Redis standalone node"
+  engine                      = "redis"
+  engine_version              = "7.0"
+  node_type                   = "cache.t4g.micro"
+  num_cache_clusters          = 1
+  preferred_cache_cluster_azs = ["eu-west-2a"]
+  automatic_failover_enabled = false
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
   auth_token                 = random_password.gitlab_redis[0].result

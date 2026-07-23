@@ -81,6 +81,24 @@
         enabled: yes
         state: started
 
+    - name: Create swap file
+      command: dd if=/dev/zero of=/swapfile bs=1M count=4096
+      args:
+        creates: /swapfile
+
+    - name: Change swap file permissions
+      file:
+        path: /swapfile
+        mode: 0600
+
+    - name: Format swap file
+      command: mkswap /swapfile
+      when: not ansible_swaptotal_mb > 0
+
+    - name: Enable swap
+      command: swapon /swapfile
+      when: not ansible_swaptotal_mb > 0
+
     - name: Deploy GitLab container
       docker_container:
         name: gitlab
@@ -100,6 +118,9 @@
             nginx['listen_port'] = 80;
             nginx['listen_https'] = false;
             postgresql['enable'] = false;
+            prometheus_monitoring['enable'] = false;
+            sidekiq['max_concurrency'] = 5;
+            puma['worker_processes'] = 0;
             gitlab_rails['db_adapter'] = 'postgresql';
             gitlab_rails['db_encoding'] = 'unicode';
             gitlab_rails['db_username'] = '{{ db_username }}';
