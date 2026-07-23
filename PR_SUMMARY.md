@@ -73,3 +73,33 @@
 
 ### ⚠️ Before this ships (new)
 - **SES sandbox mode**: a new AWS account's SES can only send to individually-verified recipient addresses until you request production access in the SES console (Account dashboard → Request production access, not doable via Terraform, usually approved within a day). Until then, verification emails to arbitrary Gmail addresses will silently fail. Verify your own email as a test recipient first if you want to test this before requesting production access.
+
+---
+
+## Session 4 — Terraform: persistent/modules/environments split
+
+### `7a2db60` — Repo-wide cleanup
+Deleted junk (564K scraped github.com homepage sitting at repo root, two AI-session artifact files, a 60K committed `tfplan` binary, a broken GitHub Actions workflow referencing a nonexistent script), fixed more DataWai/Thailand contamination (`docs/README.md`, `docs/GDPR_SCC_Documentation.md` deleted entirely -- wrong product, `docs/Claudeskill.md` was actively instructing AI agents to deploy to `ap-southeast-1`), removed a WAF rule that geo-blocked all traffic except Thailand/UK/Singapore/US. Added a root `README.md` (there wasn't one) and the first version of the `Makefile`.
+
+### `d0cf79e` — Terraform split into persistent/modules/environments
+The big one. Converted ~3800 lines across 28 flat `.tf` files into three independent Terraform states:
+
+- **`terraform/persistent/`** — GitLab, Route53 zone + DNSSEC, SES (kept persistent per explicit requirement), ACM certs, ECR repos, Transit Gateway, management VPC. `make destroy` for either app environment has no reference to this state and structurally cannot reach it.
+- **`terraform/modules/{vpc,rds,elasticache}/`** — reusable, parameterized, replacing the `*_prod.tf`/`*_test.tf` file-pair pattern.
+- **`terraform/environments/{test,production}/`** — fully independent, destroyable/recreatable without touching each other or persistent. Test now has its own subdomain so it can run alongside production without DNS collisions (the original design never supported that).
+
+**Root cause fix, not just reorganization**: GitLab previously wasn't actually independent of the app environment in three separate ways — its database was a schema inside the app's shared RDS, its public URL routed through the app's own ALB, and the `pre-destroy.sh`/`post-import.sh` scripts referenced as the preservation mechanism don't exist anywhere in the repo. Fixed by giving GitLab its own dedicated RDS and ALB in the persistent layer.
+
+**Pre-existing bugs found and fixed (verified against actual resource bodies, not assumed)**:
+- Every resource tagged `DataResidency = "thailand"`
+- `security_test.tf` referenced `aws_security_group.gitlab.id` with no `[0]` index on a `count = 0`-in-test resource — hard error
+- Production's `redis_host` local actually pointed at GitLab's Redis, not the dedicated ElastiCache cluster that existed but was never wired up
+- Several IAM role/alarm/target-group names weren't environment-suffixed and would collide if test and production ever ran simultaneously
+- `n8-copilot.tf` used `terraform.workspace`, meaningless now that environments are separate directories
+
+**Also updated**: Makefile (new `persistent-*` targets, `ENV`-aware ECS naming — this was a real bug risk, `make roll` without explicit `ENV=production` would silently target the test cluster), `.gitlab-ci.yml` (same fix applied to the deploy jobs, which had this exact bug), `docs/BOOTSTRAP.md`, `terraform/README.md`, root `README.md`.
+
+### ⚠️ Before this ships
+- **No AWS credentials or Terraform binary were available in this sandbox.** Everything was verified via syntax-only tooling (`terraform-config-inspect`) and manual cross-reference checking against actual original resource bodies — not `terraform plan`. Run `terraform init && terraform validate && terraform plan` in each of `persistent/`, `environments/test/`, `environments/production/` before applying anything for real.
+- This was described as a from-scratch/"vanilla" setup with no live state, so there's no migration risk — but still verify plan output looks sane before the first real `apply`.
+- `docs/production_system_architecture.md`'s Aurora PostgreSQL section doesn't match the actual implementation (plain RDS) — flagged in the doc, not rewritten.
