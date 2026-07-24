@@ -24,7 +24,6 @@ from pathlib import Path
 from typing import Callable, Optional
 
 from scaffold import (
-    auth_enumeration,
     consent_stub,
     cookie_force_accept,
     dsr_scaffold,
@@ -36,9 +35,32 @@ from scaffold import (
     public_scan_route,
     tiktok_stub_findings,
     unified_scorer_dilution,
-    version_file,
     website_scanner_ssrf,
     write,
+)
+from historical_bugs import (
+    absolute_api_url_fix,
+    autofill_auth_forms,
+    cleanup_datawai_contamination,
+    committed_tfplan_and_junk,
+    cookie_consent_cosmetic_only,
+    datawai_contamination,
+    dead_scan_widget_drafts,
+    disable_autofill_fix,
+    empty_db_password_start,
+    fabricated_dashboard_metrics,
+    gitlab_shared_rds_coupling,
+    hardcoded_superadmin_email,
+    honest_dashboard_metrics_fix,
+    jwt_fail_fast_fix,
+    jwt_hardcoded_fallback,
+    make_roll_env_bug,
+    open_infra_gaps,
+    relative_api_url_bug,
+    remove_dead_scan_widget_drafts,
+    remove_tfplan_and_junk,
+    scan_type_payload_bug,
+    start_sh_fail_fast_fix,
 )
 
 # Authors rotated to match the live repo's mix
@@ -101,7 +123,6 @@ def git_commit(repo: Path, message: str, when: datetime, author: tuple[str, str]
         "GIT_COMMITTER_DATE": date_str,
     }
     run(["git", "add", "-A"], cwd=repo)
-    # Allow empty only if somehow nothing changed (shouldn't happen)
     status = subprocess.run(
         ["git", "status", "--porcelain"],
         cwd=repo,
@@ -110,7 +131,13 @@ def git_commit(repo: Path, message: str, when: datetime, author: tuple[str, str]
         check=True,
     )
     if not status.stdout.strip():
-        write(repo, ".history-marker", f"{when.isoformat()} {message}\n")
+        # Keep the timeline honest without a junk marker file
+        cl = repo / "CHANGELOG.md"
+        note = f"\n### {when.date().isoformat()}\n\n- {message}\n"
+        if cl.exists():
+            cl.write_text(cl.read_text(encoding="utf-8").rstrip() + "\n" + note, encoding="utf-8")
+        else:
+            cl.write_text("# Changelog\n" + note, encoding="utf-8")
         run(["git", "add", "-A"], cwd=repo)
     run(["git", "commit", "-m", message], cwd=repo, env=env)
 
@@ -193,6 +220,27 @@ def append_changelog(root: Path, version: str, notes: str) -> None:
     else:
         path.write_text(f"# Changelog\n{block}", encoding="utf-8")
     write(root, "VERSION", f"{version}\n")
+
+
+def _fix_terraform_split(root: Path, src: Path) -> None:
+    """Drop coupled GitLab leftovers then copy the real split Terraform tree."""
+    for rel in (
+        "terraform/gitlab.tf",
+        "terraform/security_test.tf",
+        "terraform/locals.tf",
+        "terraform/names.tf",
+        "terraform/waf.tf",
+    ):
+        path = root / rel
+        if path.exists():
+            path.unlink()
+    copy_paths(src, root, ["terraform", "Makefile", ".gitlab-ci.yml"])
+    write(
+        root,
+        "docs/terraform-split.md",
+        "# Terraform split\n\nFixes H2/H3/H4/M4/M5/M6: GitLab gets dedicated RDS+ALB in "
+        "persistent state; env-suffixed names; Redis correctly wired; make roll requires ENV.\n",
+    )
 
 
 def build_timeline(src: Path) -> list[Commit]:
@@ -322,23 +370,20 @@ def build_timeline(src: Path) -> list[Commit]:
         )
     )
 
-    # ----- April 2026: API + auth -----
+    # ----- April 2026: API + auth (introduces C1/C2/C3/H1/H8/H9 from audit) -----
     commits.append(
         c(
             "2026-04-02",
             "10:30:00",
             "feat: bootstrap Fastify API with Prisma and login route",
             lambda r: (
-                auth_enumeration(r),
-                write(
-                    r,
-                    "services/api/src/main.ts",
-                    "import Fastify from 'fastify';\n// DataWai API bootstrap\n",
-                ),
+                jwt_hardcoded_fallback(r),
+                hardcoded_superadmin_email(r),
+                empty_db_password_start(r),
                 write(r, "services/api/src/db.ts", "export const prisma = {} as any;\n"),
             ),
             tag="v0.4.0",
-            changelog_note="- Fastify auth login (enumeration-prone messages; JWT role claims)",
+            changelog_note="- Fastify auth with hardcoded JWT fallback + superadmin email (C1/C2)",
         )
     )
     commits.append(
@@ -352,10 +397,27 @@ def build_timeline(src: Path) -> list[Commit]:
     )
     commits.append(
         c(
+            "2026-04-10",
+            "11:00:00",
+            "fix: Facebook/LINE scan payloads incorrectly reuse tiktok_username field",
+            scan_type_payload_bug,
+        )
+    )
+    commits.append(
+        c(
             "2026-04-15",
             "11:05:00",
             "feat: add consent API routes (stub)",
             consent_stub,
+        )
+    )
+    commits.append(
+        c(
+            "2026-04-18",
+            "15:30:00",
+            "feat: draft free-scan widget variants (temp.js)",
+            dead_scan_widget_drafts,
+            author_idx=1,
         )
     )
     commits.append(
@@ -366,7 +428,9 @@ def build_timeline(src: Path) -> list[Commit]:
             lambda r: write(
                 r,
                 "docs/free-scan-flow.md",
-                "# Free scan → register\n\nPublic scan returns an id; registration accepts scanId and attaches it to the new org.\n\nKnown risk: any registrant can claim any unclaimed scanId.\n",
+                "# Free scan → register\n\nPublic scan returns an id; registration accepts scanId and attaches it to the new org.\n\n"
+                "Known risk: any registrant can claim any unclaimed scanId.\n"
+                "H9: registration still issues a session token with no email verification.\n",
             ),
         )
     )
@@ -386,7 +450,7 @@ def build_timeline(src: Path) -> list[Commit]:
         )
     )
 
-    # ----- May 2026: frontend -----
+    # ----- May 2026: frontend (M1/M3/L4 + relative API URL + autofill) -----
     commits.append(
         c(
             "2026-05-06",
@@ -394,6 +458,7 @@ def build_timeline(src: Path) -> list[Commit]:
             "feat: add marketing site shell and cookie banner",
             lambda r: (
                 cookie_force_accept(r),
+                cookie_consent_cosmetic_only(r),
                 write(
                     r,
                     "frontend/index.html",
@@ -405,7 +470,7 @@ def build_timeline(src: Path) -> list[Commit]:
                 ),
             ),
             tag="v0.5.0",
-            changelog_note="- Marketing site + forced cookie accept; GA loads pre-consent",
+            changelog_note="- Marketing site + cosmetic consent (M1); GA loads pre-consent",
         )
     )
     commits.append(
@@ -414,11 +479,8 @@ def build_timeline(src: Path) -> list[Commit]:
             "15:50:00",
             "feat: add React portal login/register skeleton",
             lambda r: (
-                write(
-                    r,
-                    "frontend/portal/src/pages/Login.tsx",
-                    "// stores JWT in localStorage\nexport default function Login(){ return null }\n",
-                ),
+                autofill_auth_forms(r),
+                relative_api_url_bug(r),
                 write(
                     r,
                     "frontend/portal/src/App.tsx",
@@ -433,11 +495,7 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-05-20",
             "10:05:00",
             "feat: dashboard scan UI with simulated progress",
-            lambda r: write(
-                r,
-                "frontend/portal/src/pages/Dashboard.tsx",
-                "// HACK: client-only audit delete; scan create ignores non-401 errors\nexport default function Dashboard(){ return null }\n",
-            ),
+            fabricated_dashboard_metrics,
         )
     )
     commits.append(
@@ -453,7 +511,7 @@ def build_timeline(src: Path) -> list[Commit]:
         )
     )
 
-    # ----- June 2026: rebrand + team -----
+    # ----- June 2026: rebrand + team + infra coupling bugs -----
     commits.append(
         c(
             "2026-06-03",
@@ -472,6 +530,14 @@ def build_timeline(src: Path) -> list[Commit]:
     )
     commits.append(
         c(
+            "2026-06-04",
+            "09:15:00",
+            "chore: leave DataWai region/WAF/CI leftovers in place during rebrand",
+            datawai_contamination,
+        )
+    )
+    commits.append(
+        c(
             "2026-06-05",
             "14:00:00",
             "chore: migrate compliance framework from PDPA to GDPR",
@@ -484,13 +550,23 @@ def build_timeline(src: Path) -> list[Commit]:
     )
     commits.append(
         c(
+            "2026-06-08",
+            "11:20:00",
+            "feat: host GitLab on shared app RDS and app ALB",
+            gitlab_shared_rds_coupling,
+            author_idx=1,
+        )
+    )
+    commits.append(
+        c(
             "2026-06-10",
             "09:40:00",
             "chore: migrate infrastructure region to AWS London eu-west-2 for UK GDPR",
             lambda r: write(
                 r,
                 "docs/regions.md",
-                "# Regions\n\nPrimary: eu-west-2. Do not deploy PrivacyReady to ap-southeast-1.\n",
+                "# Regions\n\nPrimary: eu-west-2. Do not deploy PrivacyReady to ap-southeast-1.\n"
+                "(Note: .gitlab-ci.yml / Claudeskill.md still wrongly pin ap-southeast-1 — H6.)\n",
             ),
             author_idx=1,
         )
@@ -503,10 +579,19 @@ def build_timeline(src: Path) -> list[Commit]:
             lambda r: write(
                 r,
                 "services/api/src/routes/admin.ts",
-                "// SUPERADMIN gated by JWT role claim\nexport async function registerAdminRoutes(app: any) {}\n",
+                "// SUPERADMIN gated by JWT role claim + hardcoded bootstrap email\n"
+                "export async function registerAdminRoutes(app: any) {}\n",
             ),
             tag="v0.7.0",
-            changelog_note="- Admin dashboard; role trusted from JWT only",
+            changelog_note="- Admin dashboard; role trusted from JWT; bootstrap via hardcoded email",
+        )
+    )
+    commits.append(
+        c(
+            "2026-06-14",
+            "10:05:00",
+            "chore: commit terraform plan output and scratch artifacts",
+            committed_tfplan_and_junk,
         )
     )
     commits.append(
@@ -518,8 +603,26 @@ def build_timeline(src: Path) -> list[Commit]:
                 r,
                 "services/api/src/routes/team.ts",
                 "// returns temporaryPassword in JSON; last-admin check skips SUPERADMIN\n"
+                "// M8: no mustChangePassword / forced rotation\n"
                 "export async function registerTeamRoutes(app: any) {}\n",
             ),
+            author_idx=1,
+        )
+    )
+    commits.append(
+        c(
+            "2026-06-20",
+            "13:40:00",
+            "fix: use absolute api url for fetch requests",
+            absolute_api_url_fix,
+        )
+    )
+    commits.append(
+        c(
+            "2026-06-22",
+            "09:50:00",
+            "fix: disable autofill on auth forms and fix gitlab db auth",
+            disable_autofill_fix,
             author_idx=1,
         )
     )
@@ -541,6 +644,15 @@ def build_timeline(src: Path) -> list[Commit]:
             "15:35:00",
             "feat: start.sh uses prisma db push --accept-data-loss for ECS boots",
             package_json_data_loss,
+        )
+    )
+    commits.append(
+        c(
+            "2026-06-28",
+            "16:00:00",
+            "docs: note make roll without ENV silently targets test cluster",
+            make_roll_env_bug,
+            author_idx=1,
         )
     )
 
@@ -613,7 +725,11 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-09",
             "09:20:00",
             "chore: sync GDPR/UK residency docs after rebrand",
-            lambda r: None,  # placeholder — full sync soon
+            lambda r: write(
+                r,
+                "docs/uk-residency.md",
+                "# UK data residency\n\nAll PrivacyReady processing stays in eu-west-2.\n",
+            ),
         )
     )
     commits.append(
@@ -648,15 +764,23 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-20",
             "10:00:00",
             "fix: security hardening and honest dashboard metrics",
-            lambda r: write(
-                r,
-                "docs/hardening-2026-07.md",
-                "# Hardening notes\n\n- Fail fast if JWT_SECRET unset\n"
-                "- Stop defaulting unscanned dashboards to 100% compliance\n"
-                "- Open: auth hook return-after-send, SSRF allowlist, consent persistence\n",
+            lambda r: (
+                jwt_fail_fast_fix(r),
+                start_sh_fail_fast_fix(r),
+                honest_dashboard_metrics_fix(r),
+                write(
+                    r,
+                    "docs/hardening-2026-07.md",
+                    "# Hardening notes\n\n"
+                    "- C1 fixed: fail fast if JWT_SECRET unset (no hardcoded fallback)\n"
+                    "- C3/H1: require DB_PASSWORD; drop --accept-data-loss from start.sh\n"
+                    "- M3/L4: honest failed-check counts; no default 100% score\n"
+                    "- M1: hasAnalyticsConsent() gating helper added\n"
+                    "- Open: auth hook return-after-send, SSRF allowlist, CSP headers\n",
+                ),
             ),
             tag="v0.9.0",
-            changelog_note="- Security hardening pass; honest empty-state metrics",
+            changelog_note="- Security hardening: JWT fail-fast, honest metrics, safer db push",
         )
     )
     commits.append(
@@ -678,7 +802,15 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-21",
             "09:30:00",
             "fix: provision JWT_SECRET in AWS, correct migration regression, remove dead scan-widget drafts",
-            lambda r: None,
+            lambda r: (
+                remove_dead_scan_widget_drafts(r),
+                write(
+                    r,
+                    "docs/jwt-secret.md",
+                    "# JWT_SECRET\n\nProvisioned via Secrets Manager into the ECS task. API fails fast if unset.\n"
+                    "Also deleted frontend/temp.js, temp2.js, temp3.js (H8).\n",
+                ),
+            ),
         )
     )
     commits.append(
@@ -689,7 +821,8 @@ def build_timeline(src: Path) -> list[Commit]:
             lambda r: write(
                 r,
                 "docs/superadmin.md",
-                "# Superadmin\n\nSet SUPERADMIN_EMAIL / TF_VAR_superadmin_email — no hardcoded address.\n",
+                "# Superadmin\n\nC2 fixed: Set SUPERADMIN_EMAIL / TF_VAR_superadmin_email — "
+                "no more hardcoded all.privacyready@gmail.com.\n",
             ),
         )
     )
@@ -698,7 +831,11 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-21",
             "13:45:00",
             "feat: real footer pages, fix DataWai logo bug, extract shared CSS/JS",
-            lambda r: None,
+            lambda r: write(
+                r,
+                "docs/footer-pages.md",
+                "# Footer pages\n\nReal about/contact/faq/legal pages; DataWai logo strings removed from marketing HTML.\n",
+            ),
             author_idx=1,
         )
     )
@@ -707,7 +844,11 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-21",
             "16:10:00",
             "feat: real admin/team user management, replacing the single hardcoded superadmin",
-            lambda r: None,
+            lambda r: write(
+                r,
+                "docs/team-admin.md",
+                "# Team + admin\n\nOrg ADMIN invites teammates (temp password in API response). Platform SUPERADMIN manages users/orgs.\n",
+            ),
         )
     )
     commits.append(
@@ -715,9 +856,15 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-21",
             "18:40:00",
             "feat: email verification for registration and team invites via SES (not SNS)",
-            lambda r: None,
+            lambda r: write(
+                r,
+                "docs/email-verification.md",
+                "# Email verification\n\nH9 fixed: SES sends verify links (24h). "
+                "Login blocked until verified. Team invites include temp password + link.\n"
+                "M7: SES sandbox may still silently drop mail until production access.\n",
+            ),
             tag="v1.0.0-beta",
-            changelog_note="- SES email verification + team invites",
+            changelog_note="- SES email verification + team invites (H9)",
         )
     )
     commits.append(
@@ -725,7 +872,11 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-22",
             "12:00:00",
             "chore: repo-wide cleanup -- remove junk/DataWai contamination, add root README + Makefile",
-            lambda r: copy_paths(src, r, ["Makefile", "README.md"]),
+            lambda r: (
+                cleanup_datawai_contamination(r),
+                remove_tfplan_and_junk(r),
+                copy_paths(src, r, ["Makefile", "README.md"]),
+            ),
             author_idx=1,
         )
     )
@@ -734,7 +885,7 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-23",
             "10:30:00",
             "refactor(terraform): split into persistent/modules/environments -- fixes GitLab, DNS, SES surviving a destroy",
-            lambda r: copy_paths(src, r, ["terraform", "Makefile", ".gitlab-ci.yml"]),
+            lambda r: _fix_terraform_split(r, src),
         )
     )
     commits.append(
@@ -742,9 +893,15 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-23",
             "14:20:00",
             "docs: comprehensive audit findings report matching project's requested template",
-            lambda r: copy_paths(src, r, ["PR_SUMMARY.md"])
-            if (src / "PR_SUMMARY.md").exists()
-            else None,
+            lambda r: (
+                copy_paths(src, r, ["PR_SUMMARY.md"])
+                if (src / "PR_SUMMARY.md").exists()
+                else None,
+                open_infra_gaps(r),
+                copy_paths(src, r, ["docs/audits"])
+                if (src / "docs" / "audits").exists()
+                else None,
+            ),
             author_idx=1,
         )
     )
@@ -753,7 +910,11 @@ def build_timeline(src: Path) -> list[Commit]:
             "2026-07-23",
             "17:55:00",
             "chore: final updates before teardown (CORS fix, blur UI, ECS SG rules)",
-            lambda r: None,
+            lambda r: write(
+                r,
+                "docs/teardown-notes.md",
+                "# Pre-teardown notes\n\nCORS allowlist tweak, landing blur UI, ECS security-group rules for scanner reachability.\n",
+            ),
         )
     )
     commits.append(
@@ -788,36 +949,71 @@ def build_timeline(src: Path) -> list[Commit]:
         c(
             "2026-07-24",
             "08:15:00",
-            "docs: record known gaps (SSRF, auth hooks, consent stub, destructive scripts)",
+            "docs: record known gaps (audit leftovers + newly identified defects)",
             lambda r: write(
                 r,
                 "docs/KNOWN_ISSUES.md",
-                """# Known issues (open)
+                """# Known issues
 
-Tracked for the hardening backlog — not fixed in v1.0.0-rc1.
+Combines (1) items from the July 2026 comprehensive audit / prior fix commits that
+remain open, and (2) defects identified in a later full-code pass. Fixed historical
+bugs are listed at the bottom for archaeology.
 
-## Critical
-- `prisma db push --accept-data-loss` on API start
+## Still open — from committed audit history
+
+### Critical / High (audit IDs)
+- **C4** No GuardDuty, CloudTrail, or Security Hub
+- **C5** CI/CD long-lived IAM access keys (not OIDC)
+- **H10** No CSP / security response headers on CloudFront
+- **M7** SES sandbox may silently fail verification email
+- **M8** Team invite temp passwords — no `mustChangePassword` / forced rotation
+- **L5** Docs describe Aurora; implementation is single-instance RDS Multi-AZ
+- Facebook/LINE scan payloads still send `tiktok_username` (2026-01 code review)
+- Python `services/dsr` remains a non-persistent scaffold (Node API holds real DSRs)
+
+### Fixed in history (do not reintroduce)
+- **C1** Hardcoded JWT fallback `super_secret_for_local_dev_only_1234`
+- **C2** Hardcoded `all.privacyready@gmail.com` SUPERADMIN bootstrap
+- **C3** Empty `DB_PASSWORD` fallback in start.sh
+- **H1** `prisma db push --accept-data-loss` removed from start.sh (watch package.json drift)
+- **H2/H3/H4** GitLab on shared app RDS/ALB + missing pre-destroy scripts → persistent split
+- **H5** WAF `GeoBlockNonThailand` leftover
+- **H6** DataWai/Thailand contamination (CI region, Claudeskill, DAST host, docs)
+- **H7** Committed `terraform/tfplan`
+- **H8** Dead `temp.js` / `temp2.js` / `temp3.js` free-scan drafts
+- **H9** Registration without email verification
+- **M1** Cookie consent flag nothing read (portal helper added; marketing GA still weak)
+- **M2** DSR only in local React state → Postgres via Node API
+- **M3/L4** Fabricated `warningCount * 2 + 1` / default 100% compliance score
+- **M4/M5/M6** Unsuffixed IAM/TG names; Redis pointed at GitLab; broken `security_test.tf` SG ref
+- **L2/L3** Scraped github `index.html`, AI session artifacts, broken `.github/workflows`
+- Relative portal API URL; auth-form autofill; DataWai logo in marketing chrome
+- `make roll` without `ENV=production` targeting test cluster
+
+## Still open — later full-code review
+
+### Critical
+- `prisma db push --accept-data-loss` may still appear in `package.json` start script (drift vs start.sh)
 - Website scanner SSRF (no private/metadata URL block)
 - `scripts/nuke_account.py` / `force_cleanup.py` lack confirmation gates
-- Marketing GA before consent; decline cookies is forced-accept
+- Marketing GA before consent; `declineCookies()` forced-accept
 
-## High
+### High
 - JWT auth hooks on DSR/scan may not abort after `reply.send(err)`
 - JWT role/org trusted without DB re-check
 - Public `/api/public/scan` unauthenticated + unvalidated targets
-- Scanner + DSR Python services lack real auth
+- Scanner service unauthenticated; DSR Python auth is header-only
 - Temporary passwords returned in team invite API JSON
 - Login email enumeration; free-scan `scanId` claim IDOR
 - LINE follower `> 1000` dead check; risk score dilution; stub social findings
 - Portal JWT in localStorage; fake forgot-password; client-only audit delete
 
-## Medium
-- Consent API no-op stub; DSR Python service non-persistent
+### Medium
+- Consent API no-op stub
 - Failed scanner HTTP marked COMPLETED; empty scan = 100% compliant
 - CORS allows any `*.privacyready.co.uk` subdomain
 
-See also root `PR_SUMMARY.md`.
+See also `docs/audits/`, `docs/OPEN_AUDIT_ITEMS.md`, and root `PR_SUMMARY.md`.
 """,
             ),
             tag="v1.0.0-rc1-docs",
