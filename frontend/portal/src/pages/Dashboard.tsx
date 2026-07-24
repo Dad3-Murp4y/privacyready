@@ -100,7 +100,7 @@ export default function Dashboard() {
         }
 
         // Fetch user profile
-        const meRes = await fetch('https://api.privacyready.co.uk/api/auth/me', {
+        const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (meRes.ok) {
@@ -111,7 +111,7 @@ export default function Dashboard() {
           return;
         }
 
-        const res = await fetch('https://api.privacyready.co.uk/api/scan', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -133,7 +133,7 @@ export default function Dashboard() {
           setAudits(mappedAudits);
         }
 
-        const dsrRes = await fetch('https://api.privacyready.co.uk/api/dsr', {
+        const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (dsrRes.ok) {
@@ -218,7 +218,7 @@ export default function Dashboard() {
         navigate('/login');
         return;
       }
-      const res = await fetch('https://api.privacyready.co.uk/api/scan', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -278,7 +278,7 @@ export default function Dashboard() {
     }
 
     try {
-      const res = await fetch('https://api.privacyready.co.uk/api/dsr', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -749,7 +749,7 @@ export default function Dashboard() {
                                   return;
                                 }
                                 try {
-                                  const res = await fetch(`https://api.privacyready.co.uk/api/dsr/${dsr.id}`, {
+                                  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr/${dsr.id}`, {
                                     method: 'PATCH',
                                     headers: {
                                       'Content-Type': 'application/json',

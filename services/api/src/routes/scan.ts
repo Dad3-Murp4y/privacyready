@@ -37,9 +37,10 @@ export async function registerScanRoutes(app: FastifyInstance) {
     });
 
     const isWebsite = scanType.toLowerCase() === 'website';
+    const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
     const scannerEndpoint = isWebsite 
-      ? 'http://scanner.privacyready.local:8080/v1/scan/website' 
-      : 'http://scanner.privacyready.local:8080/v1/scan/social';
+      ? `${baseUrl}/v1/scan/website` 
+      : `${baseUrl}/v1/scan/social`;
 
     const payload = isWebsite
       ? { customer_id: 'guest', url: targetIdentifier }
@@ -105,9 +106,10 @@ export async function registerScanRoutes(app: FastifyInstance) {
     });
 
     const isWebsite = scanType.toLowerCase() === 'website';
+    const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
     const scannerEndpoint = isWebsite 
-      ? 'http://scanner.privacyready.local:8080/v1/scan/website' 
-      : 'http://scanner.privacyready.local:8080/v1/scan/social';
+      ? `${baseUrl}/v1/scan/website` 
+      : `${baseUrl}/v1/scan/social`;
 
     const payload = isWebsite
       ? { customer_id: user.org, url: targetIdentifier }

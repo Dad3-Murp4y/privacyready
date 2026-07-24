@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, CheckCircle2, XCircle } from 'lucide-react';
 
-const API = 'https://api.privacyready.co.uk';
+const API = import.meta.env.VITE_API_URL;
 
 export default function VerifyEmail() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');

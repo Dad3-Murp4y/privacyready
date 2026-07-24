@@ -148,14 +148,23 @@ deploy: docker-push
 
 deploy-frontend: check-env
 	@echo "Deploying marketing site to $(ENV)..."
+	@rm -rf /tmp/frontend-deploy
+	@cp -r frontend /tmp/frontend-deploy
+	@rm -rf /tmp/frontend-deploy/portal /tmp/frontend-deploy/node_modules
+	@if [ "$(ENV)" = "test" ]; then \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal.privacyready.co.uk|https://test-portal.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://api.privacyready.co.uk|https://test-api.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready.co.uk|https://test.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.js" -exec sed -i 's|\.privacyready\.co\.uk|.test.privacyready.co.uk|g' {} +; \
+	fi
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
-	 aws s3 sync frontend/ s3://$$BUCKET/ --exclude "portal/*" --exclude "node_modules/*" --delete
+	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --delete
 	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_cloudfront_id); \
 	 aws cloudfront create-invalidation --distribution-id $$CF_ID --paths "/*"
 
 deploy-portal: check-env
 	@echo "Building and deploying portal to $(ENV)..."
-	@cd frontend/portal && npm ci && npm run build
+	@cd frontend/portal && npm ci && npm run build -- --mode $(ENV)
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw portal_bucket_id); \
 	 aws s3 sync frontend/portal/dist/ s3://$$BUCKET/ --delete
 	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw portal_cloudfront_id); \

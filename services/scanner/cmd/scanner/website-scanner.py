@@ -30,6 +30,10 @@ class WebsiteScanner:
             self.scan_ssl(response.url)
             self.scan_trackers()
             self.scan_forms()
+            self.scan_privacy_policy()
+            self.scan_dpo_contact()
+            self.scan_dsr_link()
+            self.scan_uk_gdpr_ref()
         except Exception as e:
             self.findings.append(WebsiteFinding(
                 url=self.url,
@@ -96,3 +100,64 @@ class WebsiteScanner:
                     gdpr_article='Article 19 (Consent)',
                     remediation='Add mandatory consent checkbox linking to Privacy Policy before form submission'
                 ))
+
+    def scan_privacy_policy(self):
+        links = self.soup.find_all('a', href=True)
+        has_policy = False
+        for link in links:
+            text = link.text.lower()
+            if 'privacy' in text or 'policy' in text:
+                href = link['href'].lower()
+                if 'policies.google.com' in href or 'google.com/policies' in href or 'facebook.com/privacy' in href:
+                    continue
+                has_policy = True
+                break
+        if not has_policy:
+            self.findings.append(WebsiteFinding(
+                url=self.url,
+                finding_type='privacy_policy_missing',
+                severity='high',
+                description='No Privacy Policy link found on the homepage',
+                evidence='Scanned all <a> tags',
+                gdpr_article='Article 13 & 14 (Information to be provided)',
+                remediation='Add a clear link to your Privacy Policy in the footer'
+            ))
+
+    def scan_dpo_contact(self):
+        text = self.soup.get_text().lower()
+        if 'dpo' not in text and 'data protection officer' not in text and 'privacy@' not in text:
+            self.findings.append(WebsiteFinding(
+                url=self.url,
+                finding_type='dpo_contact_missing',
+                severity='medium',
+                description='No DPO or privacy contact email found',
+                evidence='Scanned homepage text',
+                gdpr_article='Article 37 (DPO)',
+                remediation='List a contact email (e.g. privacy@) or DPO details'
+            ))
+
+    def scan_dsr_link(self):
+        text = self.soup.get_text().lower()
+        if 'data subject rights' not in text and 'manage data' not in text and 'dsr' not in text:
+            self.findings.append(WebsiteFinding(
+                url=self.url,
+                finding_type='dsr_link_missing',
+                severity='medium',
+                description='No Data Subject Rights (DSR) request process found',
+                evidence='Scanned homepage text',
+                gdpr_article='Article 15-22 (Data Subject Rights)',
+                remediation='Provide a form or instructions for users to exercise their data rights'
+            ))
+
+    def scan_uk_gdpr_ref(self):
+        text = self.soup.get_text().lower()
+        if 'gdpr' not in text and 'uk gdpr' not in text:
+            self.findings.append(WebsiteFinding(
+                url=self.url,
+                finding_type='uk_gdpr_ref_missing',
+                severity='low',
+                description='No reference to UK GDPR compliance found',
+                evidence='Scanned homepage text',
+                gdpr_article='Article 13 (Information to be provided)',
+                remediation='Explicitly mention UK GDPR compliance in your privacy documentation'
+            ))

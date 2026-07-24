@@ -10,7 +10,7 @@ interface Teammate {
   createdAt: string;
 }
 
-const API = 'https://api.privacyready.co.uk';
+const API = import.meta.env.VITE_API_URL;
 
 export default function Team() {
   const [teammates, setTeammates] = useState<Teammate[]>([]);
@@ -129,7 +129,7 @@ export default function Team() {
           </div>
           <p className="dashboard-subtitle">Manage who has access to your organization's PrivacyReady account</p>
         </div>
-        <button className="btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <UserPlus size={18} /> Add Teammate
         </button>
       </div>
@@ -227,8 +227,8 @@ export default function Team() {
                   </div>
                   {error && <div style={{ color: '#e74c3c', fontSize: '13px', marginBottom: '12px' }}>{error}</div>}
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-                    <button type="button" className="btn-secondary" onClick={closeModal}>Cancel</button>
-                    <button type="submit" className="btn-primary">Add</button>
+                    <button type="button" className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Add</button>
                   </div>
                 </form>
               </>
@@ -245,7 +245,7 @@ export default function Team() {
                   </button>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button className="btn-primary" onClick={closeModal}>Done</button>
+                  <button className="btn btn-primary" onClick={closeModal}>Done</button>
                 </div>
               </>
             )}

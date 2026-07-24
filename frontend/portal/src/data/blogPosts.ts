@@ -185,7 +185,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'code',
-        text: "Content-Security-Policy: default-src 'self'; script-src 'self' https://trusted-cdn.com; connect-src 'self' https://api.privacyready.co.uk; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
+        text: `Content-Security-Policy: default-src 'self'; script-src 'self' https://trusted-cdn.com; connect-src 'self' ${import.meta.env.VITE_API_URL}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;`
       },
       {
         type: 'paragraph',

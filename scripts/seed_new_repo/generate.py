@@ -399,7 +399,7 @@ def build_timeline(src: Path) -> list[Commit]:
         c(
             "2026-04-10",
             "11:00:00",
-            "fix: Facebook/LINE scan payloads incorrectly reuse tiktok_username field",
+            "docs: Facebook/LINE scan payloads incorrectly reuse tiktok_username field",
             scan_type_payload_bug,
         )
     )

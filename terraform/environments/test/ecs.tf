@@ -70,6 +70,7 @@ resource "aws_ecs_task_definition" "app" {
       { name = "SUPERADMIN_EMAIL", value = var.superadmin_email },
       { name = "PORTAL_URL", value = "https://${local.subdomain}-portal.${var.domain_name}" },
       { name = "SES_FROM_EMAIL", value = "noreply@${var.domain_name}" },
+      { name = "SCANNER_URL", value = "http://scanner.privacyready-test.local:8080" },
       { name = "AWS_REGION", value = var.region }
     ]
 

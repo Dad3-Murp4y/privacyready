@@ -22,7 +22,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('https://api.privacyready.co.uk/api/auth/login', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -59,7 +59,7 @@ export default function Login() {
     <div className="auth-container">
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
-        <a href="https://www.privacyready.co.uk" style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
+        <a href={import.meta.env.VITE_MARKETING_URL} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
           <Home size={18} /> Back to Home
         </a>
       </div>
@@ -77,7 +77,7 @@ export default function Login() {
                 If an account is associated with <strong>{resetEmail}</strong>, we have sent a secure password reset link. Please check your inbox.
               </p>
             </div>
-            <button className="btn-primary" onClick={handleBackToSignIn} style={{ width: '100%', marginTop: '24px' }}>
+            <button className="btn btn-primary" onClick={handleBackToSignIn} style={{ width: '100%', marginTop: '24px' }}>
               Back to Sign In
             </button>
           </div>
@@ -105,7 +105,7 @@ export default function Login() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary">
+              <button type="submit" className="btn btn-primary">
                 Send Reset Link <ArrowRight size={18} />
               </button>
             </form>
@@ -153,7 +153,7 @@ export default function Login() {
                 />
               </div>
 
-              <button type="submit" className="btn-primary">
+              <button type="submit" className="btn btn-primary">
                 Sign In <ArrowRight size={18} />
               </button>
             </form>

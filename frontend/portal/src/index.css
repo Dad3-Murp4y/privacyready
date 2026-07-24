@@ -329,7 +329,7 @@ a:hover {
   background: var(--glass-bg);
   color: var(--text-primary);
   border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  border-radius: 4px;
   padding: 12px 24px;
   font-family: var(--font-sans);
   font-size: 14px;
@@ -349,19 +349,16 @@ a:hover {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--sky), var(--accent));
+  background: var(--sky);
   color: var(--navy);
   border: none;
-  box-shadow: 0 10px 20px -10px rgba(124, 77, 255, 0.5);
-  animation: pulseGlow 3s infinite;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, var(--white), var(--sky));
+  background: var(--white);
   color: var(--navy);
-  transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 25px -10px rgba(0, 229, 255, 0.6);
-  animation: none;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(108, 143, 216, 0.3);
 }
 
 .btn-danger {

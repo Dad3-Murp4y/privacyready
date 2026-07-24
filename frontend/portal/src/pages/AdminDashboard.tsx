@@ -29,7 +29,7 @@ interface Org {
 }
 
 const ROLES = ['MEMBER', 'ADMIN', 'SUPERADMIN'];
-const API = 'https://api.privacyready.co.uk';
+const API = import.meta.env.VITE_API_URL;
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);

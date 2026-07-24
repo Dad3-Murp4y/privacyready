@@ -1,3 +1,9 @@
+// Scroll to top on refresh
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 // Language Switcher
 const overlayLabels = {
   en: 'Select Language',
@@ -6,7 +12,7 @@ const overlayLabels = {
 };
 
 const overlayFooters = {
-  en: 'PrivacyReady — Thailand GDPR Compliance',
+  en: 'PrivacyReady — UK GDPR Compliance',
   th: 'PrivacyReady — การปฏิบัติตาม GDPR ไทย',
   ru: 'PrivacyReady — Соответствие GDPR Таиланда'
 };
