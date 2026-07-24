@@ -282,6 +282,29 @@ deploy-scanner:
       changes:
         - services/scanner/**/*
 
+deploy-frontend:
+  extends: .deploy-base
+  script:
+    - make deploy-frontend ENV=production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - frontend/**/*
+        - '!frontend/portal/**/*'
+
+deploy-portal:
+  extends: .deploy-base
+  image: node:22-alpine
+  before_script:
+    - apk add --no-cache make bash aws-cli terraform
+  script:
+    - make deploy-portal ENV=production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - frontend/portal/**/*
+
+
 # ---------------------------------------------
 # 6. COST-SAVER STAGES (MANUAL CLEANUP)
 # ---------------------------------------------

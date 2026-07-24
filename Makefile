@@ -146,6 +146,21 @@ deploy: docker-push
 	aws ecs update-service --cluster $(ECS_CLUSTER) \
 		--service $(ECS_SERVICE_PREFIX)-$(SERVICE) --force-new-deployment --region $(AWS_REGION)
 
+deploy-frontend: check-env
+	@echo "Deploying marketing site to $(ENV)..."
+	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
+	 aws s3 sync frontend/ s3://$$BUCKET/ --exclude "portal/*" --exclude "node_modules/*" --delete
+	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_cloudfront_id); \
+	 aws cloudfront create-invalidation --distribution-id $$CF_ID --paths "/*"
+
+deploy-portal: check-env
+	@echo "Building and deploying portal to $(ENV)..."
+	@cd frontend/portal && npm ci && npm run build
+	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw portal_bucket_id); \
+	 aws s3 sync frontend/portal/dist/ s3://$$BUCKET/ --delete
+	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw portal_cloudfront_id); \
+	 aws cloudfront create-invalidation --distribution-id $$CF_ID --paths "/*"
+
 # Force a new ECS deployment without rebuilding -- used by CI after its
 # own build-and-scan stage has already pushed a fresh image.
 roll:

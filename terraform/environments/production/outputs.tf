@@ -21,3 +21,19 @@ output "cache_endpoint" {
 output "domain_nameservers" {
   value = data.terraform_remote_state.persistent.outputs.domain_nameservers
 }
+
+output "frontend_bucket_id" {
+  value = aws_s3_bucket.frontend.id
+}
+
+output "portal_bucket_id" {
+  value = aws_s3_bucket.portal.id
+}
+
+output "frontend_cloudfront_id" {
+  value = aws_cloudfront_distribution.frontend.id
+}
+
+output "portal_cloudfront_id" {
+  value = aws_cloudfront_distribution.portal.id
+}

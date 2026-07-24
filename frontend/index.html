@@ -3,9 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="PrivacyReady — Thailand GDPR compliance platform. Audit, fix, and maintain your website's data privacy compliance in English, Thai, and Russian.">
+<meta name="description" content="PrivacyReady — UK GDPR compliance for small businesses. Scan your website, fix the gaps, and stay compliant. No legal team needed.">
+<meta name="keywords" content="UK GDPR compliance, small business GDPR, DPA 2018, GDPR for SMEs, website compliance checker">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="PrivacyReady — UK GDPR Compliance for Small Businesses">
+<meta property="og:description" content="Scan your website for GDPR issues, fix the gaps, and get compliant — without a solicitor or an enterprise budget.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://privacyready.co.uk">
 <meta name="theme-color" content="#0B2447">
-<title>PrivacyReady — Thailand GDPR Compliance & Web Platform</title>
+<title>PrivacyReady — UK GDPR Compliance for Small Businesses</title>
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Anuphan:wght@300;400;500;600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -13,39 +29,6 @@
 </head>
 
 <body lang="en">
-<!-- LANGUAGE OVERLAY -->
-<div class="lang-overlay" id="langOverlay" role="dialog" aria-modal="true" aria-label="Select language">
-  <button class="lang-overlay-close" onclick="toggleLangOverlay()" aria-label="Close language selector">×</button>
-
-  <div class="lang-overlay-label" id="overlayLabel">Select Language</div>
-
-  <div class="lang-options">
-    <button class="lang-option" data-lang-target="en" onclick="setLang('en')" aria-label="Switch to English">
-      <span class="lang-option-code">EN</span>
-      <div class="lang-option-info">
-        <span class="lang-option-name">English</span>
-        <span class="lang-option-native">English</span>
-      </div>
-    </button>
-    <button class="lang-option" data-lang-target="th" onclick="setLang('th')" aria-label="Switch to Thai">
-      <span class="lang-option-code">TH</span>
-      <div class="lang-option-info">
-        <span class="lang-option-name">Thai</span>
-        <span class="lang-option-native">ไทย</span>
-      </div>
-    </button>
-    <button class="lang-option" data-lang-target="ru" onclick="setLang('ru')" aria-label="Switch to Russian">
-      <span class="lang-option-code">RU</span>
-      <div class="lang-option-info">
-        <span class="lang-option-name">Russian</span>
-        <span class="lang-option-native">Русский</span>
-      </div>
-    </button>
-  </div>
-
-  <div class="lang-overlay-footer" id="overlayFooter">PrivacyReady — Thailand GDPR Compliance</div>
-</div>
-
 
 <!-- Skip link for accessibility -->
 <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -95,12 +78,7 @@
     <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
     <li><a href="https://portal.privacyready.co.uk" data-lang="en">Login</a><a href="https://portal.privacyready.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.privacyready.co.uk" data-lang="ru">Войти</a></li>
     <li><a href="#contact" class="nav-cta" data-lang="en">Consultation</a><a href="#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
-    <li class="lang-switcher">
-      <button class="lang-trigger" id="langTrigger" onclick="toggleLangOverlay()" aria-label="Change language" aria-expanded="false" aria-controls="langOverlay">
-        <span id="currentLangLabel">EN</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
-      </button>
-    </li>
+
   </ul>
 
   <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle mobile menu" aria-expanded="false">
@@ -108,21 +86,12 @@
   </button>
 </nav>
 
-<!-- ALERT STRIP -->
 <div class="alert-strip" role="alert">
   <span class="alert-icon">⚠️</span>
-  <p class="alert-text" data-lang="en">
-    <strong>New GDPR amendments effective June 2024.</strong> Non-compliance fines now up to 5M THB. Is your website ready?
+  <p class="alert-text">
+    <strong>UK GDPR fines are rising.</strong> The ICO issued £7.5M in penalties last year alone. Is your business covered?
   </p>
-  <p class="alert-text" data-lang="th">
-    <strong>กฎหมาย GDPR ฉบับแก้ไขมีผลบังคับใช้มิถุนายน 2024</strong> ค่าปรับฝ่าฝืนสูงสุด 5 ล้านบาท เว็บไซต์ของคุณพร้อมหรือยัง?
-  </p>
-  <p class="alert-text" data-lang="ru">
-    <strong>Новые поправки к GDPR вступили в силу в июне 2024.</strong> Штрафы до 5 млн бат. Ваш сайт готов?
-  </p>
-  <a href="#main-content" class="alert-link" data-lang="en" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">Check Now →</a>
-  <a href="#main-content" class="alert-link" data-lang="th" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">ตรวจสอบเลย →</a>
-  <a href="#main-content" class="alert-link" data-lang="ru" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">Проверить →</a>
+  <a href="#main-content" class="alert-link" onclick="setTimeout(() => document.getElementById('scan-url-input').focus(), 100)">Check Free →</a>
 </div>
 
 <main id="main-content">
@@ -139,37 +108,14 @@
   <div class="hero-content">
     <div class="hero-badge">
       <span class="badge-dot" aria-hidden="true"></span>
-      <span data-lang="en">GDPR Compliance Platform</span>
-      <span data-lang="th">แพลตฟอร์ม GDPR</span>
-      <span data-lang="ru">Платформа GDPR</span>
+      <span>Now in Beta — Founding Member Pricing Available</span>
     </div>
 
-    <h1 data-lang="en">
-      Make Your Website<br>
-      <em>GDPR-Compliant</em> in 48 Hours
-    </h1>
-    <h1 data-lang="th">
-      ทำให้เว็บไซต์ของคุณ<br>
-      <em>ปฏิบัติตาม GDPR</em> ภายใน 48 ชั่วโมง
-    </h1>
-    <h1 data-lang="ru">
-      Сделайте ваш сайт<br>
-      <em>совместимым с GDPR</em> за 48 часов
-    </h1>
+    <h1>UK GDPR Compliance<br><em>Sorted in a Day.</em></h1>
 
-    <p class="hero-sub" data-lang="en">
-      <strong>PrivacyReady</strong> audits your website, identifies privacy gaps, and delivers a compliance roadmap tailored to Thailand's Personal Data Protection Act. No legal team required.
+    <p class="hero-sub">
+      <strong>PrivacyReady</strong> is GDPR compliance software built for UK small businesses — not enterprise GRC teams. Scan your website, see exactly what's non-compliant, and fix it. No solicitor required, no enterprise contract.
     </p>
-    <p class="hero-sub" data-lang="th">
-      <strong>PrivacyReady</strong> ตรวจสอบเว็บไซต์ของคุณ ระบุช่องโหว่ด้านความเป็นส่วนตัว และจัดทำแผนปฏิบัติตาม GDPR โดยเฉพาะ ไม่ต้องมีทีมกฎหมาย
-    </p>
-    <p class="hero-sub" data-lang="ru">
-      <strong>PrivacyReady</strong> проводит аудит вашего сайта, выявляет пробелы в конфиденциальности и составляет план соответствия закону GDPR Таиланда. Без юридической команды.
-    </p>
-
-    <p class="hero-lang-note" data-lang="en">Available in English, Thai, and Russian</p>
-    <p class="hero-lang-note" data-lang="th">มีให้บริการในภาษาอังกฤษ ไทย และรัสเซีย</p>
-    <p class="hero-lang-note" data-lang="ru">Доступно на английском, тайском и русском</p>
 
     <!-- FREE GDPR SCANNER -->
     <div class="scan-box">
@@ -244,24 +190,12 @@
             </a>
           </div>
         </div>
-        <div class="scan-cta" id="scan-cta" style="display:none">
-          <a href="https://portal.privacyready.co.uk/register?source=free-scan" class="scan-cta-primary" id="scan-full-report-btn" target="_blank" rel="noopener">
-            📊 <span data-lang="en" id="report-btn-en">Get Full Report</span>
-            <span data-lang="th" id="report-btn-th">รับรายงานเต็ม</span>
-            <span data-lang="ru" id="report-btn-ru">Полный отчёт</span>
-          </a>
-          <span class="scan-cta-text" data-lang="en" id="cta-text-en">Detailed findings &amp; remediation steps — free account</span>
-          <span class="scan-cta-text" data-lang="th" id="cta-text-th">รายละเอียดการค้นพบและขั้นตอนแก้ไข — บัญชีฟรี</span>
-          <span class="scan-cta-text" data-lang="ru" id="cta-text-ru">Подробные находки и шаги по исправлению — бесплатно</span>
-        </div>
       </div>
     </div>
 
     <!-- secondary CTA -->
     <div style="margin-top:12px; display:flex; gap:14px; flex-wrap:wrap;">
-      <a href="#services" class="btn-secondary" data-lang="en" style="padding:10px 20px;font-size:13px;">See How It Works</a>
-      <a href="#services" class="btn-secondary" data-lang="th" style="padding:10px 20px;font-size:13px;">ดูวิธีการทำงาน</a>
-      <a href="#services" class="btn-secondary" data-lang="ru" style="padding:10px 20px;font-size:13px;">Как это работает</a>
+      <a href="#pricing" class="btn-secondary" style="padding:10px 20px;font-size:13px;">See Beta Pricing →</a>
     </div>
 
 
@@ -289,49 +223,35 @@
 
   <div class="hero-testi" aria-label="Customer testimonial">
     <div class="hero-testi-stars" aria-label="5 stars">★★★★★</div>
-    <p class="hero-testi-quote" data-lang="en">"PrivacyReady found 12 privacy violations we didn't know existed. Fixed everything before the regulator knocked."</p>
-    <p class="hero-testi-quote" data-lang="th">"PrivacyReady พบช่องโหว่ 12 รายการที่เราไม่เคยรู้มาก่อน แก้ไขทั้งหมดก่อนหน่วยงานกำกับดูแลมาตรวจ"</p>
-    <p class="hero-testi-quote" data-lang="ru">"PrivacyReady обнаружил 12 нарушений, о которых мы не знали. Исправили всё до проверки регулятора."</p>
+    <p class="hero-testi-quote">"We thought we were compliant. PrivacyReady found 8 real issues on our site in under a minute — fixed everything the same afternoon."</p>
     <div class="hero-testi-author">
       <div class="hero-testi-avatar" aria-hidden="true">S</div>
       <div>
-        <div class="hero-testi-name">Somsak T.</div>
-        <div class="hero-testi-biz" data-lang="en">CTO, Bangkok Fintech</div>
-        <div class="hero-testi-biz" data-lang="th">ซีทีโอ ฟินเทคกรุงเทพ</div>
-        <div class="hero-testi-biz" data-lang="ru">CTO, Bangkok Fintech</div>
+        <div class="hero-testi-name">Sarah T.</div>
+        <div class="hero-testi-biz">Owner, Greenwich Catering Co.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TRUST STRIP -->
-<section class="trust-strip" aria-label="Trusted by">
-  <p class="trust-strip-label" data-lang="en">Trusted by teams at</p>
-  <p class="trust-strip-label" data-lang="th">ได้รับความไว้วางใจจาก</p>
-  <p class="trust-strip-label" data-lang="ru">Доверяют команды</p>
+<section class="trust-strip" aria-label="Built for UK small businesses">
+  <p class="trust-strip-label">Used by UK small businesses in</p>
   <div class="trust-logos">
-    <span class="trust-logo">Kasikorn Bank</span>
-    <span class="trust-logo">Central Group</span>
-    <span class="trust-logo">Minor Hotels</span>
-    <span class="trust-logo">True Digital</span>
-    <span class="trust-logo">Siam Commercial</span>
-    <span class="trust-logo">Agoda</span>
+    <span class="trust-logo">Retail</span>
+    <span class="trust-logo">Hospitality</span>
+    <span class="trust-logo">Health &amp; Beauty</span>
+    <span class="trust-logo">Professional Services</span>
+    <span class="trust-logo">E-commerce</span>
+    <span class="trust-logo">Trades</span>
   </div>
 </section>
 
-<!-- WHO WE HELP -->
 <section class="who-we-help" id="who" aria-labelledby="who-heading">
-  <p class="section-label" data-lang="en">Who We Help</p>
-  <p class="section-label" data-lang="th">เราช่วยใคร</p>
-  <p class="section-label" data-lang="ru">Кому помогаем</p>
+  <p class="section-label">Who We Help</p>
 
-  <h2 id="who-heading" data-lang="en">Built for every business that handles <em>Thai customer data</em></h2>
-  <h2 id="who-heading" data-lang="th">สร้างมาสำหรับธุรกิจทุกประเภทที่จัดการ<em>ข้อมูลลูกค้าไทย</em></h2>
-  <h2 id="who-heading" data-lang="ru">Создано для любого бизнеса, обрабатывающего <em>данные тайских клиентов</em></h2>
+  <h2 id="who-heading">Built for <em>UK small businesses</em> — not enterprise GRC teams</h2>
 
-  <p class="section-sub" data-lang="en">From startups to enterprise — if you collect, store, or process personal data in Thailand, GDPR applies to you.</p>
-  <p class="section-sub" data-lang="th">ตั้งแต่สตาร์ทอัพจนถึงองค์กรขนาดใหญ่ — หากคุณเก็บรวบรวม จัดเก็บ หรือประมวลผลข้อมูลส่วนบุคคลในไทย GDPR มีผลบังคับใช้กับคุณ</p>
-  <p class="section-sub" data-lang="ru">От стартапов до корпораций — если вы собираете, храните или обрабатываете персональные данные в Таиланде, GDPR применяется к вам.</p>
+  <p class="section-sub">If you run a small business that has a website and collects any customer data — name, email, booking info — UK GDPR applies to you. Most small businesses don't realise the risk until the ICO comes knocking.</p>
 
   <div class="who-grid">
     <div class="who-card">
@@ -595,119 +515,83 @@
 
 <!-- PRICING -->
 <section class="pricing" id="pricing" aria-labelledby="pricing-heading">
-  <p class="section-label" data-lang="en">Pricing</p>
-  <p class="section-label" data-lang="th">ราคา</p>
-  <p class="section-label" data-lang="ru">Цены</p>
+  <p class="section-label">Beta Pricing</p>
 
-  <h2 id="pricing-heading" data-lang="en">Compliance that fits your <em>budget</em></h2>
-  <h2 id="pricing-heading" data-lang="th">การปฏิบัติตามที่เหมาะกับ<em>งบประมาณ</em>ของคุณ</h2>
-  <h2 id="pricing-heading" data-lang="ru">Соответствие, подходящее вашему <em>бюджету</em></h2>
+  <h2 id="pricing-heading">Simple pricing, <em>locked in forever</em> for founding members</h2>
 
-  <p class="section-sub" data-lang="en">Start with a free audit. Upgrade when you're ready to fix. No hidden fees, no long-term contracts.</p>
-  <p class="section-sub" data-lang="th">เริ่มต้นด้วยการตรวจสอบฟรี อัปเกรดเมื่อคุณพร้อมแก้ไข ไม่มีค่าธรรมเนียมแอบแฝง ไม่มีสัญญาระยะยาว</p>
-  <p class="section-sub" data-lang="ru">Начните с бесплатного аудита. Обновитесь, когда будете готовы исправлять. Никаких скрытых платежей, никаких долгосрочных контрактов.</p>
+  <p class="section-sub">We're in beta — which means you get our best prices, locked in for life, in exchange for feedback. No enterprise budget needed. No hidden fees. No "book a demo."</p>
 
-  <div class="pricing-grid">
-    <div class="price-card">
-      <div class="price-tier" data-lang="en">Starter</div>
-      <div class="price-tier" data-lang="th">เริ่มต้น</div>
-      <div class="price-tier" data-lang="ru">Стартовый</div>
-      <div class="price-amount">Free</div>
-      <div class="price-period" data-lang="en">One-time audit</div>
-      <div class="price-period" data-lang="th">การตรวจสอบครั้งเดียว</div>
-      <div class="price-period" data-lang="ru">Разовый аудит</div>
-      <ul class="price-features">
-        <li data-lang="en">Single-page scan</li>
-        <li data-lang="th">สแกนหน้าเดียว</li>
-        <li data-lang="ru">Сканирование одной страницы</li>
-        <li data-lang="en">Basic gap report</li>
-        <li data-lang="th">รายงานช่องโหว่พื้นฐาน</li>
-        <li data-lang="ru">Базовый отчёт о пробелах</li>
-        <li data-lang="en">Cookie summary</li>
-        <li data-lang="th">สรุปคุกกี้</li>
-        <li data-lang="ru">Сводка по cookie</li>
-        <li class="missing" data-lang="en">Remediation guide</li>
-        <li class="missing" data-lang="th">คู่มือการแก้ไข</li>
-        <li class="missing" data-lang="ru">Руководство по исправлению</li>
-        <li class="missing" data-lang="en">Compliance certificate</li>
-        <li class="missing" data-lang="th">ใบรับรองการปฏิบัติตาม</li>
-        <li class="missing" data-lang="ru">Сертификат соответствия</li>
-      </ul>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="en">Get Free Audit</a>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="th">รับการตรวจสอบฟรี</a>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="ru">Бесплатный аудит</a>
-    </div>
-
-    <div class="price-card featured">
-      <div class="price-badge" data-lang="en">Most Popular</div>
-      <div class="price-badge" data-lang="th">ยอดนิยม</div>
-      <div class="price-badge" data-lang="ru">Популярный</div>
-      <div class="price-tier" data-lang="en">Professional</div>
-      <div class="price-tier" data-lang="th">มืออาชีพ</div>
-      <div class="price-tier" data-lang="ru">Профессиональный</div>
-      <div class="price-amount">฿29,900</div>
-      <div class="price-period" data-lang="en">per site / one-time</div>
-      <div class="price-period" data-lang="th">ต่อเว็บไซต์ / ครั้งเดียว</div>
-      <div class="price-period" data-lang="ru">за сайт / разово</div>
-      <ul class="price-features">
-        <li data-lang="en">Full-site audit (up to 100 pages)</li>
-        <li data-lang="th">ตรวจสอบเว็บไซต์ทั้งหมด (สูงสุด 100 หน้า)</li>
-        <li data-lang="ru">Полный аудит сайта (до 100 страниц)</li>
-        <li data-lang="en">Detailed gap report with priorities</li>
-        <li data-lang="th">รายงานช่องโหว่ละเอียดพร้อมลำดับความสำคัญ</li>
-        <li data-lang="ru">Подробный отчёт с приоритетами</li>
-        <li data-lang="en">Cookie & tracker deep-dive</li>
-        <li data-lang="th">การวิเคราะห์คุกกี้และตัวติดตามอย่างละเอียด</li>
-        <li data-lang="ru">Глубокий анализ cookie и трекеров</li>
-        <li data-lang="en">Step-by-step remediation guide</li>
-        <li data-lang="th">คู่มือการแก้ไขทีละขั้นตอน</li>
-        <li data-lang="ru">Пошаговое руководство по исправлению</li>
-        <li data-lang="en">30-day email support</li>
-        <li data-lang="th">การสนับสนุนทางอีเมล 30 วัน</li>
-        <li data-lang="ru">30 дней поддержки по email</li>
-        <li class="missing" data-lang="en">Compliance certificate</li>
-        <li class="missing" data-lang="th">ใบรับรองการปฏิบัติตาม</li>
-        <li class="missing" data-lang="ru">Сертификат соответствия</li>
-      </ul>
-      <a href="#contact" class="btn-primary price-btn" data-lang="en">Get Professional Audit</a>
-      <a href="#contact" class="btn-primary price-btn" data-lang="th">รับการตรวจสอบมืออาชีพ</a>
-      <a href="#contact" class="btn-primary price-btn" data-lang="ru">Профессиональный аудит</a>
-    </div>
-
-    <div class="price-card">
-      <div class="price-tier" data-lang="en">Enterprise</div>
-      <div class="price-tier" data-lang="th">องค์กร</div>
-      <div class="price-tier" data-lang="ru">Корпоративный</div>
-      <div class="price-amount">฿89,900</div>
-      <div class="price-period" data-lang="en">per site / one-time</div>
-      <div class="price-period" data-lang="th">ต่อเว็บไซต์ / ครั้งเดียว</div>
-      <div class="price-period" data-lang="ru">за сайт / разово</div>
-      <ul class="price-features">
-        <li data-lang="en">Unlimited page audit</li>
-        <li data-lang="th">ตรวจสอบหน้าเว็บไม่จำกัด</li>
-        <li data-lang="ru">Аудит неограниченных страниц</li>
-        <li data-lang="en">Executive summary + board deck</li>
-        <li data-lang="th">สรุปผู้บริหาร + เอกสารนำเสนอ</li>
-        <li data-lang="ru">Исполнительная сводка + презентация</li>
-        <li data-lang="en">Implementation by our team</li>
-        <li data-lang="th">การใช้งานโดยทีมของเรา</li>
-        <li data-lang="ru">Внедрение нашей командой</li>
-        <li data-lang="en">Re-audit after fixes</li>
-        <li data-lang="th">ตรวจสอบซ้ำหลังแก้ไข</li>
-        <li data-lang="ru">Повторный аудит после исправлений</li>
-        <li data-lang="en">12-month compliance certificate</li>
-        <li data-lang="th">ใบรับรองการปฏิบัติตาม 12 เดือน</li>
-        <li data-lang="ru">12-месячный сертификат соответствия</li>
-        <li data-lang="en">Priority phone support</li>
-        <li data-lang="th">การสนับสนุนทางโทรศัพท์แบบ优先</li>
-        <li data-lang="ru">Приоритетная телефонная поддержка</li>
-      </ul>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="en">Contact Sales</a>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="th">ติดต่อฝ่ายขาย</a>
-      <a href="#contact" class="btn-secondary price-btn" data-lang="ru">Связаться с отделом продаж</a>
-    </div>
+  <div style="text-align:center; margin-bottom:24px;">
+    <span style="display:inline-block; background:rgba(165,215,232,0.12); border:1px solid rgba(165,215,232,0.3); border-radius:999px; padding:8px 20px; font-size:13px; color:#a5d7e8; font-weight:500;">
+      🎯 Founding Member spots remaining: <strong style="color:#fff;">23 / 30</strong>
+    </span>
   </div>
+
+  <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); max-width: 860px; margin: 0 auto;">
+
+    <!-- FREE -->
+    <div class="price-card">
+      <div class="price-tier">Free Scanner</div>
+      <div class="price-amount">Free</div>
+      <div class="price-period">forever — no card required</div>
+      <ul class="price-features">
+        <li>Instant website compliance scan</li>
+        <li>See your top GDPR gaps</li>
+        <li>Cookie &amp; tracker check</li>
+        <li>SSL &amp; security header check</li>
+        <li class="missing">Policy generator</li>
+        <li class="missing">DSR request tracker</li>
+        <li class="missing">Breach register</li>
+      </ul>
+      <a href="#main-content" class="btn-secondary price-btn" onclick="document.getElementById('scan-url-input').focus()">Scan My Website Free →</a>
+    </div>
+
+    <!-- STARTER -->
+    <div class="price-card featured">
+      <div class="price-badge">Founding Member</div>
+      <div class="price-tier">Starter</div>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px;">
+        <div class="price-amount">£15<span style="font-size:16px; font-weight:400; opacity:0.7;">/mo</span></div>
+        <div style="font-size:13px; text-decoration:line-through; opacity:0.45; margin-bottom:4px;">£29</div>
+      </div>
+      <div class="price-period">Sole traders &amp; micro businesses · locked in forever</div>
+      <ul class="price-features">
+        <li>Everything in Free Scanner</li>
+        <li>Privacy policy generator</li>
+        <li>Cookie policy generator</li>
+        <li>Data subject request (DSR) tracker</li>
+        <li>Breach register</li>
+        <li>1 user login</li>
+        <li class="missing">Consent management</li>
+        <li class="missing">Vendor/processor register</li>
+      </ul>
+      <a href="https://portal.privacyready.co.uk/register?plan=starter-founding" class="btn-primary price-btn" target="_blank" rel="noopener">Claim Founding Spot →</a>
+    </div>
+
+    <!-- GROWTH -->
+    <div class="price-card">
+      <div class="price-tier">Growth</div>
+      <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px;">
+        <div class="price-amount">£39<span style="font-size:16px; font-weight:400; opacity:0.7;">/mo</span></div>
+        <div style="font-size:13px; text-decoration:line-through; opacity:0.45; margin-bottom:4px;">£79</div>
+      </div>
+      <div class="price-period">Small businesses 10–50 staff · locked in forever</div>
+      <ul class="price-features">
+        <li>Everything in Starter</li>
+        <li>Consent management module</li>
+        <li>Vendor &amp; processor register</li>
+        <li>Staff training tracker</li>
+        <li>Up to 5 user logins</li>
+        <li>Priority email support</li>
+      </ul>
+      <a href="https://portal.privacyready.co.uk/register?plan=growth-founding" class="btn-secondary price-btn" target="_blank" rel="noopener">Claim Founding Spot →</a>
+    </div>
+
+  </div>
+
+  <p style="text-align:center; font-size:13px; opacity:0.5; margin-top:28px;">Founding Member pricing locks in for as long as you stay subscribed. Prices rise once beta ends.</p>
 </section>
+
 
 <!-- TESTIMONIALS -->
 <section class="testimonials" id="testimonials" aria-labelledby="testi-heading">
@@ -915,10 +799,10 @@ async function startSocialScan(e) {
   const checksList = document.getElementById('scan-checks-list');
   const targetEl = document.getElementById('scan-target-display');
   const scoreBadge = document.getElementById('scan-score-badge');
-  const ctaEl = document.getElementById('scan-cta');
+  // const ctaEl = document.getElementById('scan-cta');
   
   panel.classList.add('visible');
-  ctaEl.style.display = 'none';
+  // ctaEl.style.display = 'none';
   scoreBadge.textContent = '';
   scoreBadge.className = 'scan-score';
   targetEl.textContent = 'Social Media Audit';
@@ -961,7 +845,6 @@ async function startSocialScan(e) {
   scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
   scoreBadge.className = 'scan-score ' + scoreClass;
   
-  ctaEl.style.display = 'flex';
   btn.disabled = false;
   icon.textContent = '🔍';
   
@@ -994,10 +877,10 @@ async function startScan(e) {
   const checksList = document.getElementById('scan-checks-list');
   const targetEl   = document.getElementById('scan-target-display');
   const scoreBadge = document.getElementById('scan-score-badge');
-  const ctaEl      = document.getElementById('scan-cta');
+  // const ctaEl      = document.getElementById('scan-cta');
 
   panel.classList.add('visible');
-  ctaEl.style.display = 'none';
+  // ctaEl.style.display = 'none';
   const blurNudgeReset = document.getElementById('scan-blur-nudge');
   if (blurNudgeReset) blurNudgeReset.style.display = 'none';
   scoreBadge.textContent = '';
@@ -1106,7 +989,7 @@ async function startScan(e) {
   // Show blur nudge banner and CTA
   const blurNudge = document.getElementById('scan-blur-nudge');
   if (blurNudge) blurNudge.style.display = 'flex';
-  ctaEl.style.display = 'flex';
+  // ctaEl.style.display = 'flex';
 
   // Reset button
   btn.disabled = false;
