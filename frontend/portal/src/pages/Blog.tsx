@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, ArrowRight, Clock, BookOpen, User, Tag, ChevronLeft } from 'lucide-react';
-import { BLOG_POSTS, BlogPost } from '../data/blogPosts';
+import { BLOG_POSTS } from '../data/blogPosts';
 
 export default function Blog() {
   const navigate = useNavigate();
