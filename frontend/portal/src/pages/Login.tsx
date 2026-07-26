@@ -5,6 +5,9 @@ import { ArrowRight, ShieldCheck, Home, CheckCircle2 } from 'lucide-react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isUnverified, setIsUnverified] = useState(false);
+  const [resendStatus, setResendStatus] = useState('');
   const navigate = useNavigate();
 
   // Forgot password states
@@ -21,6 +24,9 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    setIsUnverified(false);
+    setResendStatus('');
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
         method: 'POST',
@@ -34,11 +40,32 @@ export default function Login() {
         navigate('/dashboard');
       } else {
         const errData = await res.json();
-        alert(errData.error || 'Invalid credentials');
+        setError(errData.error || 'Invalid credentials');
+        if (res.status === 403 && errData.error?.includes('verify your email')) {
+          setIsUnverified(true);
+        }
       }
     } catch (err) {
       console.error('Login failed', err);
-      alert('Network error. Please try again later.');
+      setError('Network error. Please try again later.');
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setResendStatus('Sending...');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (res.ok) {
+        setResendStatus('Verification link sent! Check your inbox.');
+      } else {
+        setResendStatus('Failed to resend. Please try again later.');
+      }
+    } catch (err) {
+      setResendStatus('Network error.');
     }
   };
 
@@ -124,6 +151,25 @@ export default function Login() {
               <h1 className="auth-title">Welcome back</h1>
               <p className="auth-subtitle">Log in to manage your GDPR compliance</p>
             </div>
+
+            {error && (
+              <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                {error}
+                {isUnverified && (
+                  <div style={{ marginTop: '12px' }}>
+                    <button 
+                      type="button"
+                      onClick={handleResendVerification}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '12px', padding: '6px 12px', width: '100%' }}
+                    >
+                      Resend verification email
+                    </button>
+                    {resendStatus && <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--sky)' }}>{resendStatus}</div>}
+                  </div>
+                )}
+              </div>
+            )}
 
             <form className="auth-form" onSubmit={handleLogin} autoComplete="off">
               <div className="form-group">
