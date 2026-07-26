@@ -1,5 +1,6 @@
 stages:
   - lint-and-test
+  - test
   - security-scan
   - infrastructure
   - build-and-scan

@@ -26,7 +26,7 @@ resource "aws_key_pair" "gitlab" {
 resource "aws_instance" "gitlab" {
   count                  = var.gitlab_enabled ? 1 : 0
   ami                    = data.aws_ami.amazon_linux_2023.id
-  instance_type          = "t3.micro"
+  instance_type          = "t3.medium"
   subnet_id              = module.management_vpc.private_subnet_ids[0]
   vpc_security_group_ids = [aws_security_group.gitlab.id]
   key_name               = aws_key_pair.gitlab.key_name

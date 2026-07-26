@@ -27,13 +27,6 @@ resource "aws_ecs_cluster_capacity_providers" "main" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "app" {
-  name              = "/ecs/privacyready-test-api"
-  retention_in_days = 30
-
-  tags = merge(local.tags, { Name = "privacyready-test-api-logs" })
-}
-
 resource "aws_ecs_task_definition" "app" {
   family                   = "privacyready-test-api"
   network_mode             = "awsvpc"
@@ -52,15 +45,6 @@ resource "aws_ecs_task_definition" "app" {
       containerPort = 8080
       protocol      = "tcp"
     }]
-
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.app.name
-        awslogs-region        = var.region
-        awslogs-stream-prefix = "ecs"
-      }
-    }
 
     environment = [
       { name = "NODE_ENV", value = "production" },
@@ -345,18 +329,6 @@ resource "aws_appautoscaling_policy" "cpu" {
   }
 }
 
-resource "aws_cloudwatch_log_group" "scanner" {
-  name              = "/ecs/privacyready-test-scanner"
-  retention_in_days = 30
-  tags              = merge(local.tags, { Name = "privacyready-test-scanner-logs" })
-}
-
-resource "aws_cloudwatch_log_group" "dsr" {
-  name              = "/ecs/privacyready-test-dsr"
-  retention_in_days = 30
-  tags              = merge(local.tags, { Name = "privacyready-test-dsr-logs" })
-}
-
 resource "aws_ecs_task_definition" "scanner" {
   family                   = "privacyready-test-scanner"
   network_mode             = "awsvpc"
@@ -383,14 +355,6 @@ resource "aws_ecs_task_definition" "scanner" {
       }
     ]
 
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.scanner.name
-        awslogs-region        = var.region
-        awslogs-stream-prefix = "ecs"
-      }
-    }
   }])
 }
 
@@ -413,14 +377,6 @@ resource "aws_ecs_task_definition" "dsr" {
       protocol      = "tcp"
     }]
 
-    logConfiguration = {
-      logDriver = "awslogs"
-      options = {
-        awslogs-group         = aws_cloudwatch_log_group.dsr.name
-        awslogs-region        = var.region
-        awslogs-stream-prefix = "ecs"
-      }
-    }
   }])
 }
 
