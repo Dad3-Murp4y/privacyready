@@ -184,7 +184,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <!-- Social Form -->
       <form class="scan-form" id="scan-form-social" style="display:none; flex-direction:column; gap:8px; border-radius:0; box-shadow:none;" onsubmit="return startSocialScan(event)">
         <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID (Optional)" spellcheck="false" />
-        <input id="scan-line-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="LINE Channel ID (Optional)" spellcheck="false" />
+        <input id="scan-ig-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Instagram Username (Optional)" spellcheck="false" />
         <input id="scan-tt-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="TikTok Username (Optional)" spellcheck="false" />
         <button class="scan-btn" type="submit" id="scan-social-btn" style="border-radius:8px; justify-content:center; margin-top:4px;">
           <span id="scan-social-btn-icon">🔍</span>
@@ -795,10 +795,10 @@ const SOCIAL_SCAN_CHECKS_DEF = [
     detail: { en: 'Checks if lead forms have privacy policy links & consent checkboxes', th: 'ตรวจสอบลิงก์นโยบายและความยินยอมในแบบฟอร์ม', ru: 'Проверяет ссылки на политику в формах' } },
   { id: 'fb_pii',          label: { en: 'Public PII Exposure',         th: 'การเปิดเผย PII ต่อสาธารณะ',  ru: 'Публичное раскрытие PII' },
     detail: { en: 'Scans public comments for leaked phone numbers/emails', th: 'สแกนความคิดเห็นสาธารณะเพื่อหาเบอร์โทร/อีเมลหลุด', ru: 'Сканирует комментарии на утечку телефонов/email' } },
-  { id: 'line_consent',    label: { en: 'LINE Auto-reply Consent',     th: 'ความยินยอมตอบกลับอัตโนมัติ LINE', ru: 'Согласие в автоответах LINE' },
-    detail: { en: 'Ensures LINE bots collect consent before PII', th: 'บอท LINE ต้องขอความยินยอมก่อนเก็บ PII', ru: 'LINE-боты должны запрашивать согласие' } },
-  { id: 'line_richmenu',   label: { en: 'LINE Rich Menu Privacy',      th: 'ความเป็นส่วนตัวใน Rich Menu', ru: 'Приватность LINE Rich Menu' },
-    detail: { en: 'Checks if rich menus link to privacy policies', th: 'เมนูต้องลิงก์ไปยังนโยบายความเป็นส่วนตัว', ru: 'Меню должно ссылаться на политику' } },
+  { id: 'ig_lead_form',    label: { en: 'Instagram Lead Ads Privacy',  th: 'ความเป็นส่วนตัวโฆษณา Instagram', ru: 'Приватность лид-форм Instagram' },
+    detail: { en: 'Ensures Instagram Lead Ads link to a valid privacy policy', th: 'ตรวจสอบลิงก์นโยบายในโฆษณา Instagram', ru: 'Проверяет ссылки на политику в Instagram Lead Ads' } },
+  { id: 'ig_dm_bot',       label: { en: 'Instagram DM Bot Consent',    th: 'ความยินยอมบอทแชท Instagram', ru: 'Согласие ботов Instagram DM' },
+    detail: { en: 'Checks if automated DMs provide privacy notices before collecting data', th: 'บอท Instagram ต้องขอความยินยอมก่อนเก็บข้อมูล', ru: 'Боты Instagram должны запрашивать согласие' } },
   { id: 'tiktok_bio',      label: { en: 'TikTok Bio Link Tracking',    th: 'การติดตามลิงก์ในไบโอ TikTok', ru: 'Отслеживание ссылок в TikTok' },
     detail: { en: 'Checks for undisclosed trackers in bio URLs', th: 'ตรวจสอบ tracker ที่ไม่เปิดเผยในลิงก์ไบโอ', ru: 'Проверяет скрытые трекеры в ссылках' } },
 ];
@@ -822,9 +822,9 @@ function switchScanTab(tab) {
 async function startSocialScan(e) {
   e.preventDefault();
   const fb = document.getElementById('scan-fb-input').value.trim();
-  const line = document.getElementById('scan-line-input').value.trim();
+  const ig = document.getElementById('scan-ig-input').value.trim();
   const tt = document.getElementById('scan-tt-input').value.trim();
-  const targetId = fb || line || tt || 'SocialProfile';
+  const targetId = fb || ig || tt || 'SocialProfile';
 
   const btn = document.getElementById('scan-social-btn');
   const icon = document.getElementById('scan-social-btn-icon');
