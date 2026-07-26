@@ -1,3 +1,24 @@
+.global-maintenance-banner {
+  background-color: #d97706;
+  color: white;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  z-index: 99999;
+  position: relative;
+}
+
+.global-maintenance-banner p {
+  margin: 0;
+}
+
+.maintenance-icon {
+  font-size: 18px;
+}
+
 :root {
   /* Professional Dark Mode -- retinted to match the landing site's
      navy/blue brand palette (--navy/--mid/--sky/--lotus in the

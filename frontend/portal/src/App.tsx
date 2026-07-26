@@ -9,6 +9,47 @@ import VerifyEmail from './pages/VerifyEmail';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import CookieConsent from './components/CookieConsent';
+import { useState, useEffect } from 'react';
+
+function MaintenanceBanner() {
+  const [isOffline, setIsOffline] = useState(false);
+
+  useEffect(() => {
+    const checkHealth = async () => {
+      const apiUrl = window.location.hostname.includes('test.')
+        ? 'https://test-api.privacyready.co.uk/health'
+        : 'https://api.privacyready.co.uk/health';
+      
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const resp = await fetch(apiUrl, { signal: controller.signal });
+        clearTimeout(timeout);
+        
+        if (!resp.ok) throw new Error('API returned ' + resp.status);
+        setIsOffline(false);
+      } catch (err) {
+        setIsOffline(true);
+      }
+    };
+    
+    checkHealth();
+    // Poll every 30 seconds just in case it comes back online
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!isOffline) return null;
+
+  return (
+    <div className="global-maintenance-banner">
+      <span className="maintenance-icon">🛠️</span>
+      <p>
+        <strong>Maintenance Mode:</strong> The portal is currently offline for scheduled maintenance. Login and data access are temporarily unavailable.
+      </p>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem('token');
@@ -54,6 +95,7 @@ function RequireSuperAdmin({ children }: { children: ReactNode }) {
 function App() {
   return (
     <>
+      <MaintenanceBanner />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />

@@ -232,3 +232,49 @@ if (window.location.hostname.includes('test.')) {
     a.href = a.href.replace('portal.privacyready.co.uk', 'test-portal.privacyready.co.uk');
   });
 }
+
+// Maintenance Mode Detection
+async function checkMaintenanceMode() {
+  const apiUrl = window.location.hostname.includes('test.') 
+    ? 'https://test-api.privacyready.co.uk/health' 
+    : 'https://api.privacyready.co.uk/health';
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000); // 4 second timeout
+    
+    const resp = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    
+    if (!resp.ok) {
+      throw new Error('API returned ' + resp.status);
+    }
+    // If successful, do nothing (maintenance mode is OFF)
+  } catch (err) {
+    console.warn("API is unreachable. Enabling maintenance mode UI.", err);
+    // Show banner
+    const banner = document.getElementById('maintenance-banner');
+    if (banner) banner.style.display = 'flex';
+    
+    // Hide marketing strip so it doesn't clutter
+    const marketingStrip = document.getElementById('marketing-alert-strip');
+    if (marketingStrip) marketingStrip.style.display = 'none';
+
+    // Disable scan buttons
+    const btn1 = document.getElementById('scan-btn');
+    const btn2 = document.getElementById('scan-social-btn');
+    if (btn1) {
+      btn1.disabled = true;
+      btn1.innerHTML = '<span class="scan-btn-text">Scanner Offline</span>';
+      btn1.style.backgroundColor = '#64748b';
+    }
+    if (btn2) {
+      btn2.disabled = true;
+      btn2.innerHTML = '<span class="scan-btn-text">Scanner Offline</span>';
+      btn2.style.backgroundColor = '#64748b';
+    }
+  }
+}
+
+// Run the check when the script loads
+checkMaintenanceMode();
