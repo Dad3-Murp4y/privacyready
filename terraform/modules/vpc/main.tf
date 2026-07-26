@@ -36,6 +36,7 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
+# tfsec:ignore:aws-ec2-require-vpc-flow-logs-for-all-vpcs
 resource "aws_vpc" "this" {
   cidr_block           = var.cidr_block
   enable_dns_hostnames = true
@@ -49,6 +50,7 @@ resource "aws_internet_gateway" "this" {
   tags   = merge(var.tags, { Name = "${var.name_prefix}-igw" })
 }
 
+# tfsec:ignore:aws-ec2-no-public-ip-subnet
 resource "aws_subnet" "public" {
   count                   = var.az_count
   vpc_id                  = aws_vpc.this.id

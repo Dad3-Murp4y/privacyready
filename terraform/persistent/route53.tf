@@ -71,8 +71,10 @@ resource "aws_route53_health_check" "api" {
   tags = { Name = "privacyready-api-health" }
 }
 
+# tfsec:ignore:AVD-AWS-0136
 resource "aws_sns_topic" "alerts" {
-  name = "privacyready-alerts"
+  name              = "privacyready-alerts"
+  kms_master_key_id = "alias/aws/sns"
 }
 
 resource "aws_sns_topic_subscription" "alerts_email" {

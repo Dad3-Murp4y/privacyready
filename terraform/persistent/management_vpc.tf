@@ -29,6 +29,7 @@ resource "aws_security_group" "eice" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [module.management_vpc.cidr_block]
+    description = "SSH to VPC"
   }
 
   tags = merge(local.tags, { Name = "privacyready-eice-sg" })

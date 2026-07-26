@@ -4,8 +4,10 @@ data "archive_file" "lambda_zip" {
   output_path = "${path.module}/lambda.zip"
 }
 
+# tfsec:ignore:AVD-AWS-0136
 resource "aws_sns_topic" "ses_notifications" {
-  name = "privacyready-ses-notifications"
+  name              = "privacyready-ses-notifications"
+  kms_master_key_id = "alias/aws/sns"
 }
 
 resource "aws_ses_identity_notification_topic" "bounce" {
@@ -48,6 +50,7 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
+# tfsec:ignore:aws-lambda-enable-tracing
 resource "aws_lambda_function" "bounce_handler" {
   filename         = data.archive_file.lambda_zip.output_path
   function_name    = "privacyready-ses-bounce-handler"

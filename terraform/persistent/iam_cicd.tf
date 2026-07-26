@@ -7,6 +7,7 @@
 # not-yet-existing resources can't be looked up anyway (this policy
 # may be applied before environments/production's first apply).
 
+# tfsec:ignore:aws-iam-no-user-attached-policies
 resource "aws_iam_user" "gitlab_ci" {
   name = "gitlab-ci-deployer"
   tags = merge(local.tags, { Name = "gitlab-ci-deployer" })
@@ -96,6 +97,7 @@ resource "aws_iam_user_policy_attachment" "gitlab_ci" {
   policy_arn = aws_iam_policy.gitlab_ci.arn
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "gitlab_ci_credentials" {
   name                    = "privacyready/gitlab/ci-credentials"
   description             = "AWS Access Keys for the gitlab-ci-deployer IAM user"

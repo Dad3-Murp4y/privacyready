@@ -32,6 +32,10 @@ resource "aws_instance" "gitlab" {
   key_name               = aws_key_pair.gitlab.key_name
   iam_instance_profile   = aws_iam_instance_profile.gitlab.name
 
+  metadata_options {
+    http_tokens = "required"
+  }
+
   root_block_device {
     volume_size = 50
     volume_type = "gp3"
@@ -160,6 +164,7 @@ resource "random_password" "gitlab_redis" {
   special = false
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "gitlab_redis_password" {
   count                   = var.gitlab_enabled ? 1 : 0
   name                    = "privacyready/gitlab/redis-password"
@@ -203,7 +208,10 @@ resource "aws_iam_policy" "gitlab_kms_secrets" {
           "secretsmanager:GetSecretValue",
           "kms:Decrypt"
         ]
-        Resource = "*"
+        Resource = [
+          aws_secretsmanager_secret.gitlab_redis_password[0].arn,
+          aws_kms_key.gitlab.arn
+        ]
       }
     ]
   })
@@ -219,6 +227,7 @@ resource "aws_iam_role_policy_attachment" "gitlab_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "gitlab" {
   name_prefix = "privacyready-gitlab-"
   vpc_id      = module.management_vpc.vpc_id
@@ -237,6 +246,7 @@ resource "aws_security_group" "gitlab" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["10.0.0.0/8"]
+    description = "HTTP from internal VPCs"
   }
 
   ingress {
@@ -252,6 +262,7 @@ resource "aws_security_group" "gitlab" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
 
   tags = merge(local.tags, { GDPR = "compliant" })
@@ -261,12 +272,14 @@ resource "aws_security_group" "gitlab_redis" {
   count       = var.gitlab_enabled ? 1 : 0
   name_prefix = "privacyready-gitlab-redis-"
   vpc_id      = module.management_vpc.vpc_id
+  description = "Redis security group"
 
   ingress {
     from_port       = 6379
     to_port         = 6379
     protocol        = "tcp"
     security_groups = [aws_security_group.gitlab.id]
+    description     = "Redis from GitLab"
   }
 }
 

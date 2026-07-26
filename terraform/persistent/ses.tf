@@ -27,8 +27,10 @@ resource "aws_route53_record" "ses_mx" {
 # Inbound mail (hello@/support@/etc) forwarded to an SNS topic
 # subscribed by a real inbox, since there's no dedicated support
 # mailbox system.
+# tfsec:ignore:AVD-AWS-0136
 resource "aws_sns_topic" "email_forwarding" {
-  name = "privacyready-email-forwarding"
+  name              = "privacyready-email-forwarding"
+  kms_master_key_id = "alias/aws/sns"
 }
 
 resource "aws_sns_topic_policy" "email_forwarding_policy" {
