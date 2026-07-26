@@ -27,6 +27,7 @@ fi
 echo "1. Destroying expensive Terraform resources (ALB, ECS services, SaaS NAT Gateways)..."
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 cd "$SCRIPT_DIR/../terraform/environments/$ENV"
+terraform init
 terraform destroy \
   -target=aws_lb.main \
   -target=aws_ecs_service.app \
