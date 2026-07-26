@@ -882,7 +882,18 @@ async function startSocialScan(e) {
     }
   } catch (err) {
     console.error("Scan API Error:", err);
-    alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง' : lang === 'ru' ? 'Ошибка подключения к серверу. Пожалуйста, попробуйте еще раз.' : 'Error connecting to the scanner API. Please try again later.');
+    
+    // Show global maintenance banner
+    const banner = document.getElementById('maintenance-banner');
+    if (banner) banner.style.display = 'flex';
+    const marketingStrip = document.getElementById('marketing-alert-strip');
+    if (marketingStrip) marketingStrip.style.display = 'none';
+
+    // Show error in the panel instead of an alert
+    checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+      ⚠️ Scanner is currently offline for maintenance. Please try again later.
+    </li>`;
+    
     btn.disabled = false;
     icon.textContent = '🔍';
     return false;
@@ -1014,7 +1025,18 @@ async function startScan(e) {
     }
   } catch (err) {
     console.error("Scan API Error:", err);
-    alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง' : lang === 'ru' ? 'Ошибка подключения к серверу. Пожалуйста, попробуйте еще раз.' : 'Error connecting to the scanner API. Please try again later.');
+    
+    // Show global maintenance banner
+    const banner = document.getElementById('maintenance-banner');
+    if (banner) banner.style.display = 'flex';
+    const marketingStrip = document.getElementById('marketing-alert-strip');
+    if (marketingStrip) marketingStrip.style.display = 'none';
+
+    // Show error in the panel instead of an alert
+    checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+      ⚠️ Scanner is currently offline for maintenance. Please try again later.
+    </li>`;
+
     btn.disabled = false;
     icon.textContent = '🔍';
     return false;
