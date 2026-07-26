@@ -23,7 +23,7 @@ def load_module(name, path):
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 facebook_scanner = load_module("facebook_scanner", os.path.join(current_dir, "facebook-scanner.py"))
-line_scanner = load_module("line_scanner", os.path.join(current_dir, "line-scanner.py"))
+instagram_scanner = load_module("instagram_scanner", os.path.join(current_dir, "instagram-scanner.py"))
 tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok-scanner.py"))
 website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
 unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
@@ -56,8 +56,8 @@ class SocialScanRequest(BaseModel):
     customer_id: str
     facebook_token: Optional[str] = None
     facebook_page_id: Optional[str] = None
-    line_token: Optional[str] = None
-    line_channel_id: Optional[str] = None
+    ig_access_token: Optional[str] = None
+    ig_account_id: Optional[str] = None
     tiktok_username: Optional[str] = None
 
 class WebsiteScanRequest(BaseModel):
@@ -121,19 +121,19 @@ def scan_social(req: SocialScanRequest):
                 "description": f"Failed to scan Facebook: {str(e)}"
             })
 
-    # 2. LINE Scan
-    if req.line_token and req.line_channel_id:
+    # 2. Instagram Scan
+    if req.ig_access_token and req.ig_account_id:
         try:
-            scanner = line_scanner.LINEScanner(req.line_token, req.line_channel_id)
+            scanner = instagram_scanner.InstagramScanner(req.ig_access_token, req.ig_account_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
         except Exception as e:
-            print(f"LINE scan error: {e}")
+            print(f"Instagram scan error: {e}")
             all_findings.append({
-                "platform": "line",
+                "platform": "instagram",
                 "severity": "medium",
                 "finding_type": "scan_error",
-                "description": f"Failed to scan LINE: {str(e)}"
+                "description": f"Failed to scan Instagram: {str(e)}"
             })
 
     # 3. TikTok Scan

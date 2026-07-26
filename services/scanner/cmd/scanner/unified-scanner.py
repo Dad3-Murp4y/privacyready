@@ -27,7 +27,7 @@ class UnifiedScorer:
         self.platform_weights = {
             'website': 1.0,
             'facebook': 1.2,   # Higher weight = more data exposure
-            'line': 1.5,       # weight for LINE Official Account findings
+            'instagram': 1.2,  # Same as Facebook
             'tiktok': 0.8,
         }
         
@@ -121,11 +121,11 @@ class UnifiedScorer:
             actions.append(f"URGENT: {f['remediation']} (Platform: {f['platform']})")
         
         # Platform-specific actions
-        if 'line' in by_platform:
-            line_critical = [f for f in by_platform['line'] if f['severity'] in ['critical', 'high']]
-            if line_critical:
-                actions.append("LINE: Implement consent confirmation in all auto-reply flows")
-                actions.append("LINE: Export follower list and audit consent records")
+        if 'instagram' in by_platform:
+            ig_critical = [f for f in by_platform['instagram'] if f['severity'] in ['critical', 'high']]
+            if ig_critical:
+                actions.append("Instagram: Implement consent confirmation in all DM auto-reply flows")
+                actions.append("Instagram: Review all Lead Ads for privacy policy links")
         
         if 'facebook' in by_platform:
             fb_critical = [f for f in by_platform['facebook'] if f['severity'] in ['critical', 'high']]
