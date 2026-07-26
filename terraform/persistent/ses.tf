@@ -56,7 +56,7 @@ resource "aws_sns_topic_policy" "email_forwarding_policy" {
 resource "aws_sns_topic_subscription" "all_privacyready" {
   topic_arn = aws_sns_topic.email_forwarding.arn
   protocol  = "email"
-  endpoint  = "all.privacyready@gmail.com"
+  endpoint  = "all.datawai@gmail.com"
 }
 
 resource "aws_ses_receipt_rule_set" "main" {
