@@ -156,7 +156,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-th" type="button" data-lang="th" style="display:none">ตรวจสอบเว็บไซต์</button>
         <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-ru" type="button" data-lang="ru" style="display:none">Аудит сайта</button>
         
-        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button" data-lang="en">Social Media Audit</button>
+        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button" data-lang="en">Social & Apps Audit</button>
         <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-th" type="button" data-lang="th" style="display:none">ตรวจสอบโซเชียลมีเดีย</button>
         <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-ru" type="button" data-lang="ru" style="display:none">Аудит соцсетей</button>
       </div>
@@ -185,6 +185,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <form class="scan-form" id="scan-form-social" style="display:none; flex-direction:column; gap:8px; border-radius:0; box-shadow:none;" onsubmit="return startSocialScan(event)">
         <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID (Optional)" spellcheck="false" />
         <input id="scan-ig-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Instagram Username (Optional)" spellcheck="false" />
+        <input id="scan-li-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="LinkedIn Company ID (Optional)" spellcheck="false" />
+        <input id="scan-tw-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="X / Twitter Username (Optional)" spellcheck="false" />
+        <input id="scan-wa-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="WhatsApp Number (Optional)" spellcheck="false" />
+        <input id="scan-mc-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Mailchimp / CRM List ID (Optional)" spellcheck="false" />
+        <input id="scan-ga-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="GA4 Property ID (Optional)" spellcheck="false" />
         <input id="scan-tt-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="TikTok Username (Optional)" spellcheck="false" />
         <button class="scan-btn" type="submit" id="scan-social-btn" style="border-radius:8px; justify-content:center; margin-top:4px;">
           <span id="scan-social-btn-icon">🔍</span>
@@ -801,6 +806,16 @@ const SOCIAL_SCAN_CHECKS_DEF = [
     detail: { en: 'Checks if automated DMs provide privacy notices before collecting data', th: 'บอท Instagram ต้องขอความยินยอมก่อนเก็บข้อมูล', ru: 'Боты Instagram должны запрашивать согласие' } },
   { id: 'tiktok_bio',      label: { en: 'TikTok Bio Link Tracking',    th: 'การติดตามลิงก์ในไบโอ TikTok', ru: 'Отслеживание ссылок в TikTok' },
     detail: { en: 'Checks for undisclosed trackers in bio URLs', th: 'ตรวจสอบ tracker ที่ไม่เปิดเผยในลิงก์ไบโอ', ru: 'Проверяет скрытые трекеры в ссылках' } },
+  { id: 'li_lead_form',    label: { en: 'LinkedIn Lead Gen Privacy',   th: 'ความเป็นส่วนตัวโฆษณา LinkedIn', ru: 'Приватность лид-форм LinkedIn' },
+    detail: { en: 'Checks if LinkedIn Lead Gen forms link to a valid privacy policy', th: 'ตรวจสอบลิงก์นโยบายในโฆษณา LinkedIn', ru: 'Проверяет ссылки на политику в LinkedIn' } },
+  { id: 'tw_support_pii',  label: { en: 'X (Twitter) Support PII',     th: 'X (Twitter) ข้อมูลส่วนบุคคล', ru: 'X (Twitter) PII в поддержке' },
+    detail: { en: 'Scans for PII exposed in public support replies', th: 'สแกนหา PII ในการตอบกลับสาธารณะ', ru: 'Сканирует на PII в публичных ответах' } },
+  { id: 'wa_greeting',     label: { en: 'WhatsApp Business Privacy',   th: 'WhatsApp Business ความเป็นส่วนตัว', ru: 'WhatsApp Business Приватность' },
+    detail: { en: 'Ensures automated WhatsApp greetings include privacy notices', th: 'ข้อความตอบกลับอัตโนมัติต้องมีนโยบาย', ru: 'Проверяет политику в автоответах WhatsApp' } },
+  { id: 'mc_retention',    label: { en: 'CRM Data Retention',          th: 'การเก็บรักษาข้อมูล CRM', ru: 'Хранение данных CRM' },
+    detail: { en: 'Checks for inactive subscribers retained without justification', th: 'ตรวจสอบการเก็บข้อมูลผู้ใช้ที่ไม่ใช้งาน', ru: 'Проверяет неактивных подписчиков' } },
+  { id: 'ga_sharing',      label: { en: 'GA4 Data Sharing Controls',   th: 'การแบ่งปันข้อมูล GA4', ru: 'Обмен данными GA4' },
+    detail: { en: 'Ensures Google Analytics 4 data sharing is restricted', th: 'ตรวจสอบการแชร์ข้อมูลกับ Google', ru: 'Проверяет ограничения обмена данными GA4' } },
 ];
 
 function switchScanTab(tab) {
@@ -824,7 +839,13 @@ async function startSocialScan(e) {
   const fb = document.getElementById('scan-fb-input').value.trim();
   const ig = document.getElementById('scan-ig-input').value.trim();
   const tt = document.getElementById('scan-tt-input').value.trim();
-  const targetId = fb || ig || tt || 'SocialProfile';
+  const li = document.getElementById('scan-li-input').value.trim();
+  const tw = document.getElementById('scan-tw-input').value.trim();
+  const wa = document.getElementById('scan-wa-input').value.trim();
+  const mc = document.getElementById('scan-mc-input').value.trim();
+  const ga = document.getElementById('scan-ga-input').value.trim();
+  
+  const targetId = fb || ig || tt || li || tw || wa || mc || ga || 'SocialProfile';
 
   const btn = document.getElementById('scan-social-btn');
   const icon = document.getElementById('scan-social-btn-icon');
@@ -841,7 +862,7 @@ async function startSocialScan(e) {
   if (blurNudgeReset) blurNudgeReset.style.display = 'none';
   scoreBadge.textContent = '';
   scoreBadge.className = 'scan-score';
-  targetEl.textContent = 'Social Media Audit';
+  targetEl.textContent = 'Social & Apps Audit';
   checksList.innerHTML = '';
   
   const lang = document.body.getAttribute('lang') || 'en';
