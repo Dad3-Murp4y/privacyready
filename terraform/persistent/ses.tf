@@ -75,7 +75,8 @@ resource "aws_ses_receipt_rule" "forward" {
     "support@${var.domain_name}",
     "sales@${var.domain_name}",
     "security@${var.domain_name}",
-    "jobs@${var.domain_name}"
+    "jobs@${var.domain_name}",
+    "christian.watts@${var.domain_name}"
   ]
   enabled      = true
   scan_enabled = true
