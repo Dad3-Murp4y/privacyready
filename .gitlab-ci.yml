@@ -313,26 +313,54 @@ deploy-portal:
 # 6. COST-SAVER STAGES (MANUAL CLEANUP)
 # ---------------------------------------------
 
-environment-shutdown:
+prod-environment-shutdown:
   stage: cost-saver
   image: hashicorp/terraform:1.9
   before_script:
     - apk add --no-cache aws-cli make bash curl jq
   script:
-    - make teardown-testing
+    - make environment-shutdown ENV=production
   when: manual
   environment:
-    name: testing-teardown
+    name: production
     action: stop
+  allow_failure: true
 
-environment-startup:
+prod-environment-startup:
   stage: cost-saver
   image: hashicorp/terraform:1.9
   before_script:
     - apk add --no-cache aws-cli make bash curl jq
   script:
-    - make startup-testing
+    - make environment-startup ENV=production
   when: manual
   environment:
-    name: testing-teardown
+    name: production
     action: start
+  allow_failure: true
+
+test-environment-shutdown:
+  stage: cost-saver
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache aws-cli make bash curl jq
+  script:
+    - make environment-shutdown ENV=test
+  when: manual
+  environment:
+    name: test
+    action: stop
+  allow_failure: true
+
+test-environment-startup:
+  stage: cost-saver
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache aws-cli make bash curl jq
+  script:
+    - make environment-startup ENV=test
+  when: manual
+  environment:
+    name: test
+    action: start
+  allow_failure: true

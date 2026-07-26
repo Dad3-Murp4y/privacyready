@@ -42,7 +42,7 @@ ECS_SERVICE_PREFIX := $(if $(filter production,$(ENV)),privacyready,privacyready
         persistent-init persistent-plan persistent-apply persistent-destroy persistent-outputs \
         init plan apply destroy create fmt validate \
         docker-build docker-push docker-push-all deploy roll \
-        teardown-testing startup-testing wipe-buckets outputs
+        environment-shutdown environment-startup wipe-buckets outputs
 
 help:
 	@echo "PrivacyReady infrastructure Makefile"
@@ -54,7 +54,7 @@ help:
 	@echo "  make plan ENV=test|production"
 	@echo "  make apply ENV=test|production"
 	@echo "  make deploy SERVICE=api ENV=production -- build, push, and force a new ECS deployment for one service"
-	@echo "  make teardown-testing / startup-testing -- cost-saving stop/start (scripts/*.sh)"
+	@echo "  make environment-shutdown / environment-startup ENV=<test|production>"
 	@echo "  make wipe-buckets CONFIRM=yes          -- DESTRUCTIVE: empty all privacyready-* S3 buckets"
 	@echo ""
 	@echo "Current: ENV=$(ENV) AWS_REGION=$(AWS_REGION)"
@@ -186,11 +186,13 @@ create: docker-push-all apply
 outputs:
 	cd $(TF_ENV_DIR) && terraform output
 
-teardown-testing:
-	./scripts/teardown-testing.sh
+environment-shutdown:
+	@if [ -z "$(ENV)" ]; then echo "usage: make environment-shutdown ENV=test|production"; exit 1; fi
+	@ENV=$(ENV) ./scripts/environment-shutdown.sh
 
-startup-testing:
-	./scripts/startup-testing.sh
+environment-startup:
+	@if [ -z "$(ENV)" ]; then echo "usage: make environment-startup ENV=test|production"; exit 1; fi
+	@ENV=$(ENV) ./scripts/environment-startup.sh
 
 wipe-buckets:
 	@if [ "$(CONFIRM)" != "yes" ]; then \
