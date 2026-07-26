@@ -71,3 +71,10 @@ model DsrRequest {
 
   @@index([organizationId, status])
 }
+
+model SuppressionList {
+  email      String   @id
+  reason     String   // BOUNCE, COMPLAINT
+  detail     String?  // bounce subtype or diagnostic code
+  createdAt  DateTime @default(now())
+}

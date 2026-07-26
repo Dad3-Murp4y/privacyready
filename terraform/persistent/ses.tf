@@ -86,3 +86,23 @@ resource "aws_ses_receipt_rule" "forward" {
     encoding  = "UTF-8"
   }
 }
+
+data "aws_secretsmanager_secret" "test_db" {
+  name = "privacyready-test/db-password"
+}
+
+data "aws_secretsmanager_secret_version" "test_db" {
+  secret_id = data.aws_secretsmanager_secret.test_db.id
+}
+
+data "aws_db_instance" "test_db" {
+  db_instance_identifier = "privacyready-test-db"
+}
+
+module "ses_bounce_handler" {
+  source = "../modules/ses_bounce_handler"
+  domain_name = var.domain_name
+  database_url = "postgresql://privacyready_admin:${data.aws_secretsmanager_secret_version.test_db.secret_string}@${data.aws_db_instance.test_db.endpoint}/privacyready_test?sslmode=require"
+  vpc_subnet_ids = module.management_vpc.private_subnet_ids
+  vpc_security_group_ids = [aws_security_group.gitlab.id]
+}
