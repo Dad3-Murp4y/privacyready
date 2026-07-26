@@ -9,7 +9,7 @@ echo ""
 echo "1. Starting GitLab EC2 instance..."
 INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=privacyready-gitlab-primary" "Name=instance-state-name,Values=stopped" --query "Reservations[*].Instances[*].InstanceId" --output text || true)
 if [ -n "$INSTANCE_ID" ] && [ "$INSTANCE_ID" != "None" ]; then
-  aws ec2 start-instances --instance-ids $INSTANCE_ID
+  aws ec2 start-instances --instance-ids "$INSTANCE_ID"
   echo "EC2 start command sent."
 else
   echo "GitLab EC2 instance is already running or not found."

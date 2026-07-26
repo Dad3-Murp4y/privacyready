@@ -9,7 +9,7 @@ echo ""
 echo "1. Stopping GitLab EC2 instance..."
 INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=privacyready-gitlab-primary" "Name=instance-state-name,Values=running" --query "Reservations[*].Instances[*].InstanceId" --output text || true)
 if [ -n "$INSTANCE_ID" ] && [ "$INSTANCE_ID" != "None" ]; then
-  aws ec2 stop-instances --instance-ids $INSTANCE_ID
+  aws ec2 stop-instances --instance-ids "$INSTANCE_ID"
   echo "EC2 stop command sent."
 else
   echo "GitLab EC2 instance is not running or already stopped."

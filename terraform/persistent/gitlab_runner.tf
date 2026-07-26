@@ -20,6 +20,7 @@ resource "aws_instance" "gitlab_runner" {
   user_data = <<USERDATA
 #!/bin/bash
 yum update -y
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh" | bash
 yum install -y docker gitlab-runner
 systemctl enable docker
 systemctl start docker
