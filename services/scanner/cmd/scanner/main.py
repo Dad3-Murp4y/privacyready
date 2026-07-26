@@ -24,6 +24,11 @@ def load_module(name, path):
 current_dir = os.path.dirname(os.path.abspath(__file__))
 facebook_scanner = load_module("facebook_scanner", os.path.join(current_dir, "facebook-scanner.py"))
 instagram_scanner = load_module("instagram_scanner", os.path.join(current_dir, "instagram-scanner.py"))
+linkedin_scanner = load_module("linkedin_scanner", os.path.join(current_dir, "linkedin-scanner.py"))
+mailchimp_scanner = load_module("mailchimp_scanner", os.path.join(current_dir, "mailchimp-scanner.py"))
+twitter_scanner = load_module("twitter_scanner", os.path.join(current_dir, "twitter-scanner.py"))
+ga_scanner = load_module("ga_scanner", os.path.join(current_dir, "google-analytics-scanner.py"))
+whatsapp_scanner = load_module("whatsapp_scanner", os.path.join(current_dir, "whatsapp-scanner.py"))
 tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok-scanner.py"))
 website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
 unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
@@ -58,6 +63,13 @@ class SocialScanRequest(BaseModel):
     facebook_page_id: Optional[str] = None
     ig_access_token: Optional[str] = None
     ig_account_id: Optional[str] = None
+    linkedin_token: Optional[str] = None
+    linkedin_company_id: Optional[str] = None
+    mailchimp_api_key: Optional[str] = None
+    twitter_token: Optional[str] = None
+    twitter_username: Optional[str] = None
+    ga_property_id: Optional[str] = None
+    whatsapp_phone: Optional[str] = None
     tiktok_username: Optional[str] = None
 
 class WebsiteScanRequest(BaseModel):
@@ -136,7 +148,52 @@ def scan_social(req: SocialScanRequest):
                 "description": f"Failed to scan Instagram: {str(e)}"
             })
 
-    # 3. TikTok Scan
+    # 3. LinkedIn Scan
+    if req.linkedin_token and req.linkedin_company_id:
+        try:
+            scanner = linkedin_scanner.LinkedInScanner(req.linkedin_token, req.linkedin_company_id)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "linkedin", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 4. Mailchimp Scan
+    if req.mailchimp_api_key:
+        try:
+            scanner = mailchimp_scanner.MailchimpScanner(req.mailchimp_api_key)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "mailchimp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 5. Twitter Scan
+    if req.twitter_token and req.twitter_username:
+        try:
+            scanner = twitter_scanner.TwitterScanner(req.twitter_token, req.twitter_username)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "twitter", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 6. Google Analytics Scan
+    if req.ga_property_id:
+        try:
+            scanner = ga_scanner.GoogleAnalyticsScanner(req.ga_property_id)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "google_analytics", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 7. WhatsApp Scan
+    if req.whatsapp_phone:
+        try:
+            scanner = whatsapp_scanner.WhatsAppScanner(req.whatsapp_phone)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "whatsapp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 8. TikTok Scan
     if req.tiktok_username:
         try:
             scanner = tiktok_scanner.TikTokScanner(req.tiktok_username)

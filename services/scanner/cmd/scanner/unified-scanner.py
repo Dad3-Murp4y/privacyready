@@ -26,8 +26,13 @@ class UnifiedScorer:
     def __init__(self):
         self.platform_weights = {
             'website': 1.0,
-            'facebook': 1.2,   # Higher weight = more data exposure
-            'instagram': 1.2,  # Same as Facebook
+            'facebook': 1.2,
+            'instagram': 1.2,
+            'linkedin': 1.1,
+            'mailchimp': 1.3,
+            'twitter': 1.0,
+            'google_analytics': 1.4,
+            'whatsapp': 1.2,
             'tiktok': 0.8,
         }
         
@@ -132,6 +137,21 @@ class UnifiedScorer:
             if fb_critical:
                 actions.append("Facebook: Add privacy policy links to all lead forms")
                 actions.append("Facebook: Enable comment moderation to filter PII")
+
+        if 'linkedin' in by_platform:
+            li_critical = [f for f in by_platform['linkedin'] if f['severity'] in ['critical', 'high']]
+            if li_critical:
+                actions.append("LinkedIn: Audit Lead Gen forms for privacy policy links")
+
+        if 'mailchimp' in by_platform:
+            mc_critical = [f for f in by_platform['mailchimp'] if f['severity'] in ['critical', 'high']]
+            if mc_critical:
+                actions.append("CRM: Clean inactive subscribers and implement double opt-in")
+
+        if 'google_analytics' in by_platform:
+            ga_critical = [f for f in by_platform['google_analytics'] if f['severity'] in ['critical', 'high']]
+            if ga_critical:
+                actions.append("Analytics: Implement Consent Mode and restrict Google data sharing")
         
         # General compliance
         actions.append("Implement cross-platform consent management system")
