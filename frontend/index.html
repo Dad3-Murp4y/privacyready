@@ -840,7 +840,8 @@ async function startSocialScan(e) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
-    const resp = await fetch('https://api.privacyready.co.uk/api/public/scan', {
+    const apiUrl = window.location.hostname.includes('test.') ? 'https://test-api.privacyready.co.uk/api/public/scan' : 'https://api.privacyready.co.uk/api/public/scan';
+    const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetIdentifier: targetId, scanType: 'Social' }),
@@ -970,7 +971,8 @@ async function startScan(e) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout for scanner
-    const resp = await fetch('https://api.privacyready.co.uk/api/public/scan', {
+    const apiUrl = window.location.hostname.includes('test.') ? 'https://test-api.privacyready.co.uk/api/public/scan' : 'https://api.privacyready.co.uk/api/public/scan';
+    const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetIdentifier: url.href, scanType: 'Website' }),
