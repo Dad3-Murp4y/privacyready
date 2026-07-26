@@ -137,12 +137,13 @@ persistent-apply:
   stage: infrastructure
   script:
     - make persistent-apply
-  when: manual
   environment:
     name: persistent
     action: start
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true
 
 terraform-plan:
   extends: .terraform-base
@@ -160,7 +161,6 @@ terraform-apply:
   stage: infrastructure
   script:
     - make apply ENV=production
-  when: manual
   environment:
     name: production
     action: start
@@ -169,6 +169,8 @@ terraform-apply:
       changes:
         - terraform/environments/production/**/*
         - terraform/modules/**/*
+      when: manual
+      allow_failure: false
 
 # Destroys only environments/production's app infrastructure --
 # GitLab/DNS/SES/ECR live in a completely separate state
@@ -181,12 +183,13 @@ terraform-destroy:
   stage: infrastructure
   script:
     - make destroy ENV=production CONFIRM=yes
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: manual
   environment:
     name: production
     action: stop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true
 
 # ---------------------------------------------
 # 4. BUILD, SCAN, AND PUSH (TRIVY + ECR)
