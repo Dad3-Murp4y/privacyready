@@ -99,6 +99,16 @@
       command: swapon /swapfile
       when: not ansible_swaptotal_mb > 0
 
+    - name: Add swap to fstab
+      mount:
+        name: none
+        src: /swapfile
+        fstype: swap
+        opts: sw
+        passno: 0
+        dump: 0
+        state: present
+
     - name: Deploy GitLab container
       docker_container:
         name: gitlab
