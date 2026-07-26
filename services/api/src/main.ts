@@ -9,6 +9,7 @@ import { registerHealthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
 import { registerScanRoutes } from './routes/scan.js';
 import { registerDsrRoutes } from './routes/dsr.js';
+import { registerBillingRoutes } from './routes/billing.js';
 import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
 
@@ -43,6 +44,7 @@ async function buildServer() {
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(registerScanRoutes);
   await app.register(registerDsrRoutes);
+  await app.register(registerBillingRoutes);
   await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
 

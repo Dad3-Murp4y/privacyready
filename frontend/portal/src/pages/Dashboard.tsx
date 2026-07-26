@@ -493,7 +493,25 @@ export default function Dashboard() {
                   <button 
                     className="btn btn-primary" 
                     style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: 'bold' }}
-                    onClick={() => alert("Stripe checkout integration coming soon!")}
+                    onClick={async () => {
+                      try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/checkout`, {
+                          method: 'POST',
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (!res.ok) {
+                          const err = await res.json();
+                          alert(err.error || "Failed to start checkout");
+                          return;
+                        }
+                        const data = await res.json();
+                        window.location.href = data.url;
+                      } catch (err) {
+                        console.error("Checkout error:", err);
+                        alert("An error occurred starting checkout.");
+                      }
+                    }}
                   >
                     Upgrade to Premium
                   </button>
