@@ -299,9 +299,8 @@ deploy-frontend:
 
 deploy-portal:
   extends: .deploy-base
-  image: node:22-alpine
   before_script:
-    - apk add --no-cache make bash aws-cli terraform
+    - apk add --no-cache make bash aws-cli nodejs npm
   script:
     - make deploy-portal ENV=production
   rules:
@@ -316,9 +315,9 @@ deploy-portal:
 
 environment-shutdown:
   stage: cost-saver
-  image: alpine:latest
+  image: hashicorp/terraform:1.9
   before_script:
-    - apk add --no-cache aws-cli terraform make bash curl jq
+    - apk add --no-cache aws-cli make bash curl jq
   script:
     - make teardown-testing
   when: manual
@@ -328,9 +327,9 @@ environment-shutdown:
 
 environment-startup:
   stage: cost-saver
-  image: alpine:latest
+  image: hashicorp/terraform:1.9
   before_script:
-    - apk add --no-cache aws-cli terraform make bash curl jq
+    - apk add --no-cache aws-cli make bash curl jq
   script:
     - make startup-testing
   when: manual
