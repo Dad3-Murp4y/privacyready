@@ -20,8 +20,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "fastify": "^5.10.0",
-    "jsonwebtoken": "^9.0.3",
-    "stripe": "^15.11.0"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
