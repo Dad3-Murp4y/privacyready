@@ -125,7 +125,7 @@ function toggleMobileMenu() {
 }
 
 // Cookie Consent
-const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+const GA_MEASUREMENT_ID = 'G-1J0Z7Q1PCV';
 
 function loadAnalytics() {
   if (window.__gaLoaded) return;
