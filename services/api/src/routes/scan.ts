@@ -131,6 +131,21 @@ export async function registerScanRoutes(app: FastifyInstance) {
       where: { organizationId: user.org },
       orderBy: { createdAt: 'desc' }
     });
+
+    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+    const isPremium = org?.subscriptionStatus === 'active';
+
+    if (!isPremium) {
+      scans.forEach(scan => {
+        if (Array.isArray(scan.findingsJson)) {
+          scan.findingsJson = scan.findingsJson.map((f: any) => ({
+            ...f,
+            description: "Premium detailed finding description is hidden. Upgrade to view full remediation steps."
+          }));
+        }
+      });
+    }
+
     return scans;
   });
 
@@ -174,11 +189,27 @@ export async function registerScanRoutes(app: FastifyInstance) {
           status: 'COMPLETED',
           score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
-          findingsJson: result.findings,
+          findingsJson: result.findings, // Store the real findings securely in DB
           completedAt: new Date()
         }
       });
-      return updated;
+      
+      // Redact for response if not premium
+      let responseFindings = result.findings;
+      const org = await prisma.organization.findUnique({ where: { id: user.org } });
+      if (org?.subscriptionStatus !== 'active') {
+        if (Array.isArray(responseFindings)) {
+          responseFindings = responseFindings.map((f: any) => ({
+            ...f,
+            description: "Premium detailed finding description is hidden. Upgrade to view full remediation steps."
+          }));
+        }
+      }
+
+      return {
+        ...updated,
+        findingsJson: responseFindings
+      };
     } catch (err) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },

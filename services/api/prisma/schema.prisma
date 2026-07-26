@@ -15,8 +15,10 @@ model Organization {
   users     User[]
   scans     Scan[]
   dsrRequests DsrRequest[]
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  stripeCustomerId    String?
+  subscriptionStatus  String       @default("free") // free, active, past_due, canceled
 }
 
 model User {

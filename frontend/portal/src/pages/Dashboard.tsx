@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Clock,
   Users,
-  Shield
+  Shield,
+  Lock
 } from 'lucide-react';
 
 interface AuditCheck {
@@ -445,37 +446,59 @@ export default function Dashboard() {
 
             <h2 style={{ fontSize: '22px', marginBottom: '20px', fontWeight: 600 }} className="animate-fade-up stagger-2">Detailed Findings</h2>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }} className="animate-fade-up stagger-2">
-              {selectedAudit.checks?.map((check, i) => (
-                <div key={i} className="content-card" style={{ 
-                  padding: '24px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '12px',
-                  textAlign: 'left',
-                  borderTop: `3px solid ${check.passed ? 'var(--success)' : 'var(--warning)'}`
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>{check.name}</h3>
-                    <span style={{ 
-                      background: check.passed ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
-                      color: check.passed ? 'var(--success)' : 'var(--warning)',
-                      padding: '4px 8px',
-                      borderRadius: '6px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      {check.passed ? 'PASS' : 'ISSUE'}
-                    </span>
+            <div style={{ position: 'relative' }} className="animate-fade-up stagger-2">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px', filter: 'blur(6px)', opacity: 0.7, pointerEvents: 'none', userSelect: 'none' }}>
+                {selectedAudit.checks?.map((check, i) => (
+                  <div key={i} className="content-card" style={{ 
+                    padding: '24px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px',
+                    textAlign: 'left',
+                    borderTop: `3px solid ${check.passed ? 'var(--success)' : 'var(--warning)'}`
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-primary)', margin: 0, lineHeight: 1.4 }}>{check.name}</h3>
+                      <span style={{ 
+                        background: check.passed ? 'rgba(39, 174, 96, 0.1)' : 'rgba(230, 126, 34, 0.1)',
+                        color: check.passed ? 'var(--success)' : 'var(--warning)',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        {check.passed ? 'PASS' : 'ISSUE'}
+                      </span>
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, flex: 1, margin: 0 }}>
+                      {check.details}
+                    </p>
                   </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.6, flex: 1, margin: 0 }}>
-                    {check.details}
+                ))}
+              </div>
+
+              {/* Paywall Overlay */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(10, 15, 28, 0.4)', borderRadius: '16px', zIndex: 10 }}>
+                <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '40px', maxWidth: '450px', textAlign: 'center', backdropFilter: 'blur(16px)', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent), var(--sky))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', boxShadow: '0 10px 20px rgba(232, 197, 160, 0.3)' }}>
+                    <Lock size={32} color="#0A0F1C" />
+                  </div>
+                  <h3 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '12px', fontFamily: 'var(--font-heading)' }}>Unlock Detailed Findings</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '15px', lineHeight: 1.6, marginBottom: '32px' }}>
+                    You're currently on the free tier. Upgrade to Premium to see exactly what failed and get step-by-step remediation instructions for every issue.
                   </p>
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ width: '100%', padding: '16px', fontSize: '16px', fontWeight: 'bold' }}
+                    onClick={() => alert("Stripe checkout integration coming soon!")}
+                  >
+                    Upgrade to Premium
+                  </button>
                 </div>
-              ))}
+              </div>
             </div>
 
             {(!selectedAudit.checks || selectedAudit.checks.length === 0) && (
