@@ -899,7 +899,8 @@ async function startSocialScan(e) {
   const reportBtn = document.getElementById('scan-full-report-btn');
   if (reportBtn) {
     const scanId = apiResults?.id || '';
-    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(targetId)}&score=${pct}&scanId=${scanId}`;
+    const portalBaseUrl = window.location.hostname.includes('test.') ? 'https://test-portal.privacyready.co.uk' : 'https://portal.privacyready.co.uk';
+    reportBtn.href = `${portalBaseUrl}/register?source=free-scan&url=${encodeURIComponent(targetId)}&score=${pct}&scanId=${scanId}`;
   }
 
   const blurNudge = document.getElementById('scan-blur-nudge');
@@ -1057,7 +1058,8 @@ async function startScan(e) {
   if (reportBtn) {
     const scanId = apiResults?.id || '';
     const claimToken = apiResults?.claimToken || '';
-    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}&scanClaimToken=${encodeURIComponent(claimToken)}`;
+    const portalBaseUrl = window.location.hostname.includes('test.') ? 'https://test-portal.privacyready.co.uk' : 'https://portal.privacyready.co.uk';
+    reportBtn.href = `${portalBaseUrl}/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}&scanClaimToken=${encodeURIComponent(claimToken)}`;
   }
 
   // Show blur nudge banner and CTA

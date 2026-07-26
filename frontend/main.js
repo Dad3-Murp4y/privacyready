@@ -225,3 +225,10 @@ if ('IntersectionObserver' in window) {
     observer.observe(el);
   });
 }
+
+// Dynamic Environment Routing for Static Links
+if (window.location.hostname.includes('test.')) {
+  document.querySelectorAll('a[href*="portal.privacyready.co.uk"]').forEach(a => {
+    a.href = a.href.replace('portal.privacyready.co.uk', 'test-portal.privacyready.co.uk');
+  });
+}
