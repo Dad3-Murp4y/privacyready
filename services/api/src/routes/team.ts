@@ -98,13 +98,12 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     });
 
     const verifyUrl = `${PORTAL_URL}/verify-email?token=${rawToken}&uid=${teammate.id}`;
+    let emailFailed = false;
     try {
       await sendTeamInviteEmail(email, fullName, org?.name || 'your organization', tempPassword, verifyUrl);
     } catch (err) {
       request.log.error(err, 'Failed to send team invite email');
-      // Don't fail the whole request -- the temp password is still
-      // returned below so the admin can share it manually if the
-      // email didn't go out.
+      emailFailed = true;
     }
 
     return reply.status(201).send({
@@ -112,7 +111,15 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
       email: teammate.email,
       fullName: teammate.fullName,
       role: teammate.role,
-      temporaryPassword: tempPassword
+      // Only included when the email genuinely failed to send -- this is
+      // the one case where the admin needs another way to hand it over.
+      // On the normal path the invitee gets it via email only, since a
+      // temp password sitting in a JSON response body ends up in logs,
+      // browser history, and any proxy in between.
+      ...(emailFailed ? {
+        temporaryPassword: tempPassword,
+        warning: 'Invite email failed to send -- share this temporary password with them directly.'
+      } : {})
     });
   });
 
@@ -131,9 +138,13 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(404).send({ error: 'Teammate not found in your organization' });
     }
 
-    if (target.role === 'ADMIN') {
+    if (target.role === 'SUPERADMIN' && user.role !== 'SUPERADMIN') {
+      return reply.status(403).send({ error: 'Only a SUPERADMIN can remove another SUPERADMIN.' });
+    }
+
+    if (target.role === 'ADMIN' || target.role === 'SUPERADMIN') {
       const remainingAdmins = await prisma.user.count({
-        where: { organizationId: user.org, role: 'ADMIN', id: { not: id } }
+        where: { organizationId: user.org, role: { in: ['ADMIN', 'SUPERADMIN'] }, id: { not: id } }
       });
       if (remainingAdmins === 0) {
         return reply.status(400).send({ error: 'Cannot remove the last admin of an organization.' });

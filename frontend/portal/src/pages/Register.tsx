@@ -15,15 +15,38 @@ export default function Register() {
     const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
-    const scanUrl = queryParams.get('url');
-    const scanScore = queryParams.get('score');
+    const scanUrlRaw = queryParams.get('url');
+    const scanScoreRaw = queryParams.get('score');
+    const scanIdRaw = queryParams.get('scanId');
+    const scanClaimTokenRaw = queryParams.get('scanClaimToken');
 
-    const scanId = queryParams.get('scanId');
+    // Validate before storing -- these come straight from the URL, which
+    // is attacker-controllable (a crafted link), so each value is checked
+    // for a sane shape rather than trusted as-is.
+    const isValidHttpUrl = (value: string | null): value is string => {
+      if (!value) return false;
+      try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+      } catch {
+        return false;
+      }
+    };
+    const isValidScore = (value: string | null) => {
+      if (!value) return false;
+      const n = Number(value);
+      return Number.isInteger(n) && n >= 0 && n <= 100;
+    };
+    const isValidUuid = (value: string | null): value is string =>
+      !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+    const isValidClaimToken = (value: string | null): value is string =>
+      !!value && /^[0-9a-f]{64}$/i.test(value); // 32 random bytes, hex-encoded
 
-    if (source === 'free-scan' && scanUrl) {
-      localStorage.setItem('freeScanUrl', scanUrl);
-      localStorage.setItem('freeScanScore', scanScore || '75');
-      if (scanId) localStorage.setItem('freeScanId', scanId);
+    if (source === 'free-scan' && isValidHttpUrl(scanUrlRaw)) {
+      localStorage.setItem('freeScanUrl', scanUrlRaw);
+      localStorage.setItem('freeScanScore', isValidScore(scanScoreRaw) ? scanScoreRaw! : '75');
+      if (isValidUuid(scanIdRaw)) localStorage.setItem('freeScanId', scanIdRaw);
+      if (isValidClaimToken(scanClaimTokenRaw)) localStorage.setItem('freeScanClaimToken', scanClaimTokenRaw);
     }
 
     if (token) {
@@ -44,7 +67,8 @@ export default function Register() {
           password,
           fullName,
           organizationName: orgName,
-          scanId: localStorage.getItem('freeScanId') || undefined
+          scanId: localStorage.getItem('freeScanId') || undefined,
+          scanClaimToken: localStorage.getItem('freeScanClaimToken') || undefined
         })
       });
       
@@ -54,6 +78,7 @@ export default function Register() {
       }
       
       localStorage.removeItem('freeScanId');
+      localStorage.removeItem('freeScanClaimToken');
       setRegistered(true);
     } catch (err: any) {
       setError(err.message);

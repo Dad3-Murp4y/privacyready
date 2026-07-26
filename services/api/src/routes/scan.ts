@@ -1,6 +1,32 @@
 import { FastifyInstance } from 'fastify';
 import { Type } from '@sinclair/typebox';
+import crypto from 'crypto';
 import { prisma } from '../db.js';
+
+const CLAIM_TOKEN_TTL_HOURS = 24;
+
+function hashToken(token: string) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+// Shared secret with the scanner service -- see main.py's require_api_key.
+// Same "fail loudly at startup rather than silently run insecurely"
+// pattern as JWT_SECRET in main.ts.
+if (!process.env.SCANNER_API_KEY) {
+  throw new Error(
+    'SCANNER_API_KEY environment variable is required and must not be empty.'
+  );
+}
+const SCANNER_API_KEY = process.env.SCANNER_API_KEY;
+const SCANNER_HEADERS = {
+  'Content-Type': 'application/json',
+  'X-Scanner-Api-Key': SCANNER_API_KEY
+};
+
+function scannerEndpoint(isWebsite: boolean): string {
+  const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
+  return isWebsite ? `${baseUrl}/v1/scan/website` : `${baseUrl}/v1/scan/social`;
+}
 
 export async function registerScanRoutes(app: FastifyInstance) {
   app.addHook('onRequest', async (request, reply) => {
@@ -8,56 +34,72 @@ export async function registerScanRoutes(app: FastifyInstance) {
     if (!request.url.startsWith('/api/scan') || request.url.startsWith('/api/public')) {
       return;
     }
-    
+
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(err);
+      return reply.send(err);
     }
   });
 
   const CreateScanSchema = {
     body: Type.Object({
-      targetIdentifier: Type.String(),
+      targetIdentifier: Type.String({ minLength: 1, maxLength: 512 }),
       scanType: Type.String()
     })
   };
 
-  // Unauthenticated endpoint for landing page
-  app.post('/api/public/scan', { schema: CreateScanSchema }, async (request, reply) => {
+  // Unauthenticated endpoint for landing page. Kept deliberately open (it's
+  // the free-scan lead magnet), but rate-limited on top of the app-wide
+  // limiter since it fans out to the scanner service and has no other
+  // abuse protection.
+  app.post('/api/public/scan', {
+    schema: CreateScanSchema,
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
     const { targetIdentifier, scanType } = request.body as any;
+
+    // A raw, single-use claim token is generated alongside the scan and
+    // only its hash is stored -- the same pattern used for email
+    // verification. Registering with the *scan id* alone used to be
+    // enough to claim someone else's free-scan report (IDOR); now the
+    // claim requires possession of this token, which is only ever
+    // returned once, in this response, to whoever ran the scan.
+    const rawClaimToken = crypto.randomBytes(32).toString('hex');
+    const claimTokenExpires = new Date(Date.now() + CLAIM_TOKEN_TTL_HOURS * 60 * 60 * 1000);
 
     const scan = await prisma.scan.create({
       data: {
         scanType,
         targetIdentifier,
-        status: 'PENDING'
-        // organizationId is left null
+        status: 'PENDING',
+        claimTokenHash: hashToken(rawClaimToken),
+        claimTokenExpires
+        // organizationId is left null until claimed at registration
       }
     });
 
     const isWebsite = scanType.toLowerCase() === 'website';
-    const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
-    const scannerEndpoint = isWebsite 
-      ? `${baseUrl}/v1/scan/website` 
-      : `${baseUrl}/v1/scan/social`;
-
     const payload = isWebsite
       ? { customer_id: 'guest', url: targetIdentifier }
-      : { 
-          customer_id: 'guest', 
+      : {
+          customer_id: 'guest',
           tiktok_username: targetIdentifier
         };
 
     try {
-      const response = await fetch(scannerEndpoint, {
+      const response = await fetch(scannerEndpoint(isWebsite), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: SCANNER_HEADERS,
         body: JSON.stringify(payload)
       });
-      
+
+      if (!response.ok) {
+        throw new Error(`Scanner returned HTTP ${response.status}`);
+      }
+
       const result = await response.json();
-      
+
       const updated = await prisma.scan.update({
         where: { id: scan.id },
         data: {
@@ -68,7 +110,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return updated;
+      return { ...updated, claimToken: rawClaimToken };
     } catch (err) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },
@@ -78,7 +120,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return failed;
+      return { ...failed, claimToken: rawClaimToken };
     }
   });
 
@@ -106,27 +148,26 @@ export async function registerScanRoutes(app: FastifyInstance) {
     });
 
     const isWebsite = scanType.toLowerCase() === 'website';
-    const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
-    const scannerEndpoint = isWebsite 
-      ? `${baseUrl}/v1/scan/website` 
-      : `${baseUrl}/v1/scan/social`;
-
     const payload = isWebsite
       ? { customer_id: user.org, url: targetIdentifier }
-      : { 
-          customer_id: user.org, 
+      : {
+          customer_id: user.org,
           tiktok_username: targetIdentifier
         };
 
     try {
-      const response = await fetch(scannerEndpoint, {
+      const response = await fetch(scannerEndpoint(isWebsite), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: SCANNER_HEADERS,
         body: JSON.stringify(payload)
       });
-      
+
+      if (!response.ok) {
+        throw new Error(`Scanner returned HTTP ${response.status}`);
+      }
+
       const result = await response.json();
-      
+
       const updated = await prisma.scan.update({
         where: { id: scan.id },
         data: {
@@ -149,5 +190,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       });
       return failed;
     }
+  });
+
+  // Delete a scan from the caller's own org. Previously the dashboard's
+  // delete button only filtered client-side React state -- the row came
+  // back on reload because nothing was ever deleted server-side.
+  app.delete('/api/scan/:id', async (request, reply) => {
+    const user = request.user as any;
+    const { id } = request.params as { id: string };
+
+    const existing = await prisma.scan.findFirst({
+      where: { id, organizationId: user.org }
+    });
+    if (!existing) {
+      return reply.status(404).send({ error: 'Scan not found in your organization' });
+    }
+
+    await prisma.scan.delete({ where: { id } });
+    return reply.status(204).send();
   });
 }

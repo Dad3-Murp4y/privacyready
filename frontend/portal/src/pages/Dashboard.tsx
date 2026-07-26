@@ -186,7 +186,7 @@ export default function Dashboard() {
   // Handle Sign Out
   const handleSignOut = (e: React.MouseEvent) => {
     e.preventDefault();
-    localStorage.clear();
+    localStorage.removeItem('token');
     navigate('/login');
   };
 
@@ -658,7 +658,22 @@ export default function Dashboard() {
                       </td>
                       <td style={{ padding: '20px 24px' }} onClick={(e) => e.stopPropagation()}>
                         <button 
-                          onClick={() => setAudits(prev => prev.filter(item => item.id !== audit.id))}
+                          onClick={async () => {
+                            const token = localStorage.getItem('token');
+                            try {
+                              const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan/${audit.id}`, {
+                                method: 'DELETE',
+                                headers: { Authorization: `Bearer ${token}` }
+                              });
+                              if (!res.ok && res.status !== 204) {
+                                console.error('Failed to delete scan:', await res.text());
+                                return;
+                              }
+                              setAudits(prev => prev.filter(item => item.id !== audit.id));
+                            } catch (err) {
+                              console.error('Failed to delete scan:', err);
+                            }
+                          }}
                           style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '8px', borderRadius: '8px', transition: 'background 0.2s' }}
                           title="Delete Audit"
                           onMouseOver={(e) => e.currentTarget.style.background = 'rgba(192, 57, 43, 0.1)'}

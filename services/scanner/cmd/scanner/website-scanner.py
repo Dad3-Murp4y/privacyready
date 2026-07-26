@@ -1,3 +1,7 @@
+import ipaddress
+import socket
+from urllib.parse import urlparse
+
 import requests
 from bs4 import BeautifulSoup
 from dataclasses import dataclass
@@ -13,6 +17,42 @@ class WebsiteFinding:
     gdpr_article: str = ""
     remediation: str = ""
 
+
+class UnsafeTargetError(Exception):
+    """Raised when a scan target resolves to a private, loopback, link-local,
+    or otherwise non-public address. Prevents the scanner from being used as
+    an SSRF proxy into the internal network or cloud metadata endpoints."""
+    pass
+
+
+def _assert_public_host(hostname: str) -> None:
+    """Resolve hostname and reject it if any resolved address is not a
+    globally-routable public IP. Checks *all* resolved addresses (a domain
+    can round-robin between a public and a private IP), and deliberately
+    does this at the IP level rather than string-matching the hostname,
+    since 'localhost', decimal/hex IP encodings, and DNS rebinding can all
+    bypass a hostname-only check."""
+    try:
+        addr_infos = socket.getaddrinfo(hostname, None)
+    except socket.gaierror as e:
+        raise UnsafeTargetError(f"Could not resolve host: {e}")
+
+    for family, _, _, _, sockaddr in addr_infos:
+        ip_str = sockaddr[0]
+        ip = ipaddress.ip_address(ip_str)
+        if (
+            ip.is_private
+            or ip.is_loopback
+            or ip.is_link_local       # covers 169.254.169.254 cloud metadata
+            or ip.is_reserved
+            or ip.is_multicast
+            or ip.is_unspecified
+        ):
+            raise UnsafeTargetError(
+                f"Refusing to scan {hostname} -- resolves to non-public address {ip_str}"
+            )
+
+
 class WebsiteScanner:
     def __init__(self, url: str):
         if not url.startswith('http'):
@@ -20,13 +60,44 @@ class WebsiteScanner:
         else:
             self.url = url
         self.findings: list[WebsiteFinding] = []
-    
+
     def scan_all(self):
         try:
-            response = requests.get(self.url, timeout=10, headers={'User-Agent': 'Mozilla/5.0'})
-            self.html = response.text
+            parsed = urlparse(self.url)
+            if parsed.scheme not in ('http', 'https'):
+                raise UnsafeTargetError(f"Unsupported URL scheme: {parsed.scheme!r}")
+            if not parsed.hostname:
+                raise UnsafeTargetError("URL has no hostname")
+
+            _assert_public_host(parsed.hostname)
+
+            response = requests.get(
+                self.url,
+                timeout=10,
+                headers={'User-Agent': 'Mozilla/5.0'},
+                allow_redirects=True,
+                stream=True,  # so we can cap response size before reading the body
+            )
+
+            # Re-validate the final URL after redirects -- a public URL can
+            # redirect to an internal one, which would otherwise bypass the
+            # check above.
+            final_host = urlparse(response.url).hostname
+            if final_host:
+                _assert_public_host(final_host)
+
+            # Cap response size to avoid a memory-exhaustion DoS from an
+            # unbounded body.
+            max_bytes = 5 * 1024 * 1024  # 5MB
+            content = b''
+            for chunk in response.iter_content(chunk_size=65536):
+                content += chunk
+                if len(content) > max_bytes:
+                    raise ValueError(f"Response exceeded {max_bytes} byte limit")
+
+            self.html = content.decode(response.encoding or 'utf-8', errors='replace')
             self.soup = BeautifulSoup(self.html, 'html.parser')
-            
+
             self.scan_ssl(response.url)
             self.scan_trackers()
             self.scan_forms()
@@ -34,6 +105,16 @@ class WebsiteScanner:
             self.scan_dpo_contact()
             self.scan_dsr_link()
             self.scan_uk_gdpr_ref()
+        except UnsafeTargetError as e:
+            self.findings.append(WebsiteFinding(
+                url=self.url,
+                finding_type='scan_blocked',
+                severity='low',
+                description=f'Scan target rejected: {str(e)}',
+                evidence='',
+                gdpr_article='',
+                remediation='Provide a public website URL'
+            ))
         except Exception as e:
             self.findings.append(WebsiteFinding(
                 url=self.url,

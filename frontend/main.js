@@ -125,23 +125,58 @@ function toggleMobileMenu() {
 }
 
 // Cookie Consent
-function acceptCookies() {
-  document.cookie = "privacyready-cookies=accepted; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
-  document.getElementById('cookieBanner').classList.remove('show');
+const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+
+function loadAnalytics() {
+  if (window.__gaLoaded) return;
+  window.__gaLoaded = true;
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  document.head.appendChild(script);
+
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { window.dataLayer.push(arguments); }
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', GA_MEASUREMENT_ID);
+}
+
+function closeCookieBanner() {
+  const banner = document.getElementById('cookieBanner');
+  if (banner) banner.classList.remove('show');
   document.body.style.overflow = '';
 }
 
+function acceptCookies() {
+  document.cookie = "privacyready-cookies=accepted; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  closeCookieBanner();
+  loadAnalytics();
+}
+
 function declineCookies() {
-  alert('You must accept cookies to use this site.');
+  // Declining is a first-class choice, not a dead end: it records the
+  // decline (so we don't ask again this visit) and lets the visitor keep
+  // using the site with no analytics loaded.
+  document.cookie = "privacyready-cookies=declined; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  closeCookieBanner();
 }
 
 (function() {
   const consentMatch = document.cookie.match(/(?:^|;\s*)privacyready-cookies=([^;]*)/);
   const consent = consentMatch ? consentMatch[1] : null;
-  if (!consent || consent === 'declined') {
-    document.getElementById('cookieBanner').classList.add('show');
-    document.body.style.overflow = 'hidden';
+
+  if (consent === 'accepted') {
+    loadAnalytics();
+    return;
   }
+  if (consent === 'declined') {
+    return; // respect the earlier choice, don't nag again
+  }
+  // No decision recorded yet -- ask.
+  document.getElementById('cookieBanner').classList.add('show');
+  document.body.style.overflow = 'hidden';
 })();
 
 // Form Handling

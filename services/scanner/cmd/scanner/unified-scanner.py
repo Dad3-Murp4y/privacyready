@@ -19,7 +19,7 @@ class UnifiedReport:
     overall_risk_score: int  # 0-100
     risk_level: str
     gdpr_compliance_percentage: float
-    estimated_fine_exposure: str  # "1M-5M THB", etc.
+    estimated_fine_exposure: str  # e.g. "Statutory max £8.7M/2% turnover..."
     action_items: List[str]
 
 class UnifiedScorer:
@@ -27,7 +27,7 @@ class UnifiedScorer:
         self.platform_weights = {
             'website': 1.0,
             'facebook': 1.2,   # Higher weight = more data exposure
-            'line': 1.5,       # LINE is primary channel for Thai agents
+            'line': 1.5,       # weight for LINE Official Account findings
             'tiktok': 0.8,
         }
         
@@ -37,62 +37,68 @@ class UnifiedScorer:
             'medium': 8,
             'low': 3,
         }
-        
-        self.gdpr_fine_ranges = {
-            'critical': '1M-5M THB',
-            'high': '500K-1M THB',
-            'medium': '100K-500K THB',
-            'low': 'Warning-100K THB',
-        }
+        # NOTE: gdpr_fine_ranges dict removed -- it isn't referenced anywhere
+        # in calculate_score (fine_exposure strings are now set inline,
+        # UK-GBP-denominated, based on ICO's actual maximum fine tiers
+        # rather than the Thai PDPA THB figures that were here before).
     
     def calculate_score(self, all_findings: List[Dict]) -> UnifiedReport:
-        total_score = 0
-        max_possible = 0
+        total_score = 0.0
         platform_findings = {}
-        
+
         for finding in all_findings:
             platform = finding.get('platform', 'unknown')
             severity = finding.get('severity', 'low')
-            
+
             weight = self.platform_weights.get(platform, 1.0)
             score = self.severity_scores.get(severity, 3)
-            
-            weighted_score = score * weight
-            total_score += weighted_score
-            max_possible += 25 * weight  # 25 = max per finding
-            
+
+            total_score += score * weight
+
             if platform not in platform_findings:
                 platform_findings[platform] = []
             platform_findings[platform].append(finding)
-        
-        # Normalize to 0-100
-        if max_possible > 0:
-            normalized_score = min(100, int((total_score / max_possible) * 100))
-        else:
-            normalized_score = 0
-        
-        # Determine risk level
+
+        # Cap at 100 rather than normalizing against a denominator that
+        # grows with the number of findings. The old approach added
+        # `25 * weight` to the denominator per finding regardless of that
+        # finding's actual severity -- so a scan padded with many
+        # low-severity findings pulled the *average* down and could score
+        # as safer than a scan with just one or two serious findings.
+        # Summing and capping means additional findings can only add risk,
+        # never dilute it.
+        normalized_score = min(100, int(total_score))
+
+        # Determine risk level and realistic fine exposure. UK GDPR/DPA
+        # 2018 sets statutory maximum fines (enforced by the ICO) of
+        # up to £17.5m / 4% of global turnover for the most serious tier,
+        # £8.7m / 2% for the standard tier -- but the ICO's actual
+        # enforcement history against SMEs runs far below the statutory
+        # ceiling, so both are given rather than quoting the theoretical
+        # maximum as if it were the likely outcome.
         if normalized_score >= 75:
             risk_level = 'CRITICAL'
-            fine_exposure = '5M+ THB'
+            fine_exposure = 'Statutory max £17.5M/4% turnover (higher tier); realistic SME enforcement: tens of thousands+'
         elif normalized_score >= 50:
             risk_level = 'HIGH'
-            fine_exposure = '1M-5M THB'
+            fine_exposure = 'Statutory max £8.7M/2% turnover (standard tier); realistic SME enforcement: low-to-mid thousands'
         elif normalized_score >= 25:
             risk_level = 'MEDIUM'
-            fine_exposure = '500K-1M THB'
+            fine_exposure = 'ICO improvement notice or formal warning more likely than a fine at this level'
         else:
             risk_level = 'LOW'
-            fine_exposure = 'Under 500K THB'
-        
-        # Calculate compliance percentage
-        total_findings = len(all_findings)
-        critical_high = sum(1 for f in all_findings if f['severity'] in ['critical', 'high'])
-        compliance_pct = max(0, 100 - (critical_high * 10) - (total_findings * 2))
-        
+            fine_exposure = 'Unlikely to trigger ICO enforcement; address before next review'
+
+        # Compliance % is deliberately just the complement of the risk
+        # score, not a second independent formula. Previously this used an
+        # unrelated formula (100 - critical_high*10 - total*2) that could
+        # disagree with the risk level computed above -- e.g. show a HIGH
+        # risk level next to a compliance % that still looked reassuring.
+        compliance_pct = 100 - normalized_score
+
         # Generate action items
         action_items = self._generate_action_items(all_findings, platform_findings)
-        
+
         return UnifiedReport(
             customer_id='',
             customer_name='',
@@ -129,7 +135,7 @@ class UnifiedScorer:
         
         # General compliance
         actions.append("Implement cross-platform consent management system")
-        actions.append("Create GDPR-compliant data retention policy (max 3 years for real estate)")
+        actions.append("Create a GDPR-compliant data retention policy and stick to it")
         actions.append("Train all agents on GDPR requirements for social media")
         
         return actions

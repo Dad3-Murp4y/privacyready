@@ -41,23 +41,26 @@ class LINEScanner:
         menus = response.json().get('richmenus', [])
         
         for menu in menus:
-            # Check menu actions for data collection
+            # Check menu actions for data collection. Only 'message' actions
+            # (which open a chat interaction that could solicit PII) are
+            # treated as a potential data-collection point -- a plain 'uri'
+            # action is just an external link and isn't itself collecting
+            # anything through this bot, so flagging every one of those
+            # produced a false positive on almost every rich menu.
             actions = menu.get('areas', [])
             for action in actions:
                 action_type = action.get('action', {}).get('type', '')
-                if action_type in ['uri', 'message']:
-                    # Check if URI leads to privacy policy
-                    uri = action.get('action', {}).get('uri', '')
-                    if 'privacy' not in uri.lower() and 'policy' not in uri.lower():
-                        self.findings.append(LINEFinding(
-                            channel_id=self.channel_id,
-                            finding_type='rich_menu_no_privacy_link',
-                            severity='high',
-                            description=f"Rich menu '{menu.get('name')}' action lacks privacy policy link",
-                            evidence=f"Action type: {action_type}, URI: {uri}",
-                            gdpr_article='Article 23 (Collection limitation), Article 30 (Privacy notice)',
-                            remediation='Add privacy policy link to all data-collecting rich menu actions'
-                        ))
+                if action_type == 'message':
+                    text = action.get('action', {}).get('text', '')
+                    self.findings.append(LINEFinding(
+                        channel_id=self.channel_id,
+                        finding_type='rich_menu_no_privacy_link',
+                        severity='medium',
+                        description=f"Rich menu '{menu.get('name')}' has a message action that may start a data-collecting conversation without a privacy notice",
+                        evidence=f"Action type: {action_type}, Text: {text}",
+                        gdpr_article='Article 5(1)(c) (Data minimisation), Article 13/14 (Information to be provided)',
+                        remediation='Add a privacy notice at the start of any chat flow that collects personal data'
+                    ))
     
     def scan_auto_reply_settings(self):
         """Check auto-reply for PII collection without consent"""
@@ -77,7 +80,7 @@ class LINEScanner:
                 severity='high',
                 description='Auto-reply bot may collect PII without explicit consent',
                 evidence='Auto-reply is enabled',
-                gdpr_article='Article 19 (Consent)',
+                gdpr_article='Article 6/7 (Lawful basis)',
                 remediation='Add consent confirmation before collecting any PII in auto-reply flows'
             ))
     
@@ -92,27 +95,39 @@ class LINEScanner:
             severity='medium',
             description='Unable to verify chat history retention period — may exceed GDPR limits',
             evidence='Chat history retention settings not accessible via API',
-            gdpr_article='Article 34 (Storage limitation)',
+            gdpr_article='Article 5(1)(e) (Storage limitation)',
             remediation='Manually verify OA settings: Chat history should be deleted after purpose is fulfilled (typically 1-3 years for real estate)'
         ))
     
     def scan_member_profile_access(self):
         """Check if member profile access is justified"""
         url = f"{self.base_url}/bot/followers/ids"
-        headers = {'Authorization': f'Bearer {self.channel_access_token}'} 
-        params = {'limit': 1000}
-        
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-        followers = response.json().get('userIds', [])
-        
-        if len(followers) > 1000:
+        headers = {'Authorization': f'Bearer {self.channel_access_token}'}
+
+        # Page through the full follower list via the 'next' cursor --
+        # previously this capped a single page at limit=1000 and then
+        # checked `len(followers) > 1000`, which could never be true since
+        # the request itself never returned more than 1000 results.
+        followers: List[str] = []
+        params: Dict[str, str] = {'limit': '1000'}
+        for _ in range(50):  # hard cap of 50k followers checked, avoid unbounded loop
+            response = requests.get(url, headers=headers, params=params, timeout=10)
+            page = response.json()
+            followers.extend(page.get('userIds', []))
+            next_cursor = page.get('next')
+            if not next_cursor:
+                break
+            params['start'] = next_cursor
+
+        follower_count = len(followers)
+        if follower_count > 1000:
             self.findings.append(LINEFinding(
                 channel_id=self.channel_id,
                 finding_type='large_follower_base_no_consent_audit',
                 severity='high',
-                description=f'Large follower base ({len(followers)}) without verifiable consent records',
-                evidence=f'Total followers: {len(followers)}',
-                gdpr_article='Article 19 (Consent), Article 24 (Records of processing)',
+                description=f'Large follower base ({follower_count}) without verifiable consent records',
+                evidence=f'Total followers: {follower_count}',
+                gdpr_article='Article 6/7 (Lawful basis), Article 30 (Records of processing)',
                 remediation='Export follower list and cross-reference with consent database; remove followers without consent proof'
             ))
     
@@ -128,7 +143,7 @@ class LINEScanner:
             severity='medium',
             description='LINE Login scopes may collect excessive PII',
             evidence='Unable to verify requested scopes via API',
-            gdpr_article='Article 23 (Collection limitation)',
+            gdpr_article='Article 5(1)(c) (Data minimisation)',
             remediation='Audit Login channel: Only request minimum necessary scopes; document consent for each scope'
         ))
     
@@ -143,6 +158,6 @@ class LINEScanner:
             severity='medium',
             description='LINE groups managed by this OA may expose member data',
             evidence='Group member lists and chat history may be accessible to admins',
-            gdpr_article='Article 37 (Security)',
+            gdpr_article='Article 32 (Security of processing)',
             remediation='Review all LINE groups: Ensure members are aware of data collection; implement group rules with privacy notice'
         ))

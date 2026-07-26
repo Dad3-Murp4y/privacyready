@@ -20,14 +20,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="theme-color" content="#0B2447">
 <title>PrivacyReady — UK GDPR Compliance for Small Businesses</title>
 
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-XXXXXXXXXX');
-</script>
+<!-- Google Analytics is intentionally NOT loaded here. It's injected by
+     main.js's loadAnalytics(), which only runs after the visitor has
+     accepted cookies -- see the Cookie Consent section of main.js. -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -195,7 +190,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <span data-lang="th"><strong>ปลดล็อกผลลัพธ์ทั้งหมด</strong> — สมัครฟรีเพื่อดูรายละเอียดและแนวทางแก้ไข</span>
               <span data-lang="ru"><strong>Разблокируйте полные результаты</strong> — зарегистрируйтесь бесплатно</span>
             </div>
-            <a href="https://portal.privacyready.co.uk/register?source=free-scan" class="scan-blur-btn" target="_blank" rel="noopener">
+            <a href="https://portal.privacyready.co.uk/register?source=free-scan" id="scan-full-report-btn" class="scan-blur-btn" target="_blank" rel="noopener">
               <span data-lang="en">Sign Up Free →</span>
               <span data-lang="th">สมัครฟรี →</span>
               <span data-lang="ru">Регистрация →</span>
@@ -1061,7 +1056,8 @@ async function startScan(e) {
   const reportBtn = document.getElementById('scan-full-report-btn');
   if (reportBtn) {
     const scanId = apiResults?.id || '';
-    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}`;
+    const claimToken = apiResults?.claimToken || '';
+    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}&scanClaimToken=${encodeURIComponent(claimToken)}`;
   }
 
   // Show blur nudge banner and CTA

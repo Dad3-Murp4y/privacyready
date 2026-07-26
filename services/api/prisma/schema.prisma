@@ -35,17 +35,24 @@ model User {
 }
 
 model Scan {
-  id               String       @id @default(uuid())
-  scanType         String
-  targetIdentifier String
-  status           String       @default("PENDING")
-  score            Int?
-  riskLevel        String?
-  findingsJson     Json?
-  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  organizationId   String?
-  createdAt        DateTime     @default(now())
-  completedAt      DateTime?
+  id                 String       @id @default(uuid())
+  scanType           String
+  targetIdentifier   String
+  status             String       @default("PENDING")
+  score              Int?
+  riskLevel          String?
+  findingsJson       Json?
+  organization       Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organizationId     String?
+  // Only set for anonymous /api/public/scan results. SHA-256 hash of a
+  // one-time token returned to whoever ran the free scan -- required to
+  // claim the scan onto an org at registration, since the scan id alone
+  // isn't proof of ownership (it can end up in a shared link, browser
+  // history, or referrer header).
+  claimTokenHash     String?
+  claimTokenExpires  DateTime?
+  createdAt          DateTime     @default(now())
+  completedAt        DateTime?
 }
 
 model DsrRequest {

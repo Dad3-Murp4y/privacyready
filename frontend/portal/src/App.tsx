@@ -21,6 +21,36 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return children;
 }
 
+// Reads the role claim out of the JWT payload purely for client-side
+// routing/UX -- this is NOT a security boundary (a JWT payload is only
+// base64-encoded, not encrypted, and this never verifies the signature).
+// The actual access control is admin.ts's server-side SUPERADMIN check on
+// every /admin/* API call; this only decides whether to bother rendering
+// the admin shell at all.
+function getJwtRole(token: string): string | null {
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    return decoded.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function RequireSuperAdmin({ children }: { children: ReactNode }) {
+  const token = localStorage.getItem('token');
+  const location = useLocation();
+
+  if (!token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+  if (getJwtRole(token) !== 'SUPERADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   return (
     <>
@@ -42,9 +72,9 @@ function App() {
         <Route 
           path="/admin" 
           element={
-            <ProtectedRoute>
+            <RequireSuperAdmin>
               <AdminDashboard />
-            </ProtectedRoute>
+            </RequireSuperAdmin>
           } 
         />
         <Route 

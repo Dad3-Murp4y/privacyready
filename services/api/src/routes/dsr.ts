@@ -14,7 +14,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.send(err);
+      return reply.send(err);
     }
   });
 

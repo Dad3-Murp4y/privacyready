@@ -81,6 +81,10 @@ resource "aws_ecs_task_definition" "app" {
       {
         name      = "JWT_SECRET"
         valueFrom = module.rds.jwt_secret_arn
+      },
+      {
+        name      = "SCANNER_API_KEY"
+        valueFrom = module.rds.scanner_api_key_arn
       }
     ]
 
@@ -210,7 +214,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
 
 resource "aws_iam_policy" "ecs_secrets_access" {
   name        = "privacyready-ecs-secrets-policy"
-  description = "Allows ECS execution role to retrieve DB password and JWT signing secret"
+  description = "Allows ECS execution role to retrieve DB password, JWT signing secret, and scanner API key"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -222,7 +226,8 @@ resource "aws_iam_policy" "ecs_secrets_access" {
       ]
       Resource = [
         module.rds.db_secret_arn,
-        module.rds.jwt_secret_arn
+        module.rds.jwt_secret_arn,
+        module.rds.scanner_api_key_arn
       ]
     }]
   })
@@ -369,6 +374,13 @@ resource "aws_ecs_task_definition" "scanner" {
       containerPort = 8080
       protocol      = "tcp"
     }]
+
+    secrets = [
+      {
+        name      = "SCANNER_API_KEY"
+        valueFrom = module.rds.scanner_api_key_arn
+      }
+    ]
 
     logConfiguration = {
       logDriver = "awslogs"

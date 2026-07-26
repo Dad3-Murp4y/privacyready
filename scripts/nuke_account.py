@@ -1,8 +1,39 @@
 #!/usr/bin/env python3
+"""
+DANGER: this script deletes S3 buckets, ACM certificates, SES identities,
+Route53 zones, VPCs, and Elastic IPs ACCOUNT-WIDE, with no project/tag
+filtering. It is meant only for tearing down a disposable sandbox/dev
+AWS account. It will NOT ask again after the confirmation gate below --
+read that carefully before running it against anything you care about.
+"""
 import boto3
+import os
+import sys
 import time
 
 REGION = 'eu-west-2'
+
+
+def _confirm_or_exit():
+    sts = boto3.client('sts', region_name=REGION)
+    identity = sts.get_caller_identity()
+    account_id = identity['Account']
+
+    if os.environ.get('NUKE_ACCOUNT_CONFIRM') != 'yes-i-am-sure':
+        print(f"Refusing to run: this will PERMANENTLY DELETE every S3 bucket, "
+              f"ACM cert, SES identity, Route53 zone, and non-default VPC in "
+              f"AWS account {account_id} ({REGION} + us-east-1 for ACM).")
+        print("There is no project filter -- everything in the account goes.")
+        print("Set NUKE_ACCOUNT_CONFIRM=yes-i-am-sure to acknowledge this, "
+              "then re-run.")
+        sys.exit(1)
+
+    typed = input(
+        f"Type the account ID ({account_id}) to confirm total account purge: "
+    ).strip()
+    if typed != account_id:
+        print("Account ID did not match. Aborting.")
+        sys.exit(1)
 
 # Clients
 s3 = boto3.resource('s3', region_name=REGION)
@@ -172,6 +203,7 @@ def release_eips():
             ec2.release_address(AllocationId=eip['AllocationId'])
 
 def main():
+    _confirm_or_exit()
     purge_s3()
     purge_acm(acm_eu, REGION)
     purge_acm(acm_us, 'us-east-1')

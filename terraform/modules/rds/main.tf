@@ -120,6 +120,23 @@ resource "aws_secretsmanager_secret_version" "jwt_secret" {
   secret_string = random_password.jwt.result
 }
 
+resource "random_password" "scanner_api_key" {
+  length  = 64
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "scanner_api_key" {
+  name                    = "${var.name_prefix}/scanner-api-key"
+  description             = "${var.name_prefix} shared secret between the API and scanner services"
+  recovery_window_in_days = var.secret_recovery_window_days
+  tags                    = merge(var.tags, { Name = "${var.name_prefix}-scanner-api-key" })
+}
+
+resource "aws_secretsmanager_secret_version" "scanner_api_key" {
+  secret_id     = aws_secretsmanager_secret.scanner_api_key.id
+  secret_string = random_password.scanner_api_key.result
+}
+
 resource "aws_db_instance" "this" {
   identifier     = "${var.name_prefix}-db"
   engine         = "postgres"
@@ -182,6 +199,10 @@ output "db_secret_arn" {
 
 output "jwt_secret_arn" {
   value = aws_secretsmanager_secret.jwt_secret.arn
+}
+
+output "scanner_api_key_arn" {
+  value = aws_secretsmanager_secret.scanner_api_key.arn
 }
 
 output "subnet_group_name" {

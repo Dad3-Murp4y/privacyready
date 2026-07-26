@@ -1,5 +1,7 @@
 # services/scanner/main.py
-from fastapi import FastAPI, HTTPException
+import os
+import secrets
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict
 from datetime import datetime
@@ -11,7 +13,6 @@ from dataclasses import asdict
 # It's better to rename them, but for now we can just use importlib or rename the files.
 import importlib.util
 import sys
-import os
 
 def load_module(name, path):
     spec = importlib.util.spec_from_file_location(name, path)
@@ -29,6 +30,28 @@ unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unifie
 
 app = FastAPI(title="PrivacyReady Scanner API", version="2.1.0")
 
+# This service has no auth of its own -- it relies entirely on network
+# isolation (only reachable at scanner.privacyready.local from inside the
+# API service's network) and binding 0.0.0.0 so it's actually reachable
+# there. That's a single point of failure: any network misconfiguration
+# (a bad security group, a debug port-forward, running it outside the
+# private network during local dev against a shared host) exposes an
+# open scan-relay with no second layer of defence. A shared-secret header
+# is cheap, defense-in-depth insurance against exactly that.
+SCANNER_API_KEY = os.environ.get("SCANNER_API_KEY")
+if not SCANNER_API_KEY:
+    raise RuntimeError(
+        "SCANNER_API_KEY environment variable is required and must not be "
+        "empty. Refusing to start with no shared secret between this "
+        "service and the API service that calls it."
+    )
+
+
+def require_api_key(x_scanner_api_key: Optional[str] = Header(default=None)):
+    if not x_scanner_api_key or not secrets.compare_digest(x_scanner_api_key, SCANNER_API_KEY):
+        raise HTTPException(status_code=401, detail="Missing or invalid X-Scanner-Api-Key")
+
+
 class SocialScanRequest(BaseModel):
     customer_id: str
     facebook_token: Optional[str] = None
@@ -43,12 +66,15 @@ class WebsiteScanRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "scanner", "version": "2.1.0"}
+    # Deliberately doesn't require auth (used by container/orchestrator
+    # health checks) and doesn't echo the app version, which is otherwise
+    # free reconnaissance info for an attacker probing for known CVEs.
+    return {"status": "ok", "service": "scanner"}
 
-@app.post("/v1/scan/website")
+@app.post("/v1/scan/website", dependencies=[Depends(require_api_key)])
 def scan_website(req: WebsiteScanRequest):
     all_findings = []
-    
+
     try:
         scanner = website_scanner.WebsiteScanner(req.url)
         findings = scanner.scan_all()
@@ -61,28 +87,25 @@ def scan_website(req: WebsiteScanRequest):
             "finding_type": "scan_error",
             "description": f"Failed to scan Website: {str(e)}"
         })
-        
+
+    # Always go through the scorer, including for an empty findings list,
+    # rather than returning a separate hardcoded "100% compliant" dict.
+    # Two independent code paths computing "clean" made it easy for them
+    # to drift out of sync, and calculate_score([]) already produces the
+    # correct 0-risk/100-compliance result on its own.
     scorer = unified_scorer.UnifiedScorer()
-    if not all_findings:
-        return {
-            "overall_risk_score": 0,
-            "risk_level": "LOW",
-            "gdpr_compliance_percentage": 100,
-            "estimated_fine_exposure": "None",
-            "findings": [],
-            "action_items": ["No compliance issues found."]
-        }
-        
     report = scorer.calculate_score(all_findings)
     report.customer_id = req.customer_id
     report.scan_date = datetime.now().isoformat()
-    
+    if not all_findings:
+        report.action_items = ["No compliance issues found in the categories we checked."]
+
     return asdict(report)
 
-@app.post("/v1/scan/social")
+@app.post("/v1/scan/social", dependencies=[Depends(require_api_key)])
 def scan_social(req: SocialScanRequest):
     all_findings = []
-    
+
     # 1. Facebook Scan
     if req.facebook_token and req.facebook_page_id:
         try:
@@ -97,7 +120,7 @@ def scan_social(req: SocialScanRequest):
                 "finding_type": "scan_error",
                 "description": f"Failed to scan Facebook: {str(e)}"
             })
-            
+
     # 2. LINE Scan
     if req.line_token and req.line_channel_id:
         try:
@@ -112,7 +135,7 @@ def scan_social(req: SocialScanRequest):
                 "finding_type": "scan_error",
                 "description": f"Failed to scan LINE: {str(e)}"
             })
-            
+
     # 3. TikTok Scan
     if req.tiktok_username:
         try:
@@ -127,25 +150,16 @@ def scan_social(req: SocialScanRequest):
                 "finding_type": "scan_error",
                 "description": f"Failed to scan TikTok: {str(e)}"
             })
-            
-    # 4. Calculate Unified Score
+
+    # 4. Calculate Unified Score -- same reasoning as scan_website above:
+    # one scoring path for both the empty and non-empty case.
     scorer = unified_scorer.UnifiedScorer()
-    
-    # If no findings, provide a baseline safe report
-    if not all_findings:
-        return {
-            "overall_risk_score": 0,
-            "risk_level": "LOW",
-            "gdpr_compliance_percentage": 100,
-            "estimated_fine_exposure": "None",
-            "findings": [],
-            "action_items": ["Connect social accounts to perform an audit."]
-        }
-        
     report = scorer.calculate_score(all_findings)
     report.customer_id = req.customer_id
     report.scan_date = datetime.now().isoformat()
-    
+    if not all_findings:
+        report.action_items = ["Connect social accounts to perform an audit."]
+
     return asdict(report)
 
 if __name__ == "__main__":

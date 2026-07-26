@@ -5,6 +5,25 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional
 from datetime import datetime
 
+
+class GraphApiError(Exception):
+    """Raised when the Graph API itself returns an error object, so callers
+    can't mistake 'the API call failed' for 'this page has no data here'."""
+    pass
+
+
+def _graph_json(response):
+    """Parse a Graph API response, raising GraphApiError if Facebook
+    returned an error object. Previously every scan_* method did
+    `response.json().get('data', [])` directly -- since an error response
+    has no 'data' key, that silently produced an empty list and the scan
+    reported a false-clean result instead of surfacing the failure."""
+    data = response.json()
+    if isinstance(data, dict) and 'error' in data:
+        raise GraphApiError(data['error'].get('message', 'Unknown Graph API error'))
+    return data
+
+
 @dataclass
 class FacebookFinding:
     platform: str = "facebook"
@@ -25,13 +44,31 @@ class FacebookScanner:
         self.findings: List[FacebookFinding] = []
     
     def scan_all(self) -> List[FacebookFinding]:
-        """Run complete Facebook GDPR audit"""
-        self.scan_lead_forms()
-        self.scan_messenger_settings()
-        self.scan_pixel_configuration()
-        self.scan_page_posts_for_pii()
-        self.scan_custom_audiences()
-        self.scan_group_memberships()
+        """Run complete Facebook GDPR audit. Each check runs independently --
+        one Graph API call failing (expired token, missing permission, etc.)
+        is recorded as its own finding rather than either being silently
+        treated as 'no data here' or aborting every other check."""
+        checks = [
+            self.scan_lead_forms,
+            self.scan_messenger_settings,
+            self.scan_pixel_configuration,
+            self.scan_page_posts_for_pii,
+            self.scan_custom_audiences,
+            self.scan_group_memberships,
+        ]
+        for check in checks:
+            try:
+                check()
+            except GraphApiError as e:
+                self.findings.append(FacebookFinding(
+                    page_id=self.page_id,
+                    finding_type='api_error',
+                    severity='low',
+                    description=f"Could not complete {check.__name__.replace('scan_', '')} check: {e}",
+                    evidence=str(e),
+                    gdpr_article='',
+                    remediation='Check that the Facebook access token has the required permissions and has not expired'
+                ))
         return self.findings
     
     def scan_lead_forms(self):
@@ -43,7 +80,7 @@ class FacebookScanner:
         }
         
         response = requests.get(url, params=params, timeout=10)
-        forms = response.json().get('data', [])
+        forms = _graph_json(response).get('data', [])
         
         for form in forms:
             # Check for privacy policy link
@@ -55,7 +92,7 @@ class FacebookScanner:
             
             # Check for consent checkbox
             has_consent = any(
-                q.get('key') in ['consent', 'agree', 'terms', 'ยินยอม'] 
+                q.get('key') in ['consent', 'agree', 'terms', 'gdpr_consent']
                 for q in questions
             )
             
@@ -67,7 +104,7 @@ class FacebookScanner:
                     severity='critical' if sensitive_fields else 'high',
                     description=f"Lead form '{form.get('name')}' collects data without proper consent",
                     evidence=f"Privacy policy: {has_privacy}, Consent checkbox: {has_consent}, Sensitive fields: {sensitive_fields}",
-                    gdpr_article='Article 19 (Consent), Article 23 (Collection limitation)',
+                    gdpr_article='Article 6/7 (Lawful basis and conditions for consent), Article 5(1)(c) (Data minimisation)',
                     remediation='Add privacy policy link and explicit consent checkbox before form submission'
                 ))
     
@@ -77,7 +114,7 @@ class FacebookScanner:
         params = {'access_token': self.access_token}
         
         response = requests.get(url, params=params, timeout=10)
-        settings = response.json()
+        settings = _graph_json(response)
         
         # Check if automated responses collect PII
         if settings.get('chat_plugin', {}).get('enabled'):
@@ -87,7 +124,7 @@ class FacebookScanner:
                 severity='medium',
                 description='Messenger chat plugin enabled — conversations may contain PII without consent',
                 evidence='Chat plugin is active on website',
-                gdpr_article='Article 19 (Consent)',
+                gdpr_article='Article 6/7 (Lawful basis and conditions for consent)',
                 remediation='Add pre-chat consent message: "By continuing, you agree to our privacy policy"'
             ))
     
@@ -100,7 +137,7 @@ class FacebookScanner:
         }
         
         response = requests.get(url, params=params, timeout=10)
-        pixels = response.json().get('data', [])
+        pixels = _graph_json(response).get('data', [])
         
         for pixel in pixels:
             auto_match = pixel.get('automatic_matching_fields', [])
@@ -111,7 +148,7 @@ class FacebookScanner:
                     severity='high',
                     description='Facebook Pixel using Advanced Matching without explicit consent',
                     evidence=f"Auto-matching fields: {auto_match}",
-                    gdpr_article='Article 19 (Consent), Article 37 (Security)',
+                    gdpr_article='Article 6/7 (Lawful basis and conditions for consent), Article 32 (Security of processing)',
                     remediation='Implement consent banner before pixel fires; disable auto-matching until consent'
                 ))
     
@@ -125,13 +162,13 @@ class FacebookScanner:
         }
         
         response = requests.get(url, params=params, timeout=10)
-        posts = response.json().get('data', [])
+        posts = _graph_json(response).get('data', [])
         
         pii_patterns = {
-            'thai_phone': r'0[689]\d{8}',
+            'uk_phone': r'(?:(?:\+44\s?|0)(?:7\d{3}|\d{2,4})[\s-]?\d{3,4}[\s-]?\d{3,4})',
             'email': r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
-            'thai_id': r'\d{1}-\d{4}-\d{5}-\d{2}-\d{1}',  # Thai ID format
-            'line_id': r'(?i)line[:\s]*[@]?[a-z0-9_]+',
+            'ni_number': r'\b[A-CEGHJ-PR-TW-Z]{1}[A-CEGHJ-NPR-TW-Z]{1}\d{6}[A-D]{1}\b',  # UK National Insurance number
+            'sort_code': r'\b\d{2}-\d{2}-\d{2}\b',  # UK bank sort code
         }
         
         for post in posts:
@@ -151,7 +188,7 @@ class FacebookScanner:
                             severity='critical',
                             description=f'PII ({pii_type}) exposed in public post/comment',
                             evidence=f"Found {len(matches)} instances: {matches[:3]}",
-                            gdpr_article='Article 37 (Security), Article 41 (Data breach notification)',
+                            gdpr_article='Article 32 (Security of processing), Article 33/34 (Breach notification)',
                             remediation='Delete exposed comments, implement auto-moderation for PII, educate agents'
                         ))
                         break  # One finding per post is enough
@@ -165,7 +202,7 @@ class FacebookScanner:
         }
         
         response = requests.get(url, params=params, timeout=10)
-        audiences = response.json().get('data', [])
+        audiences = _graph_json(response).get('data', [])
         
         for audience in audiences:
             source = audience.get('data_source', {}).get('type', 'unknown')
@@ -176,7 +213,7 @@ class FacebookScanner:
                     severity='high',
                     description=f"Custom audience '{audience.get('name')}' has unverified data source",
                     evidence=f"Data source: {source}",
-                    gdpr_article='Article 19 (Consent), Article 25 (Data quality)',
+                    gdpr_article='Article 6/7 (Lawful basis), Article 5(1)(d) (Accuracy)',
                     remediation='Document consent for every contact in audience; remove contacts without consent proof'
                 ))
     
@@ -189,7 +226,7 @@ class FacebookScanner:
         }
         
         response = requests.get(url, params=params, timeout=10)
-        groups = response.json().get('data', [])
+        groups = _graph_json(response).get('data', [])
         
         for group in groups:
             if group.get('privacy') == 'PUBLIC' and group.get('member_count', 0) > 1000:
@@ -199,17 +236,17 @@ class FacebookScanner:
                     severity='medium',
                     description=f"Large public group '{group.get('name')}' may expose member data",
                     evidence=f"Members: {group.get('member_count')}, Privacy: {group.get('privacy')}",
-                    gdpr_article='Article 37 (Security)',
+                    gdpr_article='Article 32 (Security of processing)',
                     remediation='Convert to private group or implement member approval with privacy notice'
                 ))
     
     def _detect_sensitive_fields(self, questions: List[Dict]) -> List[str]:
         """Detect sensitive data fields in form questions"""
         sensitive_keywords = {
-            'id_card': ['id', 'บัตรประชาชน', 'id card', 'citizen'],
-            'income': ['salary', 'รายได้', 'income', 'เงินเดือน'],
-            'bank': ['bank', 'ธนาคาร', 'account number', 'เลขบัญชี'],
-            'family': ['family', 'spouse', 'relative', 'คู่สมรส', 'บุตร'],
+            'national_id': ['national insurance', 'ni number', 'passport number', 'driving licence'],
+            'income': ['salary', 'income', 'annual earnings'],
+            'bank': ['bank', 'account number', 'sort code'],
+            'family': ['family', 'spouse', 'next of kin', 'dependents'],
         }
         
         found = []

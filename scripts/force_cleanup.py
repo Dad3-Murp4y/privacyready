@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
 import boto3
+import os
+import sys
 import time
 
 REGION = 'eu-west-2'
 PROJECT = 'privacyready'
+
+
+def _confirm_or_exit():
+    if os.environ.get('FORCE_CLEANUP_CONFIRM') == 'yes':
+        return
+    print(f"This will permanently delete all EC2/RDS/ElastiCache/ECR/ALB/"
+          f"Route53 resources tagged or named '{PROJECT}' in {REGION}.")
+    print("RDS deletion uses SkipFinalSnapshot=True -- no backup is taken.")
+    typed = input(f"Type '{PROJECT}' to confirm: ").strip()
+    if typed != PROJECT:
+        print("Confirmation did not match. Aborting.")
+        sys.exit(1)
 
 ec2 = boto3.client('ec2', region_name=REGION)
 rds = boto3.client('rds', region_name=REGION)
@@ -109,6 +123,7 @@ def clean_albs():
                 print(e)
 
 def main():
+    _confirm_or_exit()
     clean_ec2()
     clean_albs()
     clean_rds()

@@ -18,7 +18,10 @@ const RegisterSchema = {
     }),
     fullName: Type.String({ minLength: 2 }),
     organizationName: Type.String({ minLength: 2 }),
-    scanId: Type.Optional(Type.String())
+    scanId: Type.Optional(Type.String()),
+    // Required alongside scanId to actually claim it -- see note on
+    // Scan.claimTokenHash in schema.prisma for why the id alone isn't enough.
+    scanClaimToken: Type.Optional(Type.String())
   })
 };
 
@@ -48,8 +51,11 @@ async function issueVerificationEmail(userId: string, email: string, fullName: s
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
   
-  app.post('/auth/register', { schema: RegisterSchema }, async (request, reply) => {
-    const { email, password, fullName, organizationName, scanId } = request.body as any;
+  app.post('/auth/register', {
+    schema: RegisterSchema,
+    config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const { email, password, fullName, organizationName, scanId, scanClaimToken } = request.body as any;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -74,15 +80,22 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
             : 'ADMIN'
         }
       });
-      
-      // Claim the scan if provided
-      if (scanId) {
-        await tx.scan.updateMany({
-          where: { id: scanId, organizationId: null },
-          data: { organizationId: org.id }
-        });
+
+      // Claim the scan only if the caller can prove they're the one who
+      // ran it, via the one-time token returned by /api/public/scan --
+      // the scan id alone is not proof of ownership (see schema.prisma).
+      if (scanId && scanClaimToken) {
+        const scan = await tx.scan.findUnique({ where: { id: scanId } });
+        const tokenMatches = scan?.claimTokenHash === hashToken(scanClaimToken);
+        const notExpired = scan?.claimTokenExpires && scan.claimTokenExpires > new Date();
+        if (scan && scan.organizationId === null && tokenMatches && notExpired) {
+          await tx.scan.update({
+            where: { id: scanId },
+            data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
+          });
+        }
       }
-      
+
       return newUser;
     });
 
@@ -101,11 +114,21 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  app.get('/auth/verify-email', async (request, reply) => {
-    const { token, uid } = request.query as { token?: string; uid?: string };
-    if (!token || !uid) {
-      return reply.status(400).send({ error: 'Missing verification token' });
-    }
+  const VerifyEmailSchema = {
+    body: Type.Object({
+      token: Type.String(),
+      uid: Type.String()
+    })
+  };
+
+  // POST, not GET: a GET link is exactly what mail-scanning/prefetch
+  // services (Outlook Safe Links, corporate spam filters, some inbox
+  // preview features) will silently follow before the real user ever
+  // clicks, which burns the one-time token. The emailed link now opens a
+  // page with a "confirm" button (see VerifyEmail.tsx) that fires this
+  // POST only on a real click.
+  app.post('/auth/verify-email', { schema: VerifyEmailSchema }, async (request, reply) => {
+    const { token, uid } = request.body as { token: string; uid: string };
 
     const user = await prisma.user.findUnique({ where: { id: uid } });
     if (!user || !user.emailVerifyTokenHash || !user.emailVerifyExpires) {
@@ -116,7 +139,11 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: 'Verification link expired. Request a new one.' });
     }
 
-    if (hashToken(token) !== user.emailVerifyTokenHash) {
+    const providedHash = Buffer.from(hashToken(token));
+    const storedHash = Buffer.from(user.emailVerifyTokenHash);
+    const matches = providedHash.length === storedHash.length
+      && crypto.timingSafeEqual(providedHash, storedHash);
+    if (!matches) {
       return reply.status(400).send({ error: 'Invalid verification link' });
     }
 
@@ -130,7 +157,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
   const ResendSchema = { body: Type.Object({ email: Type.String({ format: 'email' }) }) };
 
-  app.post('/auth/resend-verification', { schema: ResendSchema }, async (request, reply) => {
+  app.post('/auth/resend-verification', {
+    schema: ResendSchema,
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
     const { email } = request.body as any;
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -161,7 +191,10 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      return reply.code(401).send({ error: 'User not found' });
+      // Same generic message as the wrong-password case below, on purpose --
+      // "User not found" here would let an attacker enumerate which emails
+      // are registered.
+      return reply.code(401).send({ error: 'Invalid credentials' });
     }
 
     const isValid = await bcrypt.compare(password, user.passwordHash);
