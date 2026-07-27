@@ -7,31 +7,16 @@ from typing import Optional, List, Dict
 from datetime import datetime
 from dataclasses import asdict
 
-# Import our scanner modules
-# Since they are named with dashes in the file system, we need to import them carefully
-# But wait, python doesn't easily import files with dashes. Let's use importlib or rename them.
-# It's better to rename them, but for now we can just use importlib or rename the files.
-import importlib.util
-import sys
-
-def load_module(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-facebook_scanner = load_module("facebook_scanner", os.path.join(current_dir, "facebook-scanner.py"))
-instagram_scanner = load_module("instagram_scanner", os.path.join(current_dir, "instagram-scanner.py"))
-linkedin_scanner = load_module("linkedin_scanner", os.path.join(current_dir, "linkedin-scanner.py"))
-mailchimp_scanner = load_module("mailchimp_scanner", os.path.join(current_dir, "mailchimp-scanner.py"))
-twitter_scanner = load_module("twitter_scanner", os.path.join(current_dir, "twitter-scanner.py"))
-ga_scanner = load_module("ga_scanner", os.path.join(current_dir, "google-analytics-scanner.py"))
-whatsapp_scanner = load_module("whatsapp_scanner", os.path.join(current_dir, "whatsapp-scanner.py"))
-tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok-scanner.py"))
-website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
-unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
+import facebook_scanner
+import instagram_scanner
+import linkedin_scanner
+import mailchimp_scanner
+import twitter_scanner
+import google_analytics_scanner as ga_scanner
+import whatsapp_scanner
+import tiktok_scanner
+import website_scanner
+import unified_scanner as unified_scorer
 
 app = FastAPI(title="PrivacyReady Scanner API", version="2.1.0")
 

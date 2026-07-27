@@ -14,7 +14,7 @@ const RegisterSchema = {
     email: Type.String({ format: 'email' }),
     password: Type.String({ 
       minLength: 8,
-      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
+      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$'
     }),
     fullName: Type.String({ minLength: 2 }),
     organizationName: Type.String({ minLength: 2 }),

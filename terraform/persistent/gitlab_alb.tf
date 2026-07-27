@@ -40,7 +40,7 @@ resource "aws_lb" "gitlab" {
   security_groups    = [aws_security_group.gitlab_alb.id]
   subnets            = module.management_vpc.public_subnet_ids
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
   enable_http2                = true
   drop_invalid_header_fields  = true
 

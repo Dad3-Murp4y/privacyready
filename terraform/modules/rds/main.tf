@@ -32,12 +32,12 @@ variable "max_allocated_storage" {
 
 variable "multi_az" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "backup_retention_period" {
   type    = number
-  default = 1
+  default = 7
 }
 
 variable "backup_window" {
@@ -52,12 +52,12 @@ variable "maintenance_window" {
 
 variable "deletion_protection" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "skip_final_snapshot" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "db_name" {
