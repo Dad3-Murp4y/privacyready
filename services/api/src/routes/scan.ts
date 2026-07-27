@@ -32,11 +32,12 @@ function redactFindings(findings: any) {
   if (!Array.isArray(findings)) return findings;
   return findings.map((f: any) => ({
     ...f,
+    finding_type: 'REDACTED',
+    severity: 'REDACTED',
     description: 'Premium detailed finding description is hidden. Upgrade to view full remediation steps.',
     evidence: 'Redacted (Premium only)',
-    remediation: 'Redacted (Premium only)',
-    severity: 'REDACTED',
-    type: 'REDACTED'
+    gdpr_article: 'REDACTED',
+    remediation: 'Redacted (Premium only)'
   }));
 }
 
@@ -61,7 +62,17 @@ export async function registerScanRoutes(app: FastifyInstance) {
   const CreateScanSchema = {
     body: Type.Object({
       targetIdentifier: Type.String({ minLength: 1, maxLength: 512 }),
-      scanType: Type.String()
+      scanType: Type.Union([
+        Type.Literal('website'),
+        Type.Literal('facebook'),
+        Type.Literal('instagram'),
+        Type.Literal('linkedin'),
+        Type.Literal('mailchimp'),
+        Type.Literal('twitter'),
+        Type.Literal('google_analytics'),
+        Type.Literal('whatsapp'),
+        Type.Literal('tiktok')
+      ])
     })
   };
 
@@ -95,13 +106,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       }
     });
 
-    const isWebsite = scanType.toLowerCase() === 'website';
-    const payload = isWebsite
-      ? { customer_id: 'guest', url: targetIdentifier }
-      : {
-          customer_id: 'guest',
-          tiktok_username: targetIdentifier
-        };
+    const isWebsite = scanType === 'website';
+    let payload: any = { customer_id: 'guest' };
+    if (isWebsite) {
+      payload.url = targetIdentifier;
+    } else {
+      const typeMap: Record<string, string> = {
+        'tiktok': 'tiktok_username',
+        'facebook': 'facebook_page_id',
+        'instagram': 'ig_account_id',
+        'twitter': 'twitter_username',
+        'google_analytics': 'ga_property_id',
+        'whatsapp': 'whatsapp_phone',
+        'linkedin': 'linkedin_company_id',
+        'mailchimp': 'mailchimp_api_key'
+      };
+      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
+    }
 
     try {
       const response = await fetch(scannerEndpoint(isWebsite), {
@@ -177,13 +198,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       }
     });
 
-    const isWebsite = scanType.toLowerCase() === 'website';
-    const payload = isWebsite
-      ? { customer_id: user.org, url: targetIdentifier }
-      : {
-          customer_id: user.org,
-          tiktok_username: targetIdentifier
-        };
+    const isWebsite = scanType === 'website';
+    let payload: any = { customer_id: user.org };
+    if (isWebsite) {
+      payload.url = targetIdentifier;
+    } else {
+      const typeMap: Record<string, string> = {
+        'tiktok': 'tiktok_username',
+        'facebook': 'facebook_page_id',
+        'instagram': 'ig_account_id',
+        'twitter': 'twitter_username',
+        'google_analytics': 'ga_property_id',
+        'whatsapp': 'whatsapp_phone',
+        'linkedin': 'linkedin_company_id',
+        'mailchimp': 'mailchimp_api_key'
+      };
+      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
+    }
 
     try {
       const response = await fetch(scannerEndpoint(isWebsite), {
