@@ -26,6 +26,17 @@ const JWT_SECRET = process.env.JWT_SECRET;
 async function buildServer() {
   const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
   
+  // Extract token from HttpOnly cookie and place in Authorization header
+  app.addHook('onRequest', async (request, reply) => {
+    const cookie = request.headers.cookie;
+    if (cookie && !request.headers.authorization) {
+      const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
+      if (match) {
+        request.headers.authorization = `Bearer ${match[1]}`;
+      }
+    }
+  });
+  
   // Register JWT plugin
   await app.register(jwt, { secret: JWT_SECRET });
   

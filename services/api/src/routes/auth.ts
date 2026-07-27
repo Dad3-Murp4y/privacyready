@@ -222,7 +222,18 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
-    return { token };
+    const isProd = process.env.NODE_ENV === 'production';
+    reply.header('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    // We still return the payload base64 so the frontend can synchronously know the role
+    // without reading an HttpOnly cookie or waiting for /auth/me, but the signature remains secure.
+    const payload = token.split('.')[1];
+    return { success: true, payload };
+  });
+
+  app.post('/auth/logout', async (request, reply) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    reply.header('Set-Cookie', `token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    return { success: true };
   });
 
   // Fetch current user identity

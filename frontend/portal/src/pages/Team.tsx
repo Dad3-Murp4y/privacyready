@@ -31,7 +31,7 @@ export default function Team() {
       return;
     }
     try {
-      const res = await fetch(`${API}/api/team`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/api/team`, { credentials: 'include' });
       if (res.status === 401) {
         navigate('/login');
         return;
@@ -61,7 +61,7 @@ export default function Team() {
     try {
       const res = await fetch(`${API}/api/team`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail, fullName: newName, role: newRole })
       });
       const data = await res.json();
@@ -85,7 +85,7 @@ export default function Team() {
     try {
       const res = await fetch(`${API}/api/team/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));

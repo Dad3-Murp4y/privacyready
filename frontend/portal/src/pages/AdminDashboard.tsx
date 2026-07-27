@@ -48,9 +48,9 @@ export default function AdminDashboard() {
       if (!token) throw new Error('No token found');
 
       const [statsRes, usersRes, orgsRes] = await Promise.all([
-        fetch(`${API}/api/admin/stats`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/api/admin/users`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API}/api/admin/organizations`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`${API}/api/admin/stats`, { credentials: 'include' }),
+        fetch(`${API}/api/admin/users`, { credentials: 'include' }),
+        fetch(`${API}/api/admin/organizations`, { credentials: 'include' })
       ]);
 
       if (statsRes.status === 403 || usersRes.status === 403 || orgsRes.status === 403) {
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API}/api/admin/users/${userId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
       });
       if (!res.ok) {
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API}/api/admin/users/${userId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`${API}/api/admin/organizations/${orgId}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));

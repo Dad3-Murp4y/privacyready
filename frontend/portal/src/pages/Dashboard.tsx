@@ -102,7 +102,7 @@ export default function Dashboard() {
 
         // Fetch user profile
         const meRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
+          credentials: 'include'
         });
         if (meRes.ok) {
           setUserProfile(await meRes.json());
@@ -113,7 +113,7 @@ export default function Dashboard() {
         }
 
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, {
-          headers: { Authorization: `Bearer ${token}` }
+          credentials: 'include'
         });
         if (res.ok) {
           const data = await res.json();
@@ -135,7 +135,7 @@ export default function Dashboard() {
         }
 
         const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
-          headers: { Authorization: `Bearer ${token}` }
+          credentials: 'include'
         });
         if (dsrRes.ok) {
           const dsrData = await dsrRes.json();
@@ -185,8 +185,11 @@ export default function Dashboard() {
   const pendingDsrs = dsrs.filter(d => d.status === 'Pending' || d.status === 'In Progress').length;
 
   // Handle Sign Out
-  const handleSignOut = (e: React.MouseEvent) => {
+  const handleSignOut = async (e: React.MouseEvent) => {
     e.preventDefault();
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' });
+    } catch (err) {}
     localStorage.removeItem('token');
     navigate('/login');
   };
@@ -221,10 +224,7 @@ export default function Dashboard() {
       }
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           targetIdentifier: newAuditUrl.replace(/https?:\/\/(www\.)?/, ''),
           scanType: newAuditType
@@ -281,10 +281,7 @@ export default function Dashboard() {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subjectEmail: newDsrEmail,
           requestType: newDsrType.toUpperCase(),
@@ -686,7 +683,7 @@ export default function Dashboard() {
                             try {
                               const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan/${audit.id}`, {
                                 method: 'DELETE',
-                                headers: { Authorization: `Bearer ${token}` }
+                                credentials: 'include'
                               });
                               if (!res.ok && res.status !== 204) {
                                 console.error('Failed to delete scan:', await res.text());
@@ -789,10 +786,7 @@ export default function Dashboard() {
                                 try {
                                   const res = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr/${dsr.id}`, {
                                     method: 'PATCH',
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                      Authorization: `Bearer ${token}`
-                                    },
+                                    credentials: 'include', headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ status: 'COMPLETED' })
                                   });
                                   if (!res.ok) {
