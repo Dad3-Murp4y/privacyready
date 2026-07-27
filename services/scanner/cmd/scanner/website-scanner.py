@@ -135,7 +135,7 @@ class WebsiteScanner:
                 severity='high',
                 description='Website is not forcing HTTPS encryption',
                 evidence=f'Final resolved URL: {final_url}',
-                gdpr_article='Article 37 (Security)',
+                gdpr_article='Article 32 (Security of processing)',
                 remediation='Enable SSL/TLS certificate and force HTTPS redirect'
             ))
             
@@ -156,7 +156,7 @@ class WebsiteScanner:
                 severity='medium',
                 description=f'Found third-party tracking scripts: {", ".join(set(trackers_found))}',
                 evidence=f'{len(trackers_found)} script(s) found in DOM',
-                gdpr_article='Article 19 (Consent)',
+                gdpr_article='Article 7 (Conditions for consent)',
                 remediation='Implement a cookie consent banner blocking these scripts until user opts in'
             ))
 
@@ -178,7 +178,7 @@ class WebsiteScanner:
                     severity='medium',
                     description='Forms detected without explicit GDPR consent checkboxes',
                     evidence=f'{len(forms)} form(s) found without privacy agreement checkbox',
-                    gdpr_article='Article 19 (Consent)',
+                    gdpr_article='Article 7 (Conditions for consent)',
                     remediation='Add mandatory consent checkbox linking to Privacy Policy before form submission'
                 ))
 
