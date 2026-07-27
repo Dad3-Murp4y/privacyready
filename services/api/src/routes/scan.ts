@@ -28,6 +28,18 @@ function scannerEndpoint(isWebsite: boolean): string {
   return isWebsite ? `${baseUrl}/v1/scan/website` : `${baseUrl}/v1/scan/social`;
 }
 
+function redactFindings(findings: any) {
+  if (!Array.isArray(findings)) return findings;
+  return findings.map((f: any) => ({
+    ...f,
+    description: 'Premium detailed finding description is hidden. Upgrade to view full remediation steps.',
+    evidence: 'Redacted (Premium only)',
+    remediation: 'Redacted (Premium only)',
+    severity: 'REDACTED',
+    type: 'REDACTED'
+  }));
+}
+
 export async function registerScanRoutes(app: FastifyInstance) {
   app.addHook('onRequest', async (request, reply) => {
     // Only protect /api/scan (but not /api/public)
@@ -110,7 +122,11 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return { ...updated, claimToken: rawClaimToken };
+      return { 
+        ...updated, 
+        findingsJson: redactFindings(updated.findingsJson),
+        claimToken: rawClaimToken 
+      };
     } catch (err) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },
@@ -137,12 +153,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
     if (!isPremium) {
       scans.forEach(scan => {
-        if (Array.isArray(scan.findingsJson)) {
-          scan.findingsJson = scan.findingsJson.map((f: any) => ({
-            ...f,
-            description: "Premium detailed finding description is hidden. Upgrade to view full remediation steps."
-          }));
-        }
+        scan.findingsJson = redactFindings(scan.findingsJson);
       });
     }
 
@@ -198,12 +209,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
       let responseFindings = result.findings;
       const org = await prisma.organization.findUnique({ where: { id: user.org } });
       if (org?.subscriptionStatus !== 'active') {
-        if (Array.isArray(responseFindings)) {
-          responseFindings = responseFindings.map((f: any) => ({
-            ...f,
-            description: "Premium detailed finding description is hidden. Upgrade to view full remediation steps."
-          }));
-        }
+        responseFindings = redactFindings(responseFindings);
       }
 
       return {
