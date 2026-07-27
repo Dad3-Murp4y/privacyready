@@ -61,6 +61,11 @@ resource "aws_sns_topic_subscription" "all_privacyready" {
   endpoint  = "all.datawai@gmail.com"
 }
 
+# Verify the team's email so that SES can send to it while still in Sandbox mode
+resource "aws_ses_email_identity" "team_sandbox_recipient" {
+  email = "all.datawai@gmail.com"
+}
+
 resource "aws_ses_receipt_rule_set" "main" {
   rule_set_name = "privacyready-inbound-ruleset"
 }

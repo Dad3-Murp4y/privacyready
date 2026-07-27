@@ -11,6 +11,7 @@ import { registerScanRoutes } from './routes/scan.js';
 import { registerDsrRoutes } from './routes/dsr.js';
 import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
+import Redis from 'ioredis';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
 const host = process.env.HOST ?? '0.0.0.0';
@@ -41,10 +42,17 @@ async function buildServer() {
   await app.register(jwt, { secret: JWT_SECRET });
   
   // Register Rate Limiting plugin
-  await app.register(rateLimit, {
+  const redisHost = process.env.REDIS_HOST;
+  const rateLimitOpts: any = {
     max: 100,
     timeWindow: '1 minute'
-  });
+  };
+  
+  if (redisHost) {
+    rateLimitOpts.redis = new Redis({ host: redisHost, port: 6379 });
+  }
+
+  await app.register(rateLimit, rateLimitOpts);
 
   await registerSecurity(app);
   await registerHealthRoutes(app);

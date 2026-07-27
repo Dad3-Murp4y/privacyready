@@ -90,15 +90,17 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
         // ran it, via the one-time token returned by /api/public/scan --
         // the scan id alone is not proof of ownership (see schema.prisma).
         if (scanId && scanClaimToken) {
-          const scan = await tx.scan.findUnique({ where: { id: scanId } });
-          const tokenMatches = scan?.claimTokenHash === hashToken(scanClaimToken);
-          const notExpired = scan?.claimTokenExpires && scan.claimTokenExpires > new Date();
-          if (scan && scan.organizationId === null && tokenMatches && notExpired) {
-            await tx.scan.update({
-              where: { id: scanId },
-              data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
-            });
-          } else {
+          const updated = await tx.scan.updateMany({
+            where: {
+              id: scanId,
+              organizationId: null,
+              claimTokenHash: hashToken(scanClaimToken),
+              claimTokenExpires: { gt: new Date() }
+            },
+            data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
+          });
+          
+          if (updated.count === 0) {
             throw new Error('INVALID_SCAN_CLAIM');
           }
         }

@@ -67,8 +67,14 @@ class WebsiteScanner:
             if parsed.scheme not in ('http', 'https'):
                 raise UnsafeTargetError(f"Unsupported URL scheme: {parsed.scheme!r}")
             if not parsed.hostname:
-            if not parsed.hostname:
                 raise UnsafeTargetError("URL has no hostname")
+
+            blocked_domains = {
+                'google.com', 'facebook.com', 'amazon.com', 'aws.amazon.com', 
+                'microsoft.com', 'apple.com', 'github.com', 'gitlab.com'
+            }
+            if any(parsed.hostname == d or parsed.hostname.endswith(f".{d}") for d in blocked_domains):
+                raise UnsafeTargetError("Refusing to scan protected infrastructure domain")
 
             response = requests.get(
                 self.url,
