@@ -59,45 +59,58 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return reply.code(400).send({ error: 'Email already registered' });
+      // To prevent email enumeration, pretend registration succeeded
+      return reply.status(201).send({
+        message: 'Account created. Check your email to verify your address before logging in.'
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Create Organization and User in a transaction
-    const user = await prisma.$transaction(async (tx: any) => {
-      const org = await tx.organization.create({
-        data: { name: organizationName }
-      });
-      const newUser = await tx.user.create({
-        data: {
-          email,
-          passwordHash,
-          fullName,
-          organizationId: org.id,
-          role: process.env.SUPERADMIN_EMAIL && email.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase()
-            ? 'SUPERADMIN'
-            : 'ADMIN'
-        }
-      });
+    let user;
+    try {
+      user = await prisma.$transaction(async (tx: any) => {
+        const org = await tx.organization.create({
+          data: { name: organizationName }
+        });
+        const newUser = await tx.user.create({
+          data: {
+            email,
+            passwordHash,
+            fullName,
+            organizationId: org.id,
+            role: process.env.SUPERADMIN_EMAIL && email.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase()
+              ? 'SUPERADMIN'
+              : 'ADMIN'
+          }
+        });
 
-      // Claim the scan only if the caller can prove they're the one who
-      // ran it, via the one-time token returned by /api/public/scan --
-      // the scan id alone is not proof of ownership (see schema.prisma).
-      if (scanId && scanClaimToken) {
-        const scan = await tx.scan.findUnique({ where: { id: scanId } });
-        const tokenMatches = scan?.claimTokenHash === hashToken(scanClaimToken);
-        const notExpired = scan?.claimTokenExpires && scan.claimTokenExpires > new Date();
-        if (scan && scan.organizationId === null && tokenMatches && notExpired) {
-          await tx.scan.update({
-            where: { id: scanId },
-            data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
-          });
+        // Claim the scan only if the caller can prove they're the one who
+        // ran it, via the one-time token returned by /api/public/scan --
+        // the scan id alone is not proof of ownership (see schema.prisma).
+        if (scanId && scanClaimToken) {
+          const scan = await tx.scan.findUnique({ where: { id: scanId } });
+          const tokenMatches = scan?.claimTokenHash === hashToken(scanClaimToken);
+          const notExpired = scan?.claimTokenExpires && scan.claimTokenExpires > new Date();
+          if (scan && scan.organizationId === null && tokenMatches && notExpired) {
+            await tx.scan.update({
+              where: { id: scanId },
+              data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
+            });
+          } else {
+            throw new Error('INVALID_SCAN_CLAIM');
+          }
         }
+
+        return newUser;
+      });
+    } catch (err: any) {
+      if (err.message === 'INVALID_SCAN_CLAIM') {
+        return reply.code(400).send({ error: 'Invalid or expired scan claim token' });
       }
-
-      return newUser;
-    });
+      throw err;
+    }
 
     try {
       await issueVerificationEmail(user.id, user.email, user.fullName);
@@ -191,6 +204,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      // Run a dummy bcrypt hash to prevent timing side channels
+      await bcrypt.hash(password, 12);
       // Same generic message as the wrong-password case below, on purpose --
       // "User not found" here would let an attacker enumerate which emails
       // are registered.
