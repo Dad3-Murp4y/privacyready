@@ -64,10 +64,24 @@ export async function sendTeamInviteEmail(to: string, fullName: string, orgName:
       <p>Your temporary password: <code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;">${escapeHtml(tempPassword)}</code></p>
       <p>Verify your email and log in to get started:</p>
       <p><a href="${escapeHtml(verifyUrl)}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Verify email</a></p>
-      <p style="color:#888;font-size:13px;">We'd recommend changing your password after your first login. This link expires in 24 hours.</p>
+      <p style="color:#888;font-size:13px;">You will be required to change your password after your first login. This link expires in 24 hours.</p>
     </div>
   `;
-  const text = `Hi ${fullName},\n\nYou've been added to ${orgName}'s PrivacyReady account.\n\nYour temporary password: ${tempPassword}\n\nVerify your email: ${verifyUrl}\n\nWe'd recommend changing your password after your first login. This link expires in 24 hours.`;
+  const text = `Hi ${fullName},\n\nYou've been added to ${orgName}'s PrivacyReady account.\n\nYour temporary password: ${tempPassword}\n\nVerify your email: ${verifyUrl}\n\nYou will be required to change your password after your first login. This link expires in 24 hours.`;
+  return sendEmail(to, subject, html, text);
+}
+
+export async function sendPasswordResetEmail(to: string, fullName: string, resetUrl: string) {
+  const subject = 'Reset your PrivacyReady password';
+  const html = `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2>Hi ${escapeHtml(fullName)},</h2>
+      <p>We received a request to reset your password. If you didn't make this request, you can ignore this email.</p>
+      <p><a href="${escapeHtml(resetUrl)}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Reset password</a></p>
+      <p style="color:#888;font-size:13px;">This link expires in 1 hour.</p>
+    </div>
+  `;
+  const text = `Hi ${fullName},\n\nWe received a request to reset your password. If you didn't make this request, you can ignore this email.\n\nReset your password here: ${resetUrl}\n\nThis link expires in 1 hour.`;
   return sendEmail(to, subject, html, text);
 }
 

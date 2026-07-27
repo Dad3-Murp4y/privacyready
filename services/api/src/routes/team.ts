@@ -87,7 +87,8 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
         fullName,
         passwordHash,
         role: requestedRole,
-        organizationId: user.org
+        organizationId: user.org,
+        requiresPasswordChange: true
       }
     });
 

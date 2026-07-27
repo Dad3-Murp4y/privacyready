@@ -3,7 +3,7 @@ import { Type } from '@sinclair/typebox';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
-import { sendVerificationEmail } from '../email.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../email.js';
 
 const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
 const VERIFY_TOKEN_TTL_HOURS = 24;
@@ -229,7 +229,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // We still return the payload base64 so the frontend can synchronously know the role
     // without reading an HttpOnly cookie or waiting for /auth/me, but the signature remains secure.
     const payload = token.split('.')[1];
-    return { success: true, payload };
+    return { success: true, payload, requiresPasswordChange: user.requiresPasswordChange };
   });
 
   app.post('/auth/logout', async (request, reply) => {
@@ -261,8 +261,100 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
-      organizationName: user.organization.name
+      organizationName: user.organization.name,
+      requiresPasswordChange: user.requiresPasswordChange
     };
+  });
+
+  app.post('/auth/forgot-password', {
+    schema: { body: Type.Object({ email: Type.String({ format: 'email' }) }) },
+    config: { rateLimit: { max: 3, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const { email } = request.body as any;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetTokenHash: hashToken(rawToken), passwordResetExpires: expires }
+      });
+      const resetUrl = `${PORTAL_URL}/reset-password?token=${rawToken}&uid=${user.id}`;
+      try {
+        await sendPasswordResetEmail(user.email, user.fullName, resetUrl);
+      } catch (err) {
+        request.log.error(err, 'Failed to send reset email');
+      }
+    }
+    return { message: 'If that email is registered, a password reset link has been sent.' };
+  });
+
+  app.post('/auth/reset-password', {
+    schema: {
+      body: Type.Object({
+        token: Type.String(),
+        uid: Type.String(),
+        newPassword: Type.String({ minLength: 8 })
+      })
+    },
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const { token, uid, newPassword } = request.body as any;
+    const user = await prisma.user.findUnique({ where: { id: uid } });
+    
+    if (!user || !user.passwordResetTokenHash || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return reply.status(400).send({ error: 'Invalid or expired reset token' });
+    }
+
+    const providedHash = Buffer.from(hashToken(token));
+    const storedHash = Buffer.from(user.passwordResetTokenHash);
+    if (providedHash.length !== storedHash.length || !crypto.timingSafeEqual(providedHash, storedHash)) {
+      return reply.status(400).send({ error: 'Invalid reset token' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: uid },
+      data: {
+        passwordHash,
+        passwordResetTokenHash: null,
+        passwordResetExpires: null,
+        requiresPasswordChange: false
+      }
+    });
+
+    return { message: 'Password has been reset successfully. You can now log in.' };
+  });
+
+  app.post('/auth/change-password', {
+    schema: {
+      body: Type.Object({
+        oldPassword: Type.String(),
+        newPassword: Type.String({ minLength: 8 })
+      })
+    }
+  }, async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
+
+    const tokenUser = request.user as any;
+    const user = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+    if (!user) return reply.status(404).send({ error: 'User not found' });
+
+    const { oldPassword, newPassword } = request.body as any;
+    const isValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isValid) return reply.status(400).send({ error: 'Invalid old password' });
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, requiresPasswordChange: false }
+    });
+
+    return { message: 'Password changed successfully' };
   });
 
 };
