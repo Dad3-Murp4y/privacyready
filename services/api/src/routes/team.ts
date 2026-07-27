@@ -22,6 +22,10 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async (request, reply) => {
     try {
       await request.jwtVerify();
+      const tokenUser = request.user as any;
+      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
+      request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
