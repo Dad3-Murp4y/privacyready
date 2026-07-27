@@ -1,4 +1,5 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { prisma } from './db.js';
 
 const REGION = process.env.AWS_REGION || 'eu-west-2';
 const FROM_EMAIL = process.env.SES_FROM_EMAIL || 'noreply@privacyready.co.uk';
@@ -17,6 +18,13 @@ const ses = new SESClient({ region: REGION });
  * approved within a day.
  */
 export async function sendEmail(to: string, subject: string, htmlBody: string, textBody: string) {
+  // Check suppression list before sending to protect SES reputation
+  const suppressed = await prisma.suppressionList.findUnique({ where: { email: to } });
+  if (suppressed) {
+    console.warn(`[SES] Skipped sending to ${to} (Suppression reason: ${suppressed.reason})`);
+    return null;
+  }
+
   const command = new SendEmailCommand({
     Source: `PrivacyReady <${FROM_EMAIL}>`,
     Destination: { ToAddresses: [to] },
@@ -38,8 +46,8 @@ export async function sendVerificationEmail(to: string, fullName: string, verify
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
       <h2>Welcome to PrivacyReady, ${escapeHtml(fullName)}</h2>
       <p>Confirm your email address to activate your account:</p>
-      <p><a href="${verifyUrl}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Verify email</a></p>
-      <p>Or paste this link into your browser: ${verifyUrl}</p>
+      <p><a href="${escapeHtml(verifyUrl)}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Verify email</a></p>
+      <p>Or paste this link into your browser: ${escapeHtml(verifyUrl)}</p>
       <p style="color:#888;font-size:13px;">This link expires in 24 hours. If you didn't create a PrivacyReady account, you can ignore this email.</p>
     </div>
   `;
@@ -55,7 +63,7 @@ export async function sendTeamInviteEmail(to: string, fullName: string, orgName:
       <p>You've been added to <strong>${escapeHtml(orgName)}</strong>'s PrivacyReady account.</p>
       <p>Your temporary password: <code style="background:#f0f0f0;padding:4px 8px;border-radius:4px;">${escapeHtml(tempPassword)}</code></p>
       <p>Verify your email and log in to get started:</p>
-      <p><a href="${verifyUrl}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Verify email</a></p>
+      <p><a href="${escapeHtml(verifyUrl)}" style="display:inline-block;background:#19376D;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;">Verify email</a></p>
       <p style="color:#888;font-size:13px;">We'd recommend changing your password after your first login. This link expires in 24 hours.</p>
     </div>
   `;
