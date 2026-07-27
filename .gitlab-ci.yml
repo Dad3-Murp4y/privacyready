@@ -229,16 +229,6 @@ build-api:
       changes:
         - services/api/**/*
 
-build-dsr:
-  extends: .build-scan-push
-  variables:
-    SERVICE_NAME: "privacyready-dsr"
-    BUILD_CONTEXT: "services/dsr"
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - services/dsr/**/*
-
 build-scanner:
   extends: .build-scan-push
   variables:
@@ -268,15 +258,6 @@ deploy-api:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/api/**/*
-
-deploy-dsr:
-  extends: .deploy-base
-  script:
-    - make roll SERVICE=dsr ENV=production
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - services/dsr/**/*
 
 deploy-scanner:
   extends: .deploy-base

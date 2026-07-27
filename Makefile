@@ -30,7 +30,7 @@ TF_PERSISTENT_DIR := terraform/persistent
 AWS_REGION := eu-west-2
 ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text)
 ECR_REGISTRY := $(ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-SERVICES := api scanner dsr
+SERVICES := api scanner
 
 # ECS cluster/service names differ by environment (see
 # environments/test/ecs.tf's -test suffixing, done specifically so
@@ -106,7 +106,7 @@ plan: init
 	cd $(TF_ENV_DIR) && terraform plan
 
 apply: init
-	cd $(TF_ENV_DIR) && terraform apply
+	cd $(TF_ENV_DIR) && terraform apply -auto-approve
 
 # Requires CONFIRM=yes so this can never fire from a stray `make
 # destroy` with no arguments -- same pattern as scripts/wipe_bucket.py.

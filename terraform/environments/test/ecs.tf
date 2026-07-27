@@ -358,27 +358,6 @@ resource "aws_ecs_task_definition" "scanner" {
   }])
 }
 
-resource "aws_ecs_task_definition" "dsr" {
-  family                   = "privacyready-test-dsr"
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = "256"
-  memory                   = "512"
-  execution_role_arn       = aws_iam_role.ecs_execution.arn
-  task_role_arn            = aws_iam_role.ecs_task.arn
-
-  container_definitions = jsonencode([{
-    name      = "dsr"
-    image     = "${data.terraform_remote_state.persistent.outputs.ecr_dsr_url}:latest"
-    essential = true
-
-    portMappings = [{
-      containerPort = 8000
-      protocol      = "tcp"
-    }]
-
-  }])
-}
 
 resource "aws_lb_target_group" "scanner" {
   name        = "pr-tg-scanner-test"
@@ -400,25 +379,6 @@ resource "aws_lb_target_group" "scanner" {
   }
 }
 
-resource "aws_lb_target_group" "dsr" {
-  name        = "pr-tg-dsr-test"
-  port        = 8000
-  protocol    = "HTTP"
-  vpc_id      = module.vpc.vpc_id
-  target_type = "ip"
-
-  health_check {
-    enabled             = true
-    healthy_threshold   = 2
-    interval            = 30
-    matcher             = "200,404"
-    path                = "/docs"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    unhealthy_threshold = 3
-  }
-}
 
 resource "aws_ecs_service" "scanner" {
   name            = "privacyready-test-scanner"
@@ -446,23 +406,3 @@ resource "aws_ecs_service" "scanner" {
   depends_on     = [aws_lb_listener_rule.scanner]
 }
 
-resource "aws_ecs_service" "dsr" {
-  name            = "privacyready-test-dsr"
-  cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.dsr.arn
-  desired_count   = 1
-
-  network_configuration {
-    subnets          = module.vpc.private_subnet_ids
-    security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = false
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.dsr.arn
-    container_name   = "dsr"
-    container_port   = 8000
-  }
-
-  depends_on = [aws_lb_listener_rule.dsr]
-}

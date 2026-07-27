@@ -43,6 +43,10 @@ export async function registerDsrRoutes(app: FastifyInstance) {
   // File a new DSR request (e.g. logged manually from a support channel).
   app.post('/api/dsr', { schema: CreateDsrSchema }, async (request, reply) => {
     const user = request.user as any;
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      return reply.code(403).send({ error: 'Forbidden: Requires ADMIN role' });
+    }
+
     const { subjectEmail, subjectName, requestType, reasonText } = request.body as any;
 
     const normalizedType = requestType.toUpperCase();
@@ -76,6 +80,10 @@ export async function registerDsrRoutes(app: FastifyInstance) {
   // one tenant can't touch another tenant's DSR records.
   app.patch('/api/dsr/:id', { schema: UpdateDsrSchema }, async (request, reply) => {
     const user = request.user as any;
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      return reply.code(403).send({ error: 'Forbidden: Requires ADMIN role' });
+    }
+
     const { id } = request.params as { id: string };
     const { status } = request.body as any;
 

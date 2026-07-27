@@ -111,6 +111,7 @@ resource "aws_security_group" "ses_bounce_lambda" {
   tags = merge(local.tags, { Name = "privacyready-ses-bounce-sg" })
 }
 
+/*
 data "aws_secretsmanager_secret" "prod_db" {
   name = "privacyready/db-password"
 }
@@ -130,3 +131,4 @@ module "ses_bounce_handler" {
   vpc_subnet_ids = module.management_vpc.private_subnet_ids
   vpc_security_group_ids = [aws_security_group.ses_bounce_lambda.id]
 }
+*/

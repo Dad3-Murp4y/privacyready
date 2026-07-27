@@ -17,7 +17,7 @@ variable "instance_class" {
 
 variable "engine_version" {
   type    = string
-  default = "15.13"
+  default = "15.17"
 }
 
 variable "allocated_storage" {

@@ -48,8 +48,7 @@ resource "aws_iam_policy" "gitlab_ci" {
         ]
         Resource = [
           aws_ecr_repository.app.arn,
-          aws_ecr_repository.scanner.arn,
-          aws_ecr_repository.dsr.arn
+          aws_ecr_repository.scanner.arn
         ]
       },
       {

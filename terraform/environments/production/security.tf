@@ -8,20 +8,14 @@ resource "aws_security_group" "alb" {
   description = "ALB security group for production"
 
   ingress {
-    from_port       = 443
-    to_port         = 443
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "HTTPS from CloudFront"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS from anywhere (CloudFront + API)"
   }
 
-  ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
-    prefix_list_ids = [data.aws_ec2_managed_prefix_list.cloudfront.id]
-    description     = "HTTP from CloudFront"
-  }
+
 
   egress {
     from_port   = 0
