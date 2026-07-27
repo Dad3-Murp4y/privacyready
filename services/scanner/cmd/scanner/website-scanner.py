@@ -25,32 +25,32 @@ class UnsafeTargetError(Exception):
     pass
 
 
-def _assert_public_host(hostname: str) -> None:
-    """Resolve hostname and reject it if any resolved address is not a
-    globally-routable public IP. Checks *all* resolved addresses (a domain
-    can round-robin between a public and a private IP), and deliberately
-    does this at the IP level rather than string-matching the hostname,
-    since 'localhost', decimal/hex IP encodings, and DNS rebinding can all
-    bypass a hostname-only check."""
+# Monkey-patch socket.getaddrinfo to prevent DNS rebinding and TOCTOU
+_orig_getaddrinfo = socket.getaddrinfo
+
+def safe_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
     try:
-        addr_infos = socket.getaddrinfo(hostname, None)
+        addr_infos = _orig_getaddrinfo(host, port, family, type, proto, flags)
     except socket.gaierror as e:
         raise UnsafeTargetError(f"Could not resolve host: {e}")
 
-    for family, _, _, _, sockaddr in addr_infos:
+    for fam, _, _, _, sockaddr in addr_infos:
         ip_str = sockaddr[0]
         ip = ipaddress.ip_address(ip_str)
         if (
             ip.is_private
             or ip.is_loopback
-            or ip.is_link_local       # covers 169.254.169.254 cloud metadata
+            or ip.is_link_local
             or ip.is_reserved
             or ip.is_multicast
             or ip.is_unspecified
         ):
             raise UnsafeTargetError(
-                f"Refusing to scan {hostname} -- resolves to non-public address {ip_str}"
+                f"Refusing to connect to non-public address {ip_str} (resolved from {host})"
             )
+    return addr_infos
+
+socket.getaddrinfo = safe_getaddrinfo
 
 
 class WebsiteScanner:
@@ -67,9 +67,8 @@ class WebsiteScanner:
             if parsed.scheme not in ('http', 'https'):
                 raise UnsafeTargetError(f"Unsupported URL scheme: {parsed.scheme!r}")
             if not parsed.hostname:
+            if not parsed.hostname:
                 raise UnsafeTargetError("URL has no hostname")
-
-            _assert_public_host(parsed.hostname)
 
             response = requests.get(
                 self.url,
@@ -78,13 +77,6 @@ class WebsiteScanner:
                 allow_redirects=True,
                 stream=True,  # so we can cap response size before reading the body
             )
-
-            # Re-validate the final URL after redirects -- a public URL can
-            # redirect to an internal one, which would otherwise bypass the
-            # check above.
-            final_host = urlparse(response.url).hostname
-            if final_host:
-                _assert_public_host(final_host)
 
             # Cap response size to avoid a memory-exhaustion DoS from an
             # unbounded body.

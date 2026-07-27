@@ -69,7 +69,7 @@ class TikTokScanner:
             severity='medium',
             description='Public video comments may contain PII — manual review required',
             evidence='TikTok API restrictions prevent automated comment scanning',
-            gdpr_article='Article 37 (Security)',
+            gdpr_article='Article 32 (Security of processing)',
             remediation='Manually review recent video comments; delete any containing phone/email/ID; enable comment moderation'
         ))
     
@@ -81,6 +81,6 @@ class TikTokScanner:
             severity='medium',
             description='Business account may collect lead data without proper consent flow',
             evidence='TikTok Business Center settings not accessible via public API',
-            gdpr_article='Article 19 (Consent)',
+            gdpr_article='Article 7 (Conditions for consent)',
             remediation='Review Business Center: Ensure lead forms have consent checkboxes; verify data retention settings'
         ))
