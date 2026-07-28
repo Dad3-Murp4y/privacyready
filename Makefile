@@ -152,10 +152,9 @@ deploy-frontend: check-env
 	@cp -r frontend /tmp/frontend-deploy
 	@rm -rf /tmp/frontend-deploy/portal /tmp/frontend-deploy/node_modules
 	@if [ "$(ENV)" = "test" ]; then \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal.privacyready.co.uk|https://test-portal.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://api.privacyready.co.uk|https://test-api.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready.co.uk|https://test.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.js" -exec sed -i 's|\.privacyready\.co\.uk|.test.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal\.privacyready\.co\.uk|https://test-portal.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://api\.privacyready\.co\.uk|https://test-api.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready\.co\.uk|https://test.privacyready.co.uk|g' {} +; \
 	fi
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
 	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --delete

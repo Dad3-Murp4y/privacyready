@@ -887,15 +887,14 @@ async function startSocialScan(e) {
   targetEl.textContent = 'Social & Apps Audit';
   checksList.innerHTML = '';
   
-  ||  
   const rows = SOCIAL_SCAN_CHECKS_DEF.map((c, i) => {
     const li = document.createElement('li');
     li.className = 'scan-check pending';
     li.innerHTML = `
       <span class="check-icon">○</span>
       <span class="check-body">
-        <span class="check-label ${i >= 3 ? 'blurred' : ''}">${c.label[lang] || c.label.en}</span>
-        <span class="check-detail blurred">${c.detail[lang] || c.detail.en}</span>
+        <span class="check-label ${i >= 3 ? 'blurred' : ''}">${c.label}</span>
+        <span class="check-detail blurred">${c.detail}</span>
       </span>`;
     checksList.appendChild(li);
     return li;
