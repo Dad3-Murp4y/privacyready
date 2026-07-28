@@ -148,23 +148,28 @@ export default function Dashboard() {
 
         // Verify token expiration client-side
         try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          const exp = payload.exp * 1000;
-          if (Date.now() >= exp) {
-            localStorage.removeItem('token');
-            navigate('/login');
-            return;
+          const rawPayload = token.split('.')[1] || token;
+          const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = base64.length % 4;
+          const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+          const payload = JSON.parse(atob(padded));
+          
+          if (payload && payload.exp) {
+            const exp = payload.exp * 1000;
+            if (Date.now() >= exp) {
+              localStorage.removeItem('token');
+              navigate('/login');
+              return;
+            }
+            const timeUntilExp = exp - Date.now();
+            setTimeout(() => {
+              alert('Your session has expired. Please log in again.');
+              localStorage.removeItem('token');
+              navigate('/login');
+            }, timeUntilExp);
           }
-          const timeUntilExp = exp - Date.now();
-          setTimeout(() => {
-            alert('Your session has expired. Please log in again.');
-            localStorage.removeItem('token');
-            navigate('/login');
-          }, timeUntilExp);
         } catch (e) {
-          localStorage.removeItem('token');
-          navigate('/login');
-          return;
+          console.warn('Could not parse token client-side, relying on cookie auth:', e);
         }
 
         // Fetch user profile

@@ -71,8 +71,11 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 // the admin shell at all.
 function getJwtRole(token: string): string | null {
   try {
-    const payload = token.split('.')[1];
-    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const payload = token.split('.')[1] || token;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = base64.length % 4;
+    const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+    const decoded = JSON.parse(atob(padded));
     return decoded.role ?? null;
   } catch {
     return null;
