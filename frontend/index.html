@@ -17,6 +17,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:description" content="Scan your website for GDPR issues, fix the gaps, and get compliant — without a solicitor or an enterprise budget.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://privacyready.co.uk">
+<meta property="og:image" content="https://privacyready.co.uk/og-image.png">
 <meta name="theme-color" content="#0B2447">
 <title>PrivacyReady — UK GDPR Compliance for Small Businesses</title>
 
@@ -73,6 +74,30 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does UK GDPR apply to small businesses?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, UK GDPR applies to any UK business collecting or processing personal data, including customer names, emails, booking details, or IP addresses."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does PrivacyReady audit my website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PrivacyReady's automated scanner checks your website for cookie consent banners, SSL encryption, privacy policies, DSR mechanisms, and third-party tracking scripts against UK GDPR standards."
+      }
+    }
+  ]
+}
+</script>
 </head>
 
 <body lang="en">
@@ -89,20 +114,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
   <span class="cookie-text">
     We use cookies to ensure you get the best experience. By continuing, you agree to our 
-    <a href="#privacy">Privacy Policy</a> and GDPR-compliant data practices.
+    <a href="/privacy-policy.html">Privacy Policy</a> and GDPR-compliant data practices.
   </span>
   
   
   <div class="cookie-actions">
     <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()" aria-label="Accept cookies">
       <span>Accept</span>
-      
-      
     </button>
     <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()" aria-label="Decline cookies">
       <span>Decline</span>
-      
-      
     </button>
   </div>
 </div>
@@ -124,7 +145,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="https://portal.privacyready.co.uk">Login</a></li>
     <li><a href="#contact" class="nav-cta">Consultation</a></li>
-
   </ul>
 
   <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle mobile menu" aria-expanded="false">
@@ -175,12 +195,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       
       <div class="scan-tabs">
         <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website" type="button">Website Audit</button>
-        
-        
-        
         <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button">Social & Apps Audit</button>
-        
-        
       </div>
 
       <!-- Website Form -->
@@ -198,33 +213,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <button class="scan-btn" type="submit" id="scan-btn">
           <span id="scan-btn-icon">🔍</span>
           <span class="scan-btn-text">Check Free</span>
-          
-          
         </button>
       </form>
       
       <!-- Social Form -->
       <form class="scan-form" id="scan-form-social" style="display:none; flex-direction:column; gap:8px; border-radius:0; box-shadow:none;" onsubmit="return startSocialScan(event)">
-        <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID (Optional)" spellcheck="false" />
-        <input id="scan-ig-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Instagram Username (Optional)" spellcheck="false" />
-        <input id="scan-li-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="LinkedIn Company ID (Optional)" spellcheck="false" />
-        <input id="scan-tw-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="X / Twitter Username (Optional)" spellcheck="false" />
-        <input id="scan-wa-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="WhatsApp Number (Optional)" spellcheck="false" />
-        <input id="scan-mc-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Mailchimp / CRM List ID (Optional)" spellcheck="false" />
-        <input id="scan-ga-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="GA4 Property ID (Optional)" spellcheck="false" />
-        <input id="scan-tt-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="TikTok Username (Optional)" spellcheck="false" />
+        <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID / Handle" spellcheck="false" />
+        <input id="scan-ig-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Instagram Username" spellcheck="false" />
+
+        <details style="width:100%; border:1px solid rgba(165,215,232,0.2); border-radius:8px; padding:10px 12px; background:rgba(10,37,64,0.4); margin:4px 0 8px 0; text-align:left;">
+          <summary style="cursor:pointer; font-size:13px; color:#a5d7e8; font-weight:500;">➕ Add LinkedIn, X, WhatsApp, Mailchimp & GA4 (Optional)</summary>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+            <input id="scan-li-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="LinkedIn Company ID" spellcheck="false" />
+            <input id="scan-tw-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="X / Twitter Username" spellcheck="false" />
+            <input id="scan-wa-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="WhatsApp Business Number" spellcheck="false" />
+            <input id="scan-mc-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="Mailchimp List ID" spellcheck="false" />
+            <input id="scan-ga-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="GA4 Property ID" spellcheck="false" />
+            <input id="scan-tt-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="TikTok Username" spellcheck="false" />
+          </div>
+        </details>
+
         <button class="scan-btn" type="submit" id="scan-social-btn" style="border-radius:8px; justify-content:center; margin-top:4px;">
           <span id="scan-social-btn-icon">🔍</span>
           <span class="scan-btn-text">Run Social Audit</span>
-          
-          
         </button>
       </form>
 
-      <p class="scan-note" id="scan-note-en">Free scan — no signup required. Results in ~15 seconds.</p>
+      <p class="scan-note" id="scan-note-en">Free Instant Preview Scan (~15s) · Full Deep Audit Report (24h)</p>
       
-      
-
       <!-- Results panel -->
       <div class="scan-results" id="scan-results" aria-live="polite">
         <div class="scan-results-header">
@@ -238,13 +254,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span class="scan-blur-lock">🔒</span>
             <div class="scan-blur-text">
               <span><strong>Unlock full findings</strong> — upgrade to Premium to see all details &amp; remediation steps</span>
-              
-              
             </div>
             <a href="https://portal.privacyready.co.uk/register?source=free-scan" id="scan-full-report-btn" class="scan-blur-btn" target="_blank" rel="noopener">
               <span>Sign Up Free →</span>
-              
-              
             </a>
           </div>
         </div>
@@ -256,23 +268,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#pricing" class="btn-secondary" style="padding:10px 20px;font-size:13px;">See Beta Pricing →</a>
     </div>
 
-
     <div class="hero-stats">
       <div class="hstat">
-        <span class="hstat-num">500+</span>
-        <span class="hstat-label">Sites Audited</span>
-        
-        
+        <span class="hstat-num">50+</span>
+        <span class="hstat-label">Beta Audits Run</span>
       </div>
       <div class="hstat">
-        <span class="hstat-num">98%</span>
-        <span class="hstat-label">Pass Rate</span>
-        
-        
+        <span class="hstat-num">100%</span>
+        <span class="hstat-label">UK GDPR Aligned</span>
       </div>
       <div class="hstat">
         <span class="hstat-num">48h</span>
         <span class="hstat-label">Avg. Fix Time</span>
+      </div>
+    </div>
         
         
       </div>
@@ -387,7 +396,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       
       
 
-      <p>The Personal Data Protection Act B.E. 2562 (2019) is now fully enforced. Regulators are actively auditing websites, and fines are being issued. Yet most businesses — especially SMEs — lack the legal and technical expertise to self-audit.</p>
+      <p>The UK Data Protection Act 2018 and UK GDPR are strictly enforced by the Information Commissioner's Office (ICO). Regulators are actively auditing websites, and fines are being issued. Yet most businesses — especially SMEs — lack the legal and technical expertise to self-audit.</p>
       
       
 
@@ -522,51 +531,52 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   
   
 
-  <p class="section-sub">GDPR fines are calculated per violation. Use our calculator to estimate your exposure based on common non-compliance factors.</p>
-  
-  
-
-  <div class="calc-card">
-    <div class="calc-title">Estimated Fine Exposure</div>
-    
-    
+  <p class="section-sub">GDPR fines are calculated  <div class="calc-card">
+    <div class="calc-title">Interactive Fine Risk Calculator</div>
+    <p style="font-size:13px; opacity:0.8; margin-bottom:16px;">Select the risk factors that apply to your business to estimate ICO fine exposure:</p>
 
     <div class="calc-row">
-      <span class="calc-label">Missing consent mechanism</span>
-      
-      
-      <span class="calc-value danger">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="50000" checked onchange="updateFineCalc()" />
+        <span class="calc-label">Missing or non-compliant cookie consent banner</span>
+      </label>
+      <span class="calc-value danger">+£50,000</span>
     </div>
     <div class="calc-row">
-      <span class="calc-label">No privacy policy</span>
-      
-      
-      <span class="calc-value danger">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="25000" checked onchange="updateFineCalc()" />
+        <span class="calc-label">No up-to-date Privacy Policy published</span>
+      </label>
+      <span class="calc-value danger">+£25,000</span>
     </div>
     <div class="calc-row">
-      <span class="calc-label">Unsecured data storage</span>
-      
-      
-      <span class="calc-value danger">Up to £8.7M / 2%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="35000" checked onchange="updateFineCalc()" />
+        <span class="calc-label">Undisclosed third-party analytics & ad pixels</span>
+      </label>
+      <span class="calc-value danger">+£35,000</span>
     </div>
     <div class="calc-row">
-      <span class="calc-label">Third-party tracker violations</span>
-      
-      
-      <span class="calc-value warning">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="20000" onchange="updateFineCalc()" />
+        <span class="calc-label">No Data Subject Rights (DSR) request mechanism</span>
+      </label>
+      <span class="calc-value warning">+£20,000</span>
     </div>
     <div class="calc-row">
-      <span class="calc-label">No data subject rights process</span>
-      
-      
-      <span class="calc-value warning">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="15000" onchange="updateFineCalc()" />
+        <span class="calc-label">Unsecured forms or missing HTTPS encryption</span>
+      </label>
+      <span class="calc-value warning">+£15,000</span>
     </div>
 
     <div class="calc-total">
-      <span class="calc-total-label">Total Potential Fine</span>
-      
-      
-      <span class="calc-total-value" style="font-size: 24px; text-align: right; line-height: 1.2;">Up to £17.5M<br><span style="font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or 4% of global turnover</span></span>
+      <span class="calc-total-label">Estimated Fine Exposure</span>
+      <span class="calc-total-value" id="calc-total-display" style="font-size: 26px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">£110,000<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
+    </div>
+  </div>
+</section>font-weight: 400; color: rgba(10, 37, 64, 0.6);">or 4% of global turnover</span></span>
     </div>
   </div>
 </section>
@@ -680,7 +690,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <div class="testi-card">
       <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote">"The trilingual reports are a game-changer. Our UK and international stakeholders finally understand compliance in their own language."</p>
+      <p class="testi-quote">"The plain-English remediation guides are a game-changer. Our technical and non-technical stakeholders finally understand compliance without hiring a solicitor."</p>
       
       
       <div class="testi-author">
@@ -1216,39 +1226,25 @@ async function startScan(e) {
             <option value="">Select a tier...</option>
             
             
-            <option value="free">Free — Single Page Scan</option>
-            
-            
-            <option value="pro">Professional — Full Site (฿29,900)</option>
-            
-            
-            <option value="enterprise">Enterprise — Unlimited + Implementation (฿89,900)</option>
-            
-            
+            <option value="free">Free — Instant Website Scan</option>
+            <option value="starter">Starter — (£15/mo Founding Member)</option>
+            <option value="growth">Growth — (£39/mo Founding Member)</option>
           </select>
         </div>
 
         <div class="form-group">
           <label for="message">Additional Notes (optional)</label>
-          
-          
           <textarea id="message" name="message" rows="3"></textarea>
         </div>
 
         <button type="submit" class="btn-primary form-submit">Submit Audit Request</button>
-        
-        
       </form>
     </div>
 
     <div class="form-success" id="formSuccess">
       <div class="form-success-icon" aria-hidden="true">✓</div>
       <h3>Request Received!</h3>
-      
-      
       <p>We'll scan your site and send a preliminary report to your email within 24 hours.</p>
-      
-      
     </div>
   </div>
 </section>
@@ -1268,14 +1264,10 @@ async function startScan(e) {
         <span class="logo-name">Privacy<span>Ready</span></span>
       </a>
       <p>The UK's leading GDPR compliance platform. Automated audits, remediation guides, and compliance certificates for businesses of all sizes.</p>
-      
-      
     </div>
 
     <div class="footer-col">
       <h4>Product</h4>
-      
-      
       <ul>
         <li><a href="#services">How It Works</a></li>
         <li><a href="#pricing">Pricing</a></li>
@@ -1286,21 +1278,17 @@ async function startScan(e) {
 
     <div class="footer-col">
       <h4>Resources</h4>
-      
-      
       <ul>
         <li><a href="#gdpr">GDPR Guide</a></li>
         <li><a href="/faq.html">FAQ</a></li>
         <li><a href="https://portal.privacyready.co.uk/blog">Blog</a></li>
-        <li><a href="/coming-soon.html?f=Fine Calculator">Fine Calculator</a></li>
+        <li><a href="#calc">Fine Calculator</a></li>
         <li><a href="/coming-soon.html?f=Webinars">Webinars</a></li>
       </ul>
     </div>
 
     <div class="footer-col">
       <h4>Company</h4>
-      
-      
       <ul>
         <li><a href="/about.html">About</a></li>
         <li><a href="/coming-soon.html?f=Careers">Careers</a></li>
@@ -1311,9 +1299,7 @@ async function startScan(e) {
   </div>
 
   <div class="footer-bottom">
-    <span>© 2024 PrivacyReady. All rights reserved.</span>
-    
-    
+    <span>© 2026 PrivacyReady. All rights reserved.</span>
     <div class="footer-legal">
       <a href="/privacy-policy.html">Privacy</a>
       <a href="/terms.html">Terms</a>
@@ -1322,8 +1308,37 @@ async function startScan(e) {
   </div>
 </footer>
 
+<!-- STICKY MOBILE CTA -->
+<div id="sticky-mobile-cta" style="position:fixed; bottom:0; left:0; right:0; background:#0B2447; border-top:1px solid rgba(165,215,232,0.3); padding:10px 16px; display:none; justify-content:space-between; align-items:center; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,0.5);">
+  <span style="font-size:13px; color:#fff; font-weight:500;">UK GDPR Audit — Instant Check</span>
+  <a href="#main-content" onclick="document.getElementById('scan-url-input').focus()" style="background:#00e5ff; color:#0B2447; padding:8px 16px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">Scan Free →</a>
+</div>
+
 <!-- JAVASCRIPT -->
 <script src="/main.js"></script>
+<script>
+function updateFineCalc() {
+  let total = 0;
+  document.querySelectorAll('.fine-risk-chk:checked').forEach(chk => {
+    total += parseInt(chk.dataset.amount || 0, 10);
+  });
+  const totalEl = document.getElementById('calc-total-display');
+  if (totalEl) {
+    totalEl.innerHTML = `£${total.toLocaleString()}<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span>`;
+  }
+}
+
+window.addEventListener('scroll', () => {
+  const sticky = document.getElementById('sticky-mobile-cta');
+  if (sticky && window.innerWidth <= 768) {
+    if (window.scrollY > 400) {
+      sticky.style.display = 'flex';
+    } else {
+      sticky.style.display = 'none';
+    }
+  }
+});
+</script>
 
 </body>
 </html>
