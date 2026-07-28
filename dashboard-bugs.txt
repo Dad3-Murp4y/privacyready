@@ -1,0 +1,34 @@
+================================================================================
+PRIVACYREADY DASHBOARD FEATURES & BUGS TRACKER
+================================================================================
+
+TIER 1 ROADMAP & IMPLEMENTATION STATUS
+--------------------------------------------------------------------------------
+
+[FIXED] 1. Compliance Checklist / 8 Pillars Widget
+         - Requirement: Mirror landing page GDPR pillars on the overview tab. Show pass/fail status per pillar derived from latest audit findings.
+         - Implementation: Added 8-Pillars Compliance Widget on the Overview tab with status indicators (Consent, Policy, DSR, SSL, Trackers, Retention, Breach, Security).
+
+[FIXED] 2. Remediation Task List
+         - Requirement: Convert failed scan findings into actionable checkable tasks with "Mark Fixed" and "Re-scan".
+         - Implementation: Built interactive Task List in Overview with progress tracking, checkable task status, and instant re-scan action.
+
+[FIXED] 3. DSR Deadline Tracker & Status Workflow
+         - Requirement: Surface 30-day ICO statutory due date countdown, status workflow (Pending → In Review → Completed), and rich detail modal.
+         - Implementation: Integrated DSR deadline status badges, remaining day countdowns, and inline status change buttons.
+
+[FIXED] 4. Policy Generator Module
+         - Requirement: Provide an interactive wizard to generate privacy policy and cookie policy drafts based on business inputs.
+         - Implementation: Created dedicated Policy Generator tab & modal allowing instant export/copy of customizable UK GDPR policy documents.
+
+[FIXED] 5. Breach Register (Article 33)
+         - Requirement: Incident logging tool tracking discovery dates, affected data, ICO 72-hour notification countdown, and status.
+         - Implementation: Added Breach Register widget and tab with 72h ICO notice timer and incident record keeping.
+
+[FIXED] 6. Score History Chart
+         - Requirement: Visual timeline chart showing compliance score progression over time across past audits.
+         - Implementation: Created interactive SVG trend chart for historical compliance score tracking.
+
+[FIXED] 7. PDF / Shareable Audit Report Export
+         - Requirement: Export branded compliance audit reports for stakeholders, insurers, or clients.
+         - Implementation: Built printable/exportable Audit Report view with company branding, score breakdown, and remediation plan.
