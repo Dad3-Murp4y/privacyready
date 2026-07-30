@@ -158,12 +158,6 @@ deploy-frontend: check-env
 			cp "/tmp/frontend-deploy/$$f.html" "/tmp/frontend-deploy/$$f-clean"; \
 		fi; \
 	done
-	@if [ "$(ENV)" = "test" ]; then \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal\.privacyready\.co\.uk|https://test-portal.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready\.co\.uk|https://test.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*-clean" -exec sed -i 's|https://portal\.privacyready\.co\.uk|https://test-portal.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*-clean" -exec sed -i 's|https://privacyready\.co\.uk|https://test.privacyready.co.uk|g' {} +; \
-	fi
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
 	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --exclude "*-clean" --delete; \
 	 for f in about contact cookies faq privacy-policy terms coming-soon; do \
