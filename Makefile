@@ -151,13 +151,26 @@ deploy-frontend: check-env
 	@rm -rf /tmp/frontend-deploy
 	@cp -r frontend /tmp/frontend-deploy
 	@rm -rf /tmp/frontend-deploy/portal /tmp/frontend-deploy/node_modules
+	@for f in about contact cookies faq privacy-policy terms coming-soon; do \
+		if [ -f "/tmp/frontend-deploy/$$f.html" ]; then \
+			mkdir -p "/tmp/frontend-deploy/$$f"; \
+			cp "/tmp/frontend-deploy/$$f.html" "/tmp/frontend-deploy/$$f/index.html"; \
+			cp "/tmp/frontend-deploy/$$f.html" "/tmp/frontend-deploy/$$f-clean"; \
+		fi; \
+	done
 	@if [ "$(ENV)" = "test" ]; then \
 		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal\.privacyready\.co\.uk|https://test-portal.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://api\.privacyready\.co\.uk|https://test-api.privacyready.co.uk|g' {} +; \
 		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready\.co\.uk|https://test.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*-clean" -exec sed -i 's|https://portal\.privacyready\.co\.uk|https://test-portal.privacyready.co.uk|g' {} +; \
+		find /tmp/frontend-deploy -type f -name "*-clean" -exec sed -i 's|https://privacyready\.co\.uk|https://test.privacyready.co.uk|g' {} +; \
 	fi
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
-	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --delete
+	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --exclude "*-clean" --delete; \
+	 for f in about contact cookies faq privacy-policy terms coming-soon; do \
+		if [ -f "/tmp/frontend-deploy/$$f-clean" ]; then \
+			aws s3 cp "/tmp/frontend-deploy/$$f-clean" "s3://$$BUCKET/$$f" --content-type "text/html"; \
+		fi; \
+	 done
 	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_cloudfront_id); \
 	 aws cloudfront create-invalidation --distribution-id $$CF_ID --paths "/*"
 
