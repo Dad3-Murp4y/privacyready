@@ -1564,6 +1564,33 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+      {/* PORTAL FOOTER */}
+      <footer style={{
+        marginTop: '60px',
+        paddingTop: '32px',
+        paddingBottom: '32px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '16px',
+        color: 'var(--text-secondary)',
+        fontSize: '13px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontWeight: 700, color: '#fff' }}>PrivacyReady</span>
+          <span>© 2026 PrivacyReady Ltd. All rights reserved.</span>
+        </div>
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+          <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Home</a>
+          <a href="https://privacyready.co.uk/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy Policy</a>
+          <a href="https://privacyready.co.uk/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms of Service</a>
+          <a href="https://privacyready.co.uk/cookies.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Cookie Policy</a>
+          <a href="https://privacyready.co.uk/faq.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>FAQ</a>
+          <a href="https://privacyready.co.uk/contact.html" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Contact Support</a>
+        </div>
+      </footer>
 
     </div>
   );

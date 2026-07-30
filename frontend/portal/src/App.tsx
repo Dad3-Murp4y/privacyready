@@ -16,9 +16,7 @@ function MaintenanceBanner() {
 
   useEffect(() => {
     const checkHealth = async () => {
-      const baseUrl = import.meta.env.VITE_API_URL || (window.location.hostname.includes('test')
-        ? 'https://test-api.privacyready.co.uk'
-        : 'https://api.privacyready.co.uk');
+      const baseUrl = import.meta.env.VITE_API_URL || 'https://api.privacyready.co.uk';
       const apiUrl = `${baseUrl}/health`;
       
       try {
