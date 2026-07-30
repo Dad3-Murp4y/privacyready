@@ -7,7 +7,7 @@ const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 export async function registerBillingRoutes(app: FastifyInstance) {
   // Authentication hook for protected billing routes
   app.addHook('onRequest', async (request, reply) => {
-    if (!request.url.startsWith('/api/billing') || request.url.startsWith('/api/billing/webhook')) {
+    if (request.url.includes('/webhook')) {
       return;
     }
 
@@ -23,7 +23,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
   });
 
   // Get current subscription status
-  app.get('/api/billing/subscription-status', async (request, reply) => {
+  app.get('/subscription-status', async (request, reply) => {
     const user = request.user as any;
     const org = await prisma.organization.findUnique({
       where: { id: user.org }
@@ -41,7 +41,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
   });
 
   // Create a Stripe Checkout session
-  app.post('/api/billing/create-checkout-session', async (request, reply) => {
+  app.post('/create-checkout-session', async (request, reply) => {
     const user = request.user as any;
     const { returnUrl, plan = 'starter' } = (request.body || {}) as { returnUrl?: string; plan?: 'starter' | 'growth' };
     
@@ -125,7 +125,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
   });
 
   // Verify Checkout Session completion
-  app.post('/api/billing/verify-session', async (request, reply) => {
+  app.post('/verify-session', async (request, reply) => {
     const user = request.user as any;
     const { sessionId } = (request.body as any) || {};
 
@@ -168,7 +168,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
   });
 
   // Public webhook endpoint for Stripe event handling
-  app.post('/api/billing/webhook', async (request, reply) => {
+  app.post('/webhook', async (request, reply) => {
     const event = request.body as any;
 
     if (!event || !event.type) {
