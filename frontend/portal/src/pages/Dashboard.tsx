@@ -271,6 +271,38 @@ export default function Dashboard() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const handleStripeCheckout = async (plan: 'starter' | 'growth' = 'starter') => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showToast('Please log in to upgrade your subscription.', 'error');
+        navigate('/login');
+        return;
+      }
+      showToast('Redirecting to Stripe Checkout...', 'info');
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          returnUrl: window.location.origin + window.location.pathname,
+          plan 
+        })
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      showToast(data.error || 'Unable to connect to Stripe Checkout. Please try again later.', 'error');
+    } catch (err) {
+      console.warn('Stripe checkout redirect error:', err);
+      showToast('Unable to connect to Stripe Checkout. Please try again later.', 'error');
+    }
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -717,28 +749,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <button 
-              onClick={async () => {
-                try {
-                  const token = localStorage.getItem('token');
-                  showToast('Redirecting to Stripe Checkout...', 'info');
-                  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-checkout-session`, {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ returnUrl: window.location.origin + window.location.pathname })
-                  });
-                  const data = await res.json();
-                  if (data.url) {
-                    window.location.href = data.url;
-                    return;
-                  }
-                } catch (err) {
-                  console.warn('Stripe checkout redirect error:', err);
-                }
-                showToast('Unable to connect to Stripe Checkout. Please try again later.', 'error');
-              }}
+              onClick={() => handleStripeCheckout('starter')}
               style={{
                 background: 'linear-gradient(135deg, #e67e22, #d35400)',
                 border: 'none',
@@ -963,28 +974,7 @@ export default function Dashboard() {
 
                       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
                         <button 
-                          onClick={async () => {
-                            try {
-                              const token = localStorage.getItem('token');
-                              showToast('Redirecting to Stripe Checkout...', 'info');
-                              const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-checkout-session`, {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({ returnUrl: window.location.origin + window.location.pathname, plan: 'starter' })
-                              });
-                              const data = await res.json();
-                              if (data.url) {
-                                window.location.href = data.url;
-                                return;
-                              }
-                            } catch (err) {
-                              console.warn('Stripe checkout redirect error:', err);
-                            }
-                            showToast('Unable to connect to Stripe Checkout. Please try again later.', 'error');
-                          }}
+                          onClick={() => handleStripeCheckout('starter')}
                           style={{
                             background: 'linear-gradient(135deg, var(--sky), #3b82f6)',
                             color: '#0f172a',
@@ -1002,28 +992,7 @@ export default function Dashboard() {
                         </button>
 
                         <button 
-                          onClick={async () => {
-                            try {
-                              const token = localStorage.getItem('token');
-                              showToast('Redirecting to Stripe Checkout...', 'info');
-                              const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-checkout-session`, {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  'Authorization': `Bearer ${token}`
-                                },
-                                body: JSON.stringify({ returnUrl: window.location.origin + window.location.pathname, plan: 'growth' })
-                              });
-                              const data = await res.json();
-                              if (data.url) {
-                                window.location.href = data.url;
-                                return;
-                              }
-                            } catch (err) {
-                              console.warn('Stripe checkout redirect error:', err);
-                            }
-                            showToast('Unable to connect to Stripe Checkout. Please try again later.', 'error');
-                          }}
+                          onClick={() => handleStripeCheckout('growth')}
                           style={{
                             background: 'rgba(255, 255, 255, 0.1)',
                             color: '#fff',
