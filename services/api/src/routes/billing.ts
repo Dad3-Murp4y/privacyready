@@ -25,12 +25,16 @@ export async function registerBillingRoutes(app: FastifyInstance) {
   // Get current subscription status
   app.get('/subscription-status', async (request, reply) => {
     const user = request.user as any;
+    if (!user || !user.org) {
+      return { subscriptionStatus: 'free', stripeCustomerId: null, isPremium: false };
+    }
+
     const org = await prisma.organization.findUnique({
       where: { id: user.org }
     });
 
     if (!org) {
-      return reply.code(404).send({ error: 'Organization not found' });
+      return { subscriptionStatus: 'free', stripeCustomerId: null, isPremium: false };
     }
 
     return {
@@ -49,19 +53,31 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Missing returnUrl' });
     }
 
-    const org = await prisma.organization.findUnique({
-      where: { id: user.org }
-    });
+    let orgId = user?.org || user?.organizationId;
+    let org = orgId ? await prisma.organization.findUnique({ where: { id: orgId } }) : null;
 
     if (!org) {
-      return reply.code(404).send({ error: 'Organization not found' });
+      const userRecord = await prisma.user.findUnique({ where: { id: user.id } });
+      org = await prisma.organization.create({
+        data: {
+          name: `${userRecord?.email || 'User'}'s Organization`,
+          subscriptionStatus: 'free'
+        }
+      });
+      if (userRecord) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { organizationId: org.id }
+        });
+      }
+      orgId = org.id;
     }
 
     const stripeKey = process.env.STRIPE_SECRET_KEY || STRIPE_SECRET_KEY;
     if (!stripeKey) {
       app.log.info('STRIPE_SECRET_KEY not set - falling back to instant activation for test environment');
       await prisma.organization.update({
-        where: { id: user.org },
+        where: { id: orgId },
         data: { subscriptionStatus: 'active' }
       });
       return {

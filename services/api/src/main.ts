@@ -66,6 +66,7 @@ async function buildServer() {
   await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
   await app.register(registerBillingRoutes, { prefix: '/api/billing' });
+  await app.register(registerBillingRoutes, { prefix: '/billing' });
 
   return app;
 }
