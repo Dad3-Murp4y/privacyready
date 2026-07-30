@@ -27,10 +27,13 @@ function MaintenanceBanner() {
         const resp = await fetch(apiUrl, { signal: controller.signal });
         clearTimeout(timeout);
         
-        if (!resp.ok) throw new Error('API returned ' + resp.status);
-        setIsOffline(false);
+        if (resp.status === 502 || resp.status === 503 || resp.status === 504) {
+          setIsOffline(true);
+        } else {
+          setIsOffline(false);
+        }
       } catch (err) {
-        setIsOffline(true);
+        setIsOffline(false);
       }
     };
     
