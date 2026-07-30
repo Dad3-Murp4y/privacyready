@@ -1614,28 +1614,35 @@ footer {
   color: var(--sky);
 }
 
-/* COOKIE CONSENT */
+/* COOKIE CONSENT BANNER */
 .cookie-banner {
   position: fixed;
-  inset: 0;
-  background: rgba(11, 36, 71, 0.95);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  bottom: 24px;
+  left: 24px;
+  right: 24px;
+  max-width: 640px;
+  margin: 0 auto;
+  background: #0B2447;
+  border: 1px solid rgba(165,215,232,0.3);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
   color: white;
-  padding: 40px;
+  padding: 20px 24px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 32px;
+  justify-content: space-between;
+  gap: 20px;
   z-index: 9999;
   opacity: 0;
+  transform: translateY(20px);
   pointer-events: none;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .cookie-banner.show {
   opacity: 1;
+  transform: translateY(0);
   pointer-events: auto;
 }
 

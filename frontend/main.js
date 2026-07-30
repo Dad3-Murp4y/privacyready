@@ -36,6 +36,11 @@ function toggleMobileMenu() {
 // Cookie Consent
 const GA_MEASUREMENT_ID = 'G-1J0Z7Q1PCV';
 
+function getCookieDomain() {
+  const host = window.location.hostname;
+  return host.endsWith('privacyready.co.uk') ? '; domain=.privacyready.co.uk' : '';
+}
+
 function loadAnalytics() {
   if (window.__gaLoaded) return;
   window.__gaLoaded = true;
@@ -58,20 +63,36 @@ function closeCookieBanner() {
 }
 
 function acceptCookies() {
-  document.cookie = "privacyready-cookies=accepted; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=accepted${domainAttr}; path=/; max-age=31536000; SameSite=Lax`;
   closeCookieBanner();
   loadAnalytics();
 }
 
 function declineCookies() {
-  // Declining is a first-class choice, not a dead end: it records the
-  // decline (so we don't ask again this visit) and lets the visitor keep
-  // using the site with no analytics loaded.
-  document.cookie = "privacyready-cookies=declined; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=declined${domainAttr}; path=/; max-age=31536000; SameSite=Lax`;
   closeCookieBanner();
 }
 
-(function() {
+function resetCookieConsent() {
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=${domainAttr}; path=/; max-age=0`;
+  document.cookie = `privacyready-cookies=; path=/; max-age=0`;
+  location.reload();
+}
+
+function initCookieBanner() {
+  const banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+
+  // Support force reset via query string (e.g. ?reset_cookies=1 or ?cookie_banner=1)
+  if (window.location.search.includes('reset_cookies') || window.location.search.includes('cookie_banner')) {
+    const domainAttr = getCookieDomain();
+    document.cookie = `privacyready-cookies=${domainAttr}; path=/; max-age=0`;
+    document.cookie = `privacyready-cookies=; path=/; max-age=0`;
+  }
+
   const consentMatch = document.cookie.match(/(?:^|;\s*)privacyready-cookies=([^;]*)/);
   const consent = consentMatch ? consentMatch[1] : null;
 
@@ -80,12 +101,18 @@ function declineCookies() {
     return;
   }
   if (consent === 'declined') {
-    return; // respect the earlier choice, don't nag again
+    return; // respect the earlier choice
   }
-  // No decision recorded yet -- ask.
-  document.getElementById('cookieBanner').classList.add('show');
-  document.body.style.overflow = 'hidden';
-})();
+
+  // Show cookie banner if no choice has been saved
+  banner.classList.add('show');
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCookieBanner);
+} else {
+  initCookieBanner();
+}
 
 // Form Handling
 function handleFormSubmit(e) {
