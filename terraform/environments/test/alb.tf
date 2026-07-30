@@ -80,7 +80,7 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_route53_record" "api" {
   zone_id = local.zone_id
-  name    = "${local.subdomain}-api.${var.domain_name}"
+  name    = local.api_domain
   type    = "A"
 
   alias {

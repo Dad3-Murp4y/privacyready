@@ -115,7 +115,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  aliases             = ["${local.subdomain}.${var.domain_name}", "www.${local.subdomain}.${var.domain_name}"]
+  aliases             = [local.apex_domain, local.www_domain]
 
   default_cache_behavior {
     response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
@@ -165,7 +165,7 @@ resource "aws_cloudfront_distribution" "portal" {
   enabled             = true
   is_ipv6_enabled     = true
   default_root_object = "index.html"
-  aliases             = ["${local.subdomain}-portal.${var.domain_name}"]
+  aliases             = [local.portal_domain]
 
   # Support client-side routing
   custom_error_response {
@@ -219,7 +219,7 @@ resource "aws_cloudfront_distribution" "portal" {
 # Route 53 Records for CloudFront
 resource "aws_route53_record" "apex" {
   zone_id = local.zone_id
-  name    = "${local.subdomain}.${var.domain_name}"
+  name    = local.apex_domain
   type    = "A"
 
   alias {
@@ -231,7 +231,7 @@ resource "aws_route53_record" "apex" {
 
 resource "aws_route53_record" "www" {
   zone_id = local.zone_id
-  name    = "www.${local.subdomain}.${var.domain_name}"
+  name    = local.www_domain
   type    = "A"
 
   alias {
@@ -243,7 +243,7 @@ resource "aws_route53_record" "www" {
 
 resource "aws_route53_record" "portal" {
   zone_id = local.zone_id
-  name    = "${local.subdomain}-portal.${var.domain_name}"
+  name    = local.portal_domain
   type    = "A"
 
   alias {

@@ -13,11 +13,12 @@ resource "aws_security_group" "gitlab_alb" {
   description = "GitLab ALB security group"
 
   ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from Internet"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [for ip in var.allowed_admin_ip_cidrs : ip if !can(regex(":", ip))]
+    ipv6_cidr_blocks = [for ip in var.allowed_admin_ip_cidrs : ip if can(regex(":", ip))]
+    description      = "HTTPS restricted to Administrator IP"
   }
 
   egress {

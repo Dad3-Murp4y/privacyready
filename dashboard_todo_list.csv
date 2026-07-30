@@ -1,0 +1,19 @@
+ID,Tier,Feature Title,Description,Status
+8,Tier 2,Vendor / Processor Register,Track vendor names purpose data shared DPA signed status and transfer country,COMPLETED
+9,Tier 2,Consent Management Dashboard,Manage cookie categories consent logs and embeddable banner configuration,COMPLETED
+10,Tier 2,Scheduled Scans & Alerts,Automated weekly and monthly scan scheduler with email notifications on score drops,COMPLETED
+11,Tier 2,Compliance Certificate Page,Generate downloadable badge and public verification URL when score is high,COMPLETED
+12,Tier 2,Public DSR Intake Form,Embeddable public request intake page for consumer privacy submissions,COMPLETED
+13,Tier 2,Scan Comparison View,Side-by-side comparative analysis of two audits showing fixed and newly detected issues,COMPLETED
+14,Tier 3,Onboarding Wizard,Guided first-time setup flow (add domain run scan review top findings),COMPLETED
+15,Tier 3,Expanded Social Scan Types,Scan options matching marketing site (Instagram LinkedIn WhatsApp Mailchimp GA4 TikTok),COMPLETED
+16,Tier 3,Modal Alert Replacements,Sleek UI modals replacing browser alert popups for session expiry and scan errors,COMPLETED
+17,Tier 3,Loading Skeletons,Animated loading skeleton components during initial dashboard data fetching,COMPLETED
+18,Tier 3,Mobile Sidebar & Collapsible Nav,Responsive mobile navigation sidebar toggle for small screens,COMPLETED
+19,Tier 3,Settings & Org Profile Page,Manage organization profile notification preferences billing plan and API keys,COMPLETED
+20,Tier 3,Notifications Center,Notification center bell menu tracking DSR deadlines score changes and team activity,COMPLETED
+21,Tier 4,ICO Breach Notification Helper,Guided 72-hour step-by-step reporting wizard for ICO breach notifications,COMPLETED
+22,Tier 4,ROPA Lite (Article 30),Record of Processing Activities template and management register under UK GDPR,COMPLETED
+23,Tier 4,Staff Training Tracker,Track employee data protection training completion status and certificates,COMPLETED
+24,Tier 4,Integrations Module,Slack/Email webhooks WordPress plugin instructions and Mailchimp sync settings,COMPLETED
+25,Tier 4,Multi-Asset Dashboard View,Unified view combining website and social assets into an aggregated health score,COMPLETED
