@@ -11,7 +11,7 @@ groups:
           description: "High error rate detected on API service: {{ $value }}% HTTP 5xx errors."
 
       - alert: APILatencyHigh
-        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m]) by (le))) > 1.5
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1.5
         for: 3m
         labels:
           severity: warning
@@ -29,10 +29,28 @@ groups:
           description: "PostgreSQL active connections count is {{ $value }}."
 
       - alert: ScannerFailureSpike
-        expr: rate(compliance_scans_total{status="FAILED"}[10m]) > 0.2
+        expr: rate(scanner_jobs_failed_total[10m]) / rate(scanner_jobs_total[10m]) * 100 > 10
         for: 5m
         labels:
           severity: critical
         annotations:
           summary: "Compliance Scanner failure spike"
-          description: "Scanner failure rate is elevated."
+          description: "Scanner failure rate is elevated above 10%."
+
+      - alert: DSRStatutoryDeadlineWarning
+        expr: dsr_requests_active_total > 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated DSR queue approaching 30-day UK GDPR statutory limit"
+          description: "Active Subject Access Requests total is {{ $value }}."
+
+      - alert: SESBounceRateElevated
+        expr: rate(aws_ses_bounce_total[15m]) / rate(aws_ses_send_total[15m]) * 100 > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AWS SES Email Bounce Rate Exceeds 5%"
+          description: "SES email bounce rate is {{ $value }}%, approaching AWS reputation risk threshold."

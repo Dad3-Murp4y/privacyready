@@ -1,0 +1,67 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Scanner Execution Rate by Integration Module",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(scanner_jobs_total[5m])) by (scanner_module)",
+          "legendFormat": "{{scanner_module}}"
+        }
+      ]
+    },
+    {
+      "title": "Scanner Success Rate vs Failure Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(scanner_jobs_completed_total[5m])) / sum(rate(scanner_jobs_total[5m])) * 100",
+          "legendFormat": "Success Rate (%)"
+        },
+        {
+          "expr": "sum(rate(scanner_jobs_failed_total[5m])) / sum(rate(scanner_jobs_total[5m])) * 100",
+          "legendFormat": "Failure Rate (%)"
+        }
+      ]
+    },
+    {
+      "title": "Scanner Queue Backlog (Pending Job Count)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "scanner_queue_depth",
+          "legendFormat": "Jobs in Queue"
+        }
+      ]
+    },
+    {
+      "title": "Average Audit Scan Duration per Site (Seconds)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "avg(scanner_job_duration_seconds) by (scanner_module)",
+          "legendFormat": "{{scanner_module}} (sec)"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["privacyready", "scanner", "compliance"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "PrivacyReady - Compliance Scanner Engine",
+  "uid": "privacyready-scanner-engine"
+}

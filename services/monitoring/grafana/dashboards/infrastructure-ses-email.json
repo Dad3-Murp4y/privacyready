@@ -1,0 +1,71 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "AWS ECS Container CPU Utilization (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "aws_ecs_cpuutilization_average",
+          "legendFormat": "{{ServiceName}}"
+        }
+      ]
+    },
+    {
+      "title": "AWS ECS Container Memory Utilization (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "aws_ecs_memoryutilization_average",
+          "legendFormat": "{{ServiceName}}"
+        }
+      ]
+    },
+    {
+      "title": "AWS SES Email Send Volume vs Bounce & Complaint Rates",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "aws_ses_send_total",
+          "legendFormat": "Emails Sent"
+        },
+        {
+          "expr": "aws_ses_bounce_total",
+          "legendFormat": "Bounces"
+        },
+        {
+          "expr": "aws_ses_complaint_total",
+          "legendFormat": "Complaints"
+        }
+      ]
+    },
+    {
+      "title": "Application Load Balancer (ALB) Healthy Host Count",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "aws_alb_healthy_host_count",
+          "legendFormat": "Healthy Target Hosts"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["privacyready", "infrastructure", "ecs", "ses"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "PrivacyReady - Infrastructure & AWS SES Email",
+  "uid": "privacyready-infrastructure-ses-email"
+}
