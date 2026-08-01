@@ -37,7 +37,8 @@ export default function Login() {
       
       if (res.ok) {
         const data = await res.json();
-        localStorage.setItem('token', 'dummy.' + data.payload);
+        // Store the full JWT token for Authorization: Bearer header
+        localStorage.setItem('token', data.token || ('dummy.' + data.payload));
         navigate('/dashboard');
       } else {
         const errData = await res.json();

@@ -223,13 +223,13 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(403).send({ error: 'Please verify your email before logging in. Check your inbox, or request a new link via /auth/resend-verification.' });
     }
 
-    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
+    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '8h' });
     const isProd = process.env.NODE_ENV === 'production';
-    reply.header('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Strict${isProd ? '; Secure' : ''}`);
-    // We still return the payload base64 so the frontend can synchronously know the role
-    // without reading an HttpOnly cookie or waiting for /auth/me, but the signature remains secure.
+    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
+    reply.header('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=28800; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`);
+    // Return the full JWT token so the frontend can use it as Authorization: Bearer
     const payload = token.split('.')[1];
-    return { success: true, payload, requiresPasswordChange: user.requiresPasswordChange };
+    return { success: true, token, payload, requiresPasswordChange: user.requiresPasswordChange };
   });
 
   app.post('/auth/logout', async (request, reply) => {
