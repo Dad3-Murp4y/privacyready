@@ -52,7 +52,7 @@ resource "aws_ecs_task_definition" "app" {
       { name = "DB_HOST", value = module.rds.address },
       { name = "REDIS_HOST", value = module.elasticache.address },
       { name = "SUPERADMIN_EMAIL", value = var.superadmin_email },
-      { name = "PORTAL_URL", value = "https://${local.subdomain}-portal.${var.domain_name}" },
+      { name = "PORTAL_URL", value = "https://${local.portal_domain}" },
       { name = "SES_FROM_EMAIL", value = "noreply@${var.domain_name}" },
       { name = "SCANNER_URL", value = "http://scanner.privacyready-test.local:8080" },
       { name = "AWS_REGION", value = var.region }
@@ -256,8 +256,8 @@ resource "aws_iam_policy" "ecs_ses_send" {
       Action   = ["ses:SendEmail", "ses:SendRawEmail"]
       Resource = "*"
       Condition = {
-        StringEquals = {
-          "ses:FromAddress" = "noreply@${var.domain_name}"
+        StringLike = {
+          "ses:FromAddress" = "*noreply@${var.domain_name}*"
         }
       }
     }]
