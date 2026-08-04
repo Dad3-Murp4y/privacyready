@@ -31,7 +31,8 @@ import {
   Webhook,
   Sparkles,
   Columns,
-  LayoutGrid
+  LayoutGrid,
+  Lock
 } from 'lucide-react';
 import SettingsComponent from './Settings';
 
@@ -195,36 +196,6 @@ export default function Dashboard() {
     { id: 'v3', name: 'Mailchimp (Intuit)', purpose: 'Email Marketing & Retention', dataShared: 'Customer Email, First Name', dpaSigned: true, country: 'United States (US-EU DPF)', riskLevel: 'Medium' }
   ]);
   const [newVendor, setNewVendor] = useState({ name: '', purpose: '', dataShared: '', country: 'United Kingdom', dpaSigned: true });
-
-  // ROPA Lite State
-  const [ropaList] = useState<RopaRecord[]>([
-    { id: 'r1', activityName: 'Customer Subscription Billing', purpose: 'Contract Performance (Art. 6(1)(b))', legalBasis: 'Contractual Obligation', dataCategories: 'Billing Contact, Invoice Address, Tax ID', recipients: 'Stripe, Accounting Software', retentionPeriod: '7 Years (UK Tax Law)', safeguards: 'TLS 1.3 Encryption, Role-based Access' },
-    { id: 'r2', activityName: 'Marketing Newsletter Delivery', purpose: 'Consent (Art. 6(1)(a))', legalBasis: 'Explicit Consent', dataCategories: 'Email Address, Click Preferences', recipients: 'Mailchimp ESP', retentionPeriod: 'Until Opt-Out', safeguards: 'Double Opt-In, Unsubscribe Link' }
-  ]);
-
-  // Staff Training State
-  const [staffTrainings, setStaffTrainings] = useState<StaffTraining[]>([
-    { id: 'st1', employeeName: 'Sarah Jenkins', email: 's.jenkins@privacyready.co.uk', module: 'UK GDPR Basics & Data Hygiene 2026', status: 'Completed', dateCompleted: '2026-06-12' },
-    { id: 'st2', employeeName: 'David Miller', email: 'd.miller@privacyready.co.uk', module: 'Article 33 Incident & Breach Handling', status: 'Completed', dateCompleted: '2026-07-04' },
-    { id: 'st3', employeeName: 'Emma Watson', email: 'e.watson@privacyready.co.uk', module: 'Handling DSRs & Subject Rights', status: 'Pending' }
-  ]);
-  const [newStaffEmail, setNewStaffEmail] = useState('');
-
-  // Consent Management State
-  const [consentLogs] = useState<ConsentLog[]>([
-    { id: 'c1', timestamp: '2026-07-28 10:14:22', category: 'Analytics & Performance', action: 'Accepted', ipHash: '84.21.***.***' },
-    { id: 'c2', timestamp: '2026-07-28 09:48:05', category: 'Marketing Trackers', action: 'Rejected', ipHash: '192.168.***.***' },
-    { id: 'c3', timestamp: '2026-07-28 08:30:11', category: 'Essential & Functional', action: 'Accepted', ipHash: '10.0.***.***' }
-  ]);
-
-  // Integrations & Scheduled Scan State
-  const [scheduledScanConfig, setScheduledScanConfig] = useState({
-    frequency: 'Weekly' as 'Weekly' | 'Monthly',
-    email: 'admin@privacyready.co.uk',
-    alertScoreDrop: true
-  });
-  const [webhookUrl, setWebhookUrl] = useState('https://hooks.slack.com/services/T00/B00/XXXX');
-
 
   // New Scan Form State
   const [target, setTarget] = useState('');
@@ -600,47 +571,7 @@ export default function Dashboard() {
     setTimeout(() => setCopiedPolicy(false), 2500);
   };
 
-  const handleAddVendor = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newVendor.name) return;
-    const item: VendorRecord = {
-      id: `v-${Date.now()}`,
-      name: newVendor.name,
-      purpose: newVendor.purpose || 'Service Provider',
-      dataShared: newVendor.dataShared || 'Contact Details',
-      country: newVendor.country,
-      dpaSigned: newVendor.dpaSigned,
-      riskLevel: newVendor.country.includes('United Kingdom') || newVendor.country.includes('EU') ? 'Low' : 'Medium'
-    };
-    setVendorList([item, ...vendorList]);
-    setNewVendor({ name: '', purpose: '', dataShared: '', country: 'United Kingdom', dpaSigned: true });
-    showToast('Vendor record added successfully!', 'success');
-  };
 
-  const handleInviteStaff = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newStaffEmail) return;
-    const item: StaffTraining = {
-      id: `st-${Date.now()}`,
-      employeeName: newStaffEmail.split('@')[0].replace('.', ' '),
-      email: newStaffEmail,
-      module: 'UK GDPR Basics & Hygiene 2026',
-      status: 'Pending'
-    };
-    setStaffTrainings([item, ...staffTrainings]);
-    setNewStaffEmail('');
-    showToast(`Training invitation sent to ${newStaffEmail}!`, 'success');
-  };
-
-  const handleSaveScheduledScans = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast('Scheduled scan settings saved!', 'success');
-  };
-
-  const handleSaveIntegrations = (e: React.FormEvent) => {
-    e.preventDefault();
-    showToast('Integrations & Webhook saved!', 'success');
-  };
 
   const handleIcoWizardSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1332,221 +1263,16 @@ export default function Dashboard() {
               </div>
             )}
 
-            {/* TAB 5: ITEM 9 CONSENT MANAGEMENT DASHBOARD */}
-            {activeTab === 'consent_manager' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Sliders size={22} color="var(--sky)" /> Cookie & Consent Management Center
-                  </h3>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
-                    <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Total Consents Logged</div>
-                      <div style={{ fontSize: '24px', fontWeight: 700, color: 'var(--sky)', marginTop: '4px' }}>14,280</div>
-                    </div>
-                    <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Acceptance Rate</div>
-                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#27ae60', marginTop: '4px' }}>91.4%</div>
-                    </div>
-                    <div style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Opt-out Rate</div>
-                      <div style={{ fontSize: '24px', fontWeight: 700, color: '#e67e22', marginTop: '4px' }}>8.6%</div>
-                    </div>
-                  </div>
-
-                  <h4 style={{ fontSize: '14px', margin: '0 0 12px 0' }}>Recent Anonymous Consent Audit Log</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {consentLogs.map(c => (
-                      <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', fontSize: '13px' }}>
-                        <span>{c.timestamp} • Category: {c.category} (IP: {c.ipHash})</span>
-                        <span style={{ color: c.action === 'Accepted' ? '#27ae60' : '#e74c3c', fontWeight: 700 }}>{c.action}</span>
-                      </div>
-                    ))}
-                  </div>
+            {/* TAB 5-10: COMING SOON PLACEHOLDERS */}
+            {['consent_manager', 'vendors_ropa', 'breach_register', 'training', 'integrations', 'certificate'].includes(activeTab) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', textAlign: 'center', padding: '60px 20px' }}>
+                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '40px' }}>
+                  <Lock size={48} color="var(--sky)" style={{ margin: '0 auto 16px' }} />
+                  <h3 style={{ fontSize: '24px', fontWeight: 600, margin: '0 0 16px 0' }}>Feature Coming Soon</h3>
+                  <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', margin: '0 auto', lineHeight: '1.6' }}>
+                    This module is currently in development and will be available in an upcoming release. We are working hard to bring you real, API-backed features for complete compliance management.
+                  </p>
                 </section>
-              </div>
-            )}
-
-            {/* TAB 6: ITEM 8 VENDORS REGISTER & ITEM 22 ROPA LITE */}
-            {activeTab === 'vendors_ropa' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                {/* ITEM 8 VENDOR REGISTER */}
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Layers size={22} color="var(--sky)" /> Third-Party Processor & Vendor Register
-                    </h3>
-                  </div>
-
-                  <form onSubmit={handleAddVendor} style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr) auto', gap: '12px', marginBottom: '20px' }}>
-                    <input type="text" placeholder="Vendor Name (e.g. AWS)" value={newVendor.name} onChange={e => setNewVendor({ ...newVendor, name: e.target.value })} required style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '13px' }} />
-                    <input type="text" placeholder="Purpose (e.g. Hosting)" value={newVendor.purpose} onChange={e => setNewVendor({ ...newVendor, purpose: e.target.value })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '13px' }} />
-                    <input type="text" placeholder="Data Shared" value={newVendor.dataShared} onChange={e => setNewVendor({ ...newVendor, dataShared: e.target.value })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '13px' }} />
-                    <input type="text" placeholder="Country" value={newVendor.country} onChange={e => setNewVendor({ ...newVendor, country: e.target.value })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '13px' }} />
-                    <button type="submit" style={{ background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}>+ Add Vendor</button>
-                  </form>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {vendorList.map(v => (
-                      <div key={v.id} style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 2fr 1fr 1fr', padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', fontSize: '13px', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 600 }}>{v.name}</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{v.purpose}</span>
-                        <span style={{ color: 'var(--text-secondary)' }}>{v.country}</span>
-                        <span style={{ color: v.dpaSigned ? '#27ae60' : '#e74c3c', fontWeight: 700 }}>{v.dpaSigned ? 'DPA Signed' : 'No DPA'}</span>
-                        <span style={{ textAlign: 'right', fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: 'rgba(56,189,248,0.15)', color: 'var(--sky)' }}>{v.riskLevel} Risk</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* ITEM 22 ROPA LITE */}
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px 0' }}>Record of Processing Activities (ROPA - Article 30)</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {ropaList.map(r => (
-                      <div key={r.id} style={{ padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--sky)', marginBottom: '4px' }}>{r.activityName}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginTop: '8px' }}>
-                          <div><strong>Legal Basis:</strong> {r.legalBasis}</div>
-                          <div><strong>Categories:</strong> {r.dataCategories}</div>
-                          <div><strong>Retention:</strong> {r.retentionPeriod}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            {/* TAB 7: BREACH REGISTER & ITEM 21 ICO WIZARD */}
-            {activeTab === 'breach_register' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div>
-                      <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <ShieldAlert size={22} color="#e74c3c" /> Article 33 Breach Incident Register
-                      </h3>
-                      <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Log security incidents and calculate ICO 72-hour notification deadlines.</p>
-                    </div>
-
-                    <button 
-                      onClick={() => setShowIcoWizard(true)}
-                      style={{ background: '#e74c3c', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
-                    >
-                      <Plus size={16} /> ICO 72h Reporting Helper
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {breaches.map(b => (
-                      <div key={b.id} style={{ padding: '20px', background: 'rgba(239,68,68,0.05)', borderRadius: '16px', border: '1px solid rgba(239,68,68,0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <div style={{ fontSize: '16px', fontWeight: 700, color: '#f87171' }}>{b.title} ({b.id})</div>
-                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Discovered: {b.discoveredDate} • Data: {b.dataAffected}</div>
-                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Notes: {b.notes}</div>
-                        </div>
-
-                        <div style={{ textAlign: 'right' }}>
-                          <span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, background: 'rgba(39,174,96,0.2)', color: '#27ae60' }}>
-                            {b.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              </div>
-            )}
-
-            {/* TAB 8: ITEM 23 STAFF TRAINING TRACKER */}
-            {activeTab === 'training' && (
-              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <GraduationCap size={22} color="var(--sky)" /> Staff Data Protection Hygiene & Training Register
-                </h3>
-
-                <form onSubmit={handleInviteStaff} style={{ display: 'flex', gap: '12px', marginBottom: '20px' }}>
-                  <input type="email" placeholder="Employee Email Address" value={newStaffEmail} onChange={e => setNewStaffEmail(e.target.value)} required style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontSize: '14px' }} />
-                  <button type="submit" style={{ background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>Invite Staff Member</button>
-                </form>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {staffTrainings.map(s => (
-                    <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      <div>
-                        <div style={{ fontSize: '14px', fontWeight: 600 }}>{s.employeeName} ({s.email})</div>
-                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Module: {s.module}</div>
-                      </div>
-                      <span style={{ padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, background: s.status === 'Completed' ? 'rgba(39,174,96,0.15)' : 'rgba(230,126,34,0.15)', color: s.status === 'Completed' ? '#27ae60' : '#e67e22' }}>
-                        {s.status}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 9: ITEM 10 SCHEDULED SCANS & ITEM 24 INTEGRATIONS */}
-            {activeTab === 'integrations' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                {/* ITEM 10 SCHEDULED SCANS */}
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Repeat size={20} color="var(--sky)" /> Automated Scheduled Audits
-                  </h3>
-                  <form onSubmit={handleSaveScheduledScans} style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <select value={scheduledScanConfig.frequency} onChange={e => setScheduledScanConfig({ ...scheduledScanConfig, frequency: e.target.value as any })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px' }}>
-                      <option value="Weekly">Weekly Auto Scan</option>
-                      <option value="Monthly">Monthly Auto Scan</option>
-                    </select>
-                    <input type="email" value={scheduledScanConfig.email} onChange={e => setScheduledScanConfig({ ...scheduledScanConfig, email: e.target.value })} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px', flex: 1 }} />
-                    <button type="submit" style={{ background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>Save Schedule</button>
-                  </form>
-                </section>
-
-                {/* ITEM 24 INTEGRATIONS */}
-                <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                  <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <Webhook size={20} color="var(--sky)" /> Webhooks & Platform Integrations
-                  </h3>
-                  <form onSubmit={handleSaveIntegrations} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div>
-                      <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Slack Webhook Alert URL</label>
-                      <input type="text" value={webhookUrl} onChange={e => setWebhookUrl(e.target.value)} style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px' }} />
-                    </div>
-                    <button type="submit" style={{ width: 'max-content', background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: 700, cursor: 'pointer' }}>Update Webhook Settings</button>
-                  </form>
-                </section>
-              </div>
-            )}
-
-            {/* TAB 10: ITEM 11 COMPLIANCE CERTIFICATE & VERIFICATION URL */}
-            {activeTab === 'certificate' && (
-              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Award size={64} color="var(--sky)" style={{ marginBottom: '16px' }} />
-                <h2 style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0' }}>UK GDPR Verified Certificate</h2>
-                <p style={{ color: 'var(--text-secondary)', maxWidth: '500px', fontSize: '14px', margin: '0 0 24px 0' }}>
-                  Issued to <strong>{userProfile?.organizationName}</strong> based on an overall audit score of {overallScore}%.
-                </p>
-
-                <div style={{ background: '#0a0f1e', border: '2px solid var(--sky)', borderRadius: '20px', padding: '32px', maxWidth: '480px', width: '100%', marginBottom: '24px' }}>
-                  <ShieldCheck size={48} color="#27ae60" style={{ marginBottom: '12px' }} />
-                  <h3 style={{ margin: 0, fontSize: '20px' }}>VERIFIED COMPLIANT</h3>
-                  <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>Verification Code: PR-2026-88429</div>
-                  <div style={{ fontSize: '12px', color: 'var(--sky)', marginTop: '12px', wordBreak: 'break-all' }}>https://privacyready.co.uk/verify/PR-2026-88429</div>
-                </div>
-
-                <button onClick={() => { 
-                  if (!hasSubscription) {
-                    showToast('Verified Compliance Badges require an active Pro Subscription.', 'error');
-                    return;
-                  }
-                  window.print(); 
-                }} style={{ background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Printer size={18} /> Print Verified Certificate Badge
-                </button>
               </div>
             )}
 

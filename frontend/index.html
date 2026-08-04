@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-599K9SKZ');</script>
-<!-- End Google Tag Manager -->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="PrivacyReady — UK GDPR compliance for small businesses. Scan your website, fix the gaps, and stay compliant. No legal team needed.">
@@ -21,26 +15,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="theme-color" content="#0B2447">
 <title>PrivacyReady — UK GDPR Compliance for Small Businesses</title>
 
-<!-- Google Analytics with Consent Mode v2 -->
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  
-  // Set default consent to 'denied'
-  gtag('consent', 'default', {
-    'analytics_storage': 'denied',
-    'ad_storage': 'denied',
-    'ad_user_data': 'denied',
-    'ad_personalization': 'denied'
-  });
-</script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-1J0Z7Q1PCV"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-1J0Z7Q1PCV');
-</script>
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,14 +88,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- COOKIE CONSENT BANNER -->
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
   <span class="cookie-text">
-    We use cookies to ensure you get the best experience. By continuing, you agree to our 
-    <a href="/privacy-policy.html">Privacy Policy</a> and GDPR-compliant data practices.
+    We use analytics cookies to understand how you use our site and improve our services. You can choose to accept or decline these analytics cookies. Read our 
+    <a href="/privacy-policy.html">Privacy Policy</a>.
   </span>
-  
-  
   <div class="cookie-actions">
     <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()" aria-label="Accept cookies">
-      <span>Accept</span>
+      <span>Accept Analytics</span>
     </button>
     <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()" aria-label="Decline cookies">
       <span>Decline</span>
@@ -514,47 +487,37 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <p class="section-sub">GDPR fines are calculated based on data volume and turnover.</p>
   <div class="calc-card">
     <div class="calc-title">Interactive Fine Risk Calculator</div>
-    <p style="font-size:13px; opacity:0.8; margin-bottom:16px;">Select the risk factors that apply to your business to estimate ICO fine exposure:</p>
+    <p style="font-size:13px; opacity:0.8; margin-bottom:16px;">Common risk factors that the ICO evaluates during an investigation:</p>
 
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
-        <input type="checkbox" class="fine-risk-chk" data-amount="50000" checked onchange="updateFineCalc()" />
         <span class="calc-label">Missing or non-compliant cookie consent banner</span>
       </label>
-      <span class="calc-value danger">+£50,000</span>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
-        <input type="checkbox" class="fine-risk-chk" data-amount="25000" checked onchange="updateFineCalc()" />
         <span class="calc-label">No up-to-date Privacy Policy published</span>
       </label>
-      <span class="calc-value danger">+£25,000</span>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
-        <input type="checkbox" class="fine-risk-chk" data-amount="35000" checked onchange="updateFineCalc()" />
         <span class="calc-label">Undisclosed third-party analytics & ad pixels</span>
       </label>
-      <span class="calc-value danger">+£35,000</span>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
-        <input type="checkbox" class="fine-risk-chk" data-amount="20000" onchange="updateFineCalc()" />
         <span class="calc-label">No Data Subject Rights (DSR) request mechanism</span>
       </label>
-      <span class="calc-value warning">+£20,000</span>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
-        <input type="checkbox" class="fine-risk-chk" data-amount="15000" onchange="updateFineCalc()" />
         <span class="calc-label">Unsecured forms or missing HTTPS encryption</span>
       </label>
-      <span class="calc-value warning">+£15,000</span>
     </div>
 
     <div class="calc-total">
-      <span class="calc-total-label">Estimated Fine Exposure</span>
-      <span class="calc-total-value" id="calc-total-display" style="font-size: 26px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">£110,000<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
+      <span class="calc-total-label">Maximum Potential Fine</span>
+      <span class="calc-total-value" style="font-size: 20px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">Up to £17.5M<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
     </div>
   </div>
 </section>
@@ -567,11 +530,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <p class="section-sub">We're in beta — which means you get our best prices, locked in for life, in exchange for feedback. No enterprise budget needed. No hidden fees. No "book a demo."</p>
 
-  <div style="text-align:center; margin-bottom:24px;">
-    <span style="display:inline-block; background:rgba(165,215,232,0.12); border:1px solid rgba(165,215,232,0.3); border-radius:999px; padding:8px 20px; font-size:13px; color:#a5d7e8; font-weight:500;">
-      🎯 Founding Member spots remaining: <strong style="color:#fff;">23 / 30</strong> (Updated Today)
-    </span>
-  </div>
+
 
   <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); max-width: 860px; margin: 0 auto;">
 
@@ -639,66 +598,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 
-<!-- TESTIMONIALS -->
-<section class="testimonials" id="testimonials" aria-labelledby="testi-heading">
-  <p class="section-label">Testimonials</p>
-  
-  
 
-  <h2 id="testi-heading">Trusted by teams who take <em>privacy seriously</em></h2>
-  
-  
-
-  <div class="testi-grid">
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote">"We thought we were compliant until PrivacyReady found 23 issues. Their remediation guide saved us weeks of legal review."</p>
-      
-      
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">E</div>
-        <div>
-          <div class="testi-name">Eleanor B.</div>
-          <div class="testi-biz">Data Protection Officer, Nexus Retail Ltd</div>
-          
-          
-        </div>
-      </div>
-    </div>
-
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote">"The plain-English remediation guides are a game-changer. Our technical and non-technical stakeholders finally understand compliance without hiring a solicitor."</p>
-      
-      
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">M</div>
-        <div>
-          <div class="testi-name">Marcus W.</div>
-          <div class="testi-biz">CTO, Meridian Hospitality Group</div>
-          
-          
-        </div>
-      </div>
-    </div>
-
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote">"Worth every penny. The compliance certificate alone helped us close a major enterprise deal that required GDPR proof."</p>
-      
-      
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">J</div>
-        <div>
-          <div class="testi-name">James D.</div>
-          <div class="testi-biz">CEO, Manchester MedTech Solutions</div>
-          
-          
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- TIMELINE -->
 <section class="timeline" id="timeline" aria-labelledby="timeline-heading">
@@ -1156,56 +1056,10 @@ async function startScan(e) {
 </script>
 
 <section class="contact-section" id="contact">
-  <div class="form-card">
-    <div id="contactFormWrap" style="display:block;">
-      <div class="form-title">Tell us about your needs</div>
-      <div class="form-subtitle">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
-
-      <form id="auditForm" onsubmit="handleFormSubmit(event)">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name">Full Name</label>
-            <input type="text" id="name" name="name" required aria-required="true">
-          </div>
-          <div class="form-group">
-            <label for="email">Business Email</label>
-            <input type="email" id="email" name="email" required aria-required="true">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="company">Company Name</label>
-          <input type="text" id="company" name="company" required aria-required="true">
-        </div>
-
-        <div class="form-group">
-          <label for="url">Website URL</label>
-          <input type="url" id="url" name="url" placeholder="https://your-site.com" required aria-required="true">
-        </div>
-
-        <div class="form-group">
-          <label for="tier">Audit Tier</label>
-          <select id="tier" name="tier" required aria-required="true">
-            <option value="">Select a tier...</option>
-            <option value="starter">Starter — (£15/mo Founding Member)</option>
-            <option value="growth">Growth — (£39/mo)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="message">Additional Notes (optional)</label>
-          <textarea id="message" name="message" rows="3"></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary form-submit">Submit Audit Request</button>
-      </form>
-    </div>
-
-    <div class="form-success" id="formSuccess" style="display:none;">
-      <div class="form-success-icon" aria-hidden="true">✓</div>
-      <h3>Request Received!</h3>
-      <p>We'll scan your site and send a preliminary report to your email within 24 hours.</p>
-    </div>
+  <div class="form-card" style="text-align: center; padding: 60px 40px;">
+    <div class="form-title" style="margin-bottom: 16px;">Tell us about your needs</div>
+    <div class="form-subtitle" style="margin-bottom: 32px;">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
+    <a href="mailto:hello@privacyready.co.uk" class="btn-primary" style="display: inline-block; padding: 16px 32px; font-size: 16px;">Email hello@privacyready.co.uk</a>
   </div>
 </section>
 

@@ -45,14 +45,30 @@ function loadAnalytics() {
   if (window.__gaLoaded) return;
   window.__gaLoaded = true;
 
+  // Insert GTM script dynamically
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-599K9SKZ');
+  
+  // Insert gtag script dynamically
+  const script = document.createElement('script');
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+  script.async = true;
+  document.head.appendChild(script);
+
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
   
+  gtag('js', new Date());
+  gtag('config', GA_MEASUREMENT_ID);
+  
   gtag('consent', 'update', {
     'analytics_storage': 'granted',
-    'ad_storage': 'granted',
-    'ad_user_data': 'granted',
-    'ad_personalization': 'granted'
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied'
   });
 }
 
