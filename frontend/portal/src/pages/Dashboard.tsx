@@ -660,6 +660,42 @@ export default function Dashboard() {
     showToast('ICO 72h Breach Incident logged & draft generated!', 'success');
   };
 
+  const renderPaywallWrapper = (title: string, description: string, children: React.ReactNode) => (
+    <div className="paywall-blur-container">
+      <div className={!hasSubscription ? 'paywall-blurred-content' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        {children}
+      </div>
+      {!hasSubscription && (
+        <div className="paywall-overlay">
+          <ShieldCheck size={52} color="var(--sky)" style={{ marginBottom: '16px' }} />
+          <h3 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: '#fff' }}>
+            {title}
+          </h3>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '520px', margin: '0 0 24px 0', lineHeight: 1.6 }}>
+            {description}
+          </p>
+
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button 
+              onClick={() => handleStripeCheckout('starter')}
+              className="btn-primary" 
+              style={{ padding: '12px 24px', fontSize: '14px', fontWeight: 700 }}
+            >
+              Pro Starter (£49/mo)
+            </button>
+            <button 
+              onClick={() => handleStripeCheckout('growth')}
+              className="btn-secondary" 
+              style={{ padding: '12px 24px', fontSize: '14px', fontWeight: 700 }}
+            >
+              Pro Growth (£149/mo)
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="dashboard-layout" style={{ background: 'var(--navy-dark)', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>
       
@@ -1138,6 +1174,11 @@ export default function Dashboard() {
               </div>
             )}
 
+            {/* --- PREMIUM TABS WRAPPER --- */}
+            {['dsr_manager', 'policy_generator', 'consent_manager', 'vendors_ropa', 'breach_register', 'training', 'integrations', 'certificate'].includes(activeTab) && renderPaywallWrapper(
+              'Premium Workspace Tools Locked',
+              'Free accounts preview top-level scores only. Choose a Pro plan to unlock granular analysis, tracking, and automated compliance workflows.',
+              <>
             {/* TAB 3: DSR DEADLINE TRACKER & ITEM 12 INTAKE FORM */}
             {activeTab === 'dsr_manager' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -1507,6 +1548,9 @@ export default function Dashboard() {
                   <Printer size={18} /> Print Verified Certificate Badge
                 </button>
               </div>
+            )}
+
+              </>
             )}
 
             {/* TAB 11: ITEM 19 SETTINGS & ORG PROFILE */}
