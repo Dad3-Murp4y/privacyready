@@ -18,6 +18,17 @@ export default function Login() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
+      try {
+        const payload = token.split('.')[1] || token;
+        const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = base64.length % 4;
+        const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+        const decoded = JSON.parse(atob(padded));
+        if (decoded.role === 'SUPERADMIN') {
+          navigate('/admin');
+          return;
+        }
+      } catch(e) {}
       navigate('/dashboard');
     }
   }, [navigate]);
@@ -38,7 +49,21 @@ export default function Login() {
       if (res.ok) {
         const data = await res.json();
         // Store the full JWT token for Authorization: Bearer header
-        localStorage.setItem('token', data.token || ('dummy.' + data.payload));
+        const token = data.token || ('dummy.' + data.payload);
+        localStorage.setItem('token', token);
+        
+        try {
+          const payload = token.split('.')[1] || token;
+          const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = base64.length % 4;
+          const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+          const decoded = JSON.parse(atob(padded));
+          if (decoded.role === 'SUPERADMIN') {
+            navigate('/admin');
+            return;
+          }
+        } catch(e) {}
+        
         navigate('/dashboard');
       } else {
         const errData = await res.json();
