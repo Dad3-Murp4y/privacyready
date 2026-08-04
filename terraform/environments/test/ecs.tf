@@ -74,6 +74,10 @@ resource "aws_ecs_task_definition" "app" {
       {
         name      = "STRIPE_SECRET_KEY"
         valueFrom = "arn:aws:secretsmanager:${var.region}:700951986348:secret:privacyready-test/stripe-secret-key"
+      },
+      {
+        name      = "STRIPE_WEBHOOK_SECRET"
+        valueFrom = "arn:aws:secretsmanager:${var.region}:700951986348:secret:privacyready-test/stripe-webhook-secret-m7DW8D"
       }
     ]
 
@@ -217,7 +221,8 @@ resource "aws_iam_policy" "ecs_secrets_access" {
         module.rds.db_secret_arn,
         module.rds.jwt_secret_arn,
         module.rds.scanner_api_key_arn,
-        "arn:aws:secretsmanager:${var.region}:700951986348:secret:privacyready-test/stripe-secret-key*"
+        "arn:aws:secretsmanager:${var.region}:700951986348:secret:privacyready-test/stripe-secret-key*",
+        "arn:aws:secretsmanager:${var.region}:700951986348:secret:privacyready-test/stripe-webhook-secret*"
       ]
     }]
   })

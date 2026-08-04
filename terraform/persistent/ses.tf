@@ -34,7 +34,7 @@ resource "aws_route53_record" "dmarc" {
   name    = "_dmarc.${var.domain_name}"
   type    = "TXT"
   ttl     = "600"
-  records = ["v=DMARC1; p=none; rua=mailto:all.datawai@gmail.com"]
+  records = ["v=DMARC1; p=none; rua=mailto:admin@privacyready.co.uk"]
 }
 
 resource "aws_route53_record" "ses_verification" {
@@ -53,41 +53,6 @@ resource "aws_route53_record" "ses_mx" {
   records = ["10 inbound-smtp.${var.region}.amazonaws.com"]
 }
 
-# Inbound mail (hello@/support@/etc) forwarded to an SNS topic
-# subscribed by a real inbox, since there's no dedicated support
-# mailbox system.
-# tfsec:ignore:AVD-AWS-0136
-resource "aws_sns_topic" "email_forwarding" {
-  name = "privacyready-email-forwarding"
-}
-
-resource "aws_sns_topic_policy" "email_forwarding_policy" {
-  arn = aws_sns_topic.email_forwarding.arn
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ses.amazonaws.com"
-        }
-        Action   = "sns:Publish"
-        Resource = aws_sns_topic.email_forwarding.arn
-        Condition = {
-          StringEquals = {
-            "AWS:SourceAccount" = data.aws_caller_identity.current.account_id
-          }
-        }
-      }
-    ]
-  })
-}
-
-resource "aws_sns_topic_subscription" "all_privacyready" {
-  topic_arn = aws_sns_topic.email_forwarding.arn
-  protocol  = "email"
-  endpoint  = "all.datawai@gmail.com"
-}
 
 # S3 Bucket for temporary storage of inbound raw emails
 # tfsec:ignore:AVD-AWS-0088 tfsec:ignore:AVD-AWS-0089 tfsec:ignore:AVD-AWS-0132

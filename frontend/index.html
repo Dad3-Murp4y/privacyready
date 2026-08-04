@@ -282,11 +282,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span class="hstat-label">Avg. Fix Time</span>
       </div>
     </div>
-        
-        
       </div>
-    </div>
-  </div>
 
   <div class="hero-testi" aria-label="Customer testimonial">
     <div class="hero-testi-stars" aria-label="5 stars">★★★★★</div>
@@ -515,7 +511,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   
   
 
-  <p class="section-sub">GDPR fines are calculated  <div class="calc-card">
+  <p class="section-sub">GDPR fines are calculated based on data volume and turnover.</p>
+  <div class="calc-card">
     <div class="calc-title">Interactive Fine Risk Calculator</div>
     <p style="font-size:13px; opacity:0.8; margin-bottom:16px;">Select the risk factors that apply to your business to estimate ICO fine exposure:</p>
 
@@ -731,7 +728,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h4>Automated Scan (Instant)</h4>
         
         
-        <p>Our crawler analyzes every page, form, cookie, and script. Deep inspection of headers, SSL, and third-party integrations.</p>
+        <p>Our crawler analyses every page, form, cookie, and script. Deep inspection of headers, SSL, and third-party integrations.</p>
         
         
       </div>
@@ -791,6 +788,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 <script>
+const lang = 'en';
 const SCAN_CHECKS_DEF = [
   { id: 'cookie_banner',    label: 'Cookie consent banner',
     detail: 'GDPR requires explicit consent before setting cookies' },
@@ -888,6 +886,16 @@ async function startSocialScan(e) {
     return { element: li, checkDef: c };
   });
 
+  let actualScanType = 'facebook'; // default
+  if (fb) actualScanType = 'facebook';
+  else if (ig) actualScanType = 'instagram';
+  else if (tt) actualScanType = 'tiktok';
+  else if (li) actualScanType = 'linkedin';
+  else if (tw) actualScanType = 'twitter';
+  else if (wa) actualScanType = 'whatsapp';
+  else if (mc) actualScanType = 'mailchimp';
+  else if (ga) actualScanType = 'google_analytics';
+
   // Call the public API
   let apiResults = null;
   try {
@@ -897,7 +905,7 @@ async function startSocialScan(e) {
     const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIdentifier: targetId, scanType: 'Social' }),
+      body: JSON.stringify({ targetIdentifier: targetId, scanType: actualScanType }),
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -1022,8 +1030,8 @@ async function startScan(e) {
     li.innerHTML = `
       <span class="check-icon">${iconFor.pending}</span>
       <span class="check-body">
-        <span class="check-label">${c.label[lang] || c.label.en}</span>
-        <span class="check-detail${isDetailBlurred}">${c.detail[lang] || c.detail.en}</span>
+        <span class="check-label">${typeof c.label === 'object' ? (c.label[lang] || c.label.en) : c.label}</span>
+        <span class="check-detail${isDetailBlurred}">${typeof c.detail === 'object' ? (c.detail[lang] || c.detail.en) : c.detail}</span>
       </span>`;
     checksList.appendChild(li);
     return li;
@@ -1038,7 +1046,7 @@ async function startScan(e) {
     const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIdentifier: url.href, scanType: 'Website' }),
+      body: JSON.stringify({ targetIdentifier: url.href, scanType: 'website' }),
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -1123,7 +1131,7 @@ async function startScan(e) {
   const pct = Math.round((passed / total) * 100);
   const scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
   const scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + scoreLabel;
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
   scoreBadge.className = 'scan-score ' + scoreClass;
 
   // Update full-report link with scanned URL + score + scanId
@@ -1138,7 +1146,17 @@ async function startScan(e) {
   // Show blur nudge banner and CTA
   const blurNudge = document.getElementById('scan-blur-nudge');
   if (blurNudge) blurNudge.style.display = 'flex';
-  // ctaEl.style.dis  <div class="form-card">
+  // ctaEl.style.display = 'block';
+
+  btn.disabled = false;
+  icon.textContent = '🔍';
+  
+  return false;
+}
+</script>
+
+<section class="contact-section" id="contact">
+  <div class="form-card">
     <div id="contactFormWrap" style="display:block;">
       <div class="form-title">Tell us about your needs</div>
       <div class="form-subtitle">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
@@ -1169,9 +1187,8 @@ async function startScan(e) {
           <label for="tier">Audit Tier</label>
           <select id="tier" name="tier" required aria-required="true">
             <option value="">Select a tier...</option>
-            <option value="free">Free — Instant Website Scan</option>
             <option value="starter">Starter — (£15/mo Founding Member)</option>
-            <option value="growth">Growth — (£39/mo Founding Member)</option>
+            <option value="growth">Growth — (£39/mo)</option>
           </select>
         </div>
 

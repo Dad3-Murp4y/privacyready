@@ -266,8 +266,8 @@ resource "aws_iam_policy" "ecs_ses_send" {
       Action   = ["ses:SendEmail", "ses:SendRawEmail"]
       Resource = "*"
       Condition = {
-        StringEquals = {
-          "ses:FromAddress" = "noreply@${var.domain_name}"
+        StringLike = {
+          "ses:FromAddress" = "*noreply@${var.domain_name}*"
         }
       }
     }]

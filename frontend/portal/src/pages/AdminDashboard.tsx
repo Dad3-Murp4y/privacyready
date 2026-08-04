@@ -148,7 +148,7 @@ export default function AdminDashboard() {
           <Shield size={32} color="var(--sky)" />
           <h1 className="dashboard-title" style={{ margin: 0 }}>Super Admin Dashboard</h1>
         </div>
-        <p className="dashboard-subtitle">Platform-wide overview, user, and organization management</p>
+        <p className="dashboard-subtitle">Platform-wide overview, user, and organisation management</p>
       </div>
 
       {error && (
@@ -176,7 +176,7 @@ export default function AdminDashboard() {
               <Building2 size={24} color="var(--sky)" />
             </div>
             <div className="stat-value">{stats.totalOrgs}</div>
-            <div className="stat-label">Total Organizations</div>
+            <div className="stat-label">Total Organisations</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon-wrapper" style={{ background: 'rgba(108, 143, 216, 0.1)' }}>
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
           className={tab === 'orgs' ? 'btn-primary' : 'btn-secondary'}
           style={{ padding: '8px 20px' }}
         >
-          Organizations
+          Organisations
         </button>
       </div>
 
@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                 <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)' }}>
                   <th style={{ padding: '12px 16px', fontWeight: 500 }}>Name</th>
                   <th style={{ padding: '12px 16px', fontWeight: 500 }}>Email</th>
-                  <th style={{ padding: '12px 16px', fontWeight: 500 }}>Organization</th>
+                  <th style={{ padding: '12px 16px', fontWeight: 500 }}>Organisation</th>
                   <th style={{ padding: '12px 16px', fontWeight: 500 }}>Role</th>
                   <th style={{ padding: '12px 16px', fontWeight: 500 }}>Joined</th>
                   <th style={{ padding: '12px 16px', fontWeight: 500 }}></th>
@@ -276,7 +276,7 @@ export default function AdminDashboard() {
 
       {tab === 'orgs' && (
         <div className="scan-card">
-          <h3 className="scan-card-title" style={{ marginBottom: '24px' }}>Organizations</h3>
+          <h3 className="scan-card-title" style={{ marginBottom: '24px' }}>Organisations</h3>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
               <thead>
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                     <td style={{ padding: '16px' }}>
                       <button
                         onClick={() => handleDeleteOrg(org.id, org.name)}
-                        title="Delete organization"
+                        title="Delete organisation"
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', display: 'flex' }}
                       >
                         <Trash2 size={16} />
@@ -311,7 +311,7 @@ export default function AdminDashboard() {
                 {orgs.length === 0 && (
                   <tr>
                     <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                      No organizations found
+                      No organisations found
                     </td>
                   </tr>
                 )}

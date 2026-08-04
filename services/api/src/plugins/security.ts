@@ -7,7 +7,7 @@ export async function registerSecurity(app: FastifyInstance) {
   await app.register(cors, {
     origin: (origin, cb) => {
       if (!origin) {
-        cb(new Error('Missing Origin'), false);
+        cb(null, true);
         return;
       }
       const allowed = [

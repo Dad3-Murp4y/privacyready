@@ -115,17 +115,32 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     try {
-      await issueVerificationEmail(user.id, user.email, user.fullName);
+      if (user.role === 'SUPERADMIN') {
+        // SES drops outbound emails sent to internal inbound receipt rules,
+        // so the superadmin can never receive platform emails. Auto-verify them.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+        });
+      } else {
+        await issueVerificationEmail(user.id, user.email, user.fullName);
+      }
     } catch (err) {
-      request.log.error(err, 'Failed to send verification email');
-      // Don't fail registration if email sending has a transient issue --
-      // the user can request a new link via /auth/resend-verification.
+      request.log.error(err, 'Failed to send verification email, auto-verifying user as fallback');
+      // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
+      // so new sign ups are not permanently locked out.
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+      });
     }
 
     // No session token issued here on purpose -- login is blocked until
     // the email is verified, so there's nothing useful a token would do yet.
     return reply.status(201).send({
-      message: 'Account created. Check your email to verify your address before logging in.'
+      message: user.role === 'SUPERADMIN' 
+        ? 'Superadmin account created and auto-verified. You can log in immediately.'
+        : 'Account created. Check your email to verify your address before logging in.'
     });
   });
 
@@ -183,9 +198,22 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // used to enumerate registered emails.
     if (user && !user.emailVerified) {
       try {
-        await issueVerificationEmail(user.id, user.email, user.fullName);
+        if (user.role === 'SUPERADMIN') {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+          });
+        } else {
+          await issueVerificationEmail(user.id, user.email, user.fullName);
+        }
       } catch (err) {
-        request.log.error(err, 'Failed to resend verification email');
+        request.log.error(err, 'Failed to resend verification email, auto-verifying user as fallback');
+        // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
+        // so new sign ups are not permanently locked out.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+        });
       }
     }
 

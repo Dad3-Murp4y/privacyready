@@ -4,10 +4,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Settings from './pages/Settings';
 import Team from './pages/Team';
 import VerifyEmail from './pages/VerifyEmail';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
+import PublicDsr from './pages/PublicDsr';
 import CookieConsent from './components/CookieConsent';
 import { useState, useEffect } from 'react';
 
@@ -25,13 +27,13 @@ function MaintenanceBanner() {
         const resp = await fetch(apiUrl, { signal: controller.signal });
         clearTimeout(timeout);
         
-        if (resp.status === 502 || resp.status === 503 || resp.status === 504) {
+        if (!resp.ok) {
           setIsOffline(true);
         } else {
           setIsOffline(false);
         }
       } catch (err) {
-        setIsOffline(false);
+        setIsOffline(true);
       }
     };
     
@@ -108,6 +110,7 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
+        <Route path="/public/dsr" element={<PublicDsr />} />
         <Route 
           path="/dashboard" 
           element={
@@ -129,6 +132,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Team />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/settings" 
+          element={
+            <ProtectedRoute>
+              <Settings />
             </ProtectedRoute>
           } 
         />

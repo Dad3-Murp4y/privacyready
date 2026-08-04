@@ -33,6 +33,7 @@ import {
   Columns,
   LayoutGrid
 } from 'lucide-react';
+import SettingsComponent from './Settings';
 
 interface AuditCheck {
   name: string;
@@ -162,26 +163,7 @@ export default function Dashboard() {
   const [showCompareModal, setShowCompareModal] = useState<boolean>(false);
 
   // DSR list state
-  const [dsrs, setDsrs] = useState<DSR[]>([
-    {
-      id: 'DSR-101',
-      type: 'Right to Erasure (Article 17)',
-      email: 'user.johnson@example.co.uk',
-      date: new Date(Date.now() - 5 * 86400000).toLocaleDateString('en-GB'),
-      createdAtTimestamp: Date.now() - 5 * 86400000,
-      status: 'In Progress',
-      description: 'Customer requested complete deletion of account history and marketing data.'
-    },
-    {
-      id: 'DSR-102',
-      type: 'Subject Access Request (SAR - Article 15)',
-      email: 'contact@clientfirm.com',
-      date: new Date(Date.now() - 12 * 86400000).toLocaleDateString('en-GB'),
-      createdAtTimestamp: Date.now() - 12 * 86400000,
-      status: 'Pending',
-      description: 'Request for export of all saved audit reports and billing transaction logs.'
-    }
-  ]);
+  const [dsrs, setDsrs] = useState<DSR[]>([]);
   const [selectedDsr, setSelectedDsr] = useState<DSR | null>(null);
 
   // Breach incidents state
@@ -242,7 +224,7 @@ export default function Dashboard() {
     alertScoreDrop: true
   });
   const [webhookUrl, setWebhookUrl] = useState('https://hooks.slack.com/services/T00/B00/XXXX');
-  const [apiKey] = useState('pr_live_8f9104b2a67e9140c21e890a');
+
 
   // New Scan Form State
   const [target, setTarget] = useState('');
@@ -307,6 +289,32 @@ export default function Dashboard() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const checkToken = () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const rawPayload = token.split('.')[1] || token;
+        const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
+        const pad = base64.length % 4;
+        const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
+        const payload = JSON.parse(atob(padded));
+        if (payload && payload.exp) {
+          const exp = payload.exp * 1000;
+          if (Date.now() >= exp) {
+            localStorage.removeItem('token');
+            showToast('Session expired. Please log in again.', 'info');
+            navigate('/login');
+          }
+        }
+      } catch (e) {
+        console.warn('Could not parse token client-side:', e);
+      }
+    };
+    const interval = setInterval(checkToken, 60000);
+    return () => clearInterval(interval);
+  }, [navigate]);
 
   useEffect(() => {
     const fetchAudits = async () => {
@@ -429,6 +437,31 @@ export default function Dashboard() {
         setAudits(getInitialMockAudits());
       } finally {
         setIsLoading(false);
+      }
+
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
+            credentials: 'include',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (dsrRes.ok) {
+            const dData = await dsrRes.json();
+            const dsrsMapped = dData.map((d: any) => ({
+              id: d.id,
+              type: d.requestType,
+              email: d.subjectEmail,
+              date: new Date(d.createdAt).toLocaleDateString('en-GB'),
+              createdAtTimestamp: new Date(d.createdAt).getTime(),
+              status: d.status,
+              description: d.reasonText || 'No description provided'
+            }));
+            setDsrs(dsrsMapped);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch DSRs', err);
       }
     };
 
@@ -1159,16 +1192,34 @@ export default function Dashboard() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               <select 
                                 value={d.status}
-                                onChange={(e) => {
+                                onChange={async (e) => {
                                   const newStatus = e.target.value as any;
-                                  setDsrs(dsrs.map(item => item.id === d.id ? { ...item, status: newStatus } : item));
-                                  showToast(`DSR ${d.id} status updated to ${newStatus}`, 'info');
+                                  try {
+                                    const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr/${d.id}`, {
+                                      method: 'PATCH',
+                                      headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                      },
+                                      body: JSON.stringify({ status: newStatus })
+                                    });
+                                    if (updateRes.ok) {
+                                      setDsrs(dsrs.map(item => item.id === d.id ? { ...item, status: newStatus } : item));
+                                      showToast(`DSR ${d.id} status updated to ${newStatus}`, 'info');
+                                    } else {
+                                      throw new Error('Update failed');
+                                    }
+                                  } catch (err) {
+                                    showToast('Failed to update DSR status', 'error');
+                                  }
                                 }}
                                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', outline: 'none' }}
                               >
-                                <option value="Pending">Pending</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="IN_REVIEW">In Review</option>
+                                <option value="APPROVED">Approved</option>
+                                <option value="REJECTED">Rejected</option>
+                                <option value="COMPLETED">Completed</option>
                               </select>
                             </div>
                           </div>
@@ -1460,30 +1511,7 @@ export default function Dashboard() {
 
             {/* TAB 11: ITEM 19 SETTINGS & ORG PROFILE */}
             {activeTab === 'settings' && (
-              <div style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Settings size={22} color="var(--sky)" /> Organization & Account Settings
-                </h3>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '600px' }}>
-                  <div>
-                    <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Organization Name</label>
-                    <input type="text" value={userProfile?.organizationName || 'PrivacyReady'} readOnly style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px' }} />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>API Secret Key</label>
-                    <input type="text" value={apiKey} readOnly style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '10px 14px', borderRadius: '10px', fontFamily: 'monospace' }} />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginBottom: '6px' }}>Current Subscription Plan</label>
-                    <div style={{ padding: '12px 16px', background: 'rgba(39,174,96,0.15)', color: '#27ae60', borderRadius: '10px', fontWeight: 700, fontSize: '14px' }}>
-                      GROWTH SUITE (Active)
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SettingsComponent />
             )}
           </>
         )}
@@ -1498,7 +1526,7 @@ export default function Dashboard() {
               <button onClick={() => setShowOnboarding(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Follow these 3 quick steps to automate your organization's UK GDPR compliance:
+              Follow these 3 quick steps to automate your organisation's UK GDPR compliance:
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '20px 0' }}>
               <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}>1️⃣ <strong>Add domain & social profiles</strong> to your audit registry.</div>

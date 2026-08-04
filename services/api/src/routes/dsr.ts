@@ -108,4 +108,48 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     });
     return updated;
   });
+
+  const PublicDsrSchema = {
+    body: Type.Object({
+      organizationName: Type.String(),
+      subjectEmail: Type.String({ format: 'email' }),
+      subjectName: Type.Optional(Type.String()),
+      requestType: Type.String(),
+      reasonText: Type.Optional(Type.String())
+    })
+  };
+
+  // Public endpoint for consumers to file a DSR request. No authentication required.
+  app.post('/api/public/dsr', { schema: PublicDsrSchema }, async (request, reply) => {
+    const { organizationName, subjectEmail, subjectName, requestType, reasonText } = request.body as any;
+
+    const normalizedType = requestType.toUpperCase();
+    if (!VALID_REQUEST_TYPES.includes(normalizedType)) {
+      return reply.status(400).send({ error: `requestType must be one of ${VALID_REQUEST_TYPES.join(', ')}` });
+    }
+
+    const org = await prisma.organization.findFirst({
+      where: { name: organizationName }
+    });
+
+    if (!org) {
+      return reply.status(404).send({ error: 'Organisation not found' });
+    }
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + DSR_DEADLINE_DAYS);
+
+    const dsr = await prisma.dsrRequest.create({
+      data: {
+        organizationId: org.id,
+        subjectEmail,
+        subjectName,
+        requestType: normalizedType,
+        reasonText,
+        dueDate
+      }
+    });
+
+    return reply.status(201).send({ success: true, id: dsr.id });
+  });
 }

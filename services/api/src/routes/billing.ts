@@ -40,7 +40,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     return {
       subscriptionStatus: org.subscriptionStatus || 'free',
       stripeCustomerId: org.stripeCustomerId || null,
-      isPremium: org.subscriptionStatus === 'active'
+      isPremium: org.subscriptionStatus === 'active',
+      orgName: org.name
     };
   });
 
@@ -97,9 +98,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       ? (process.env.STRIPE_GROWTH_PRICE_ID || process.env.STRIPE_PRICE_ID)
       : (process.env.STRIPE_STARTER_PRICE_ID || process.env.STRIPE_FOUNDER_PRICE_ID || process.env.STRIPE_PRICE_ID);
 
-    const productId = isGrowth
-      ? (process.env.STRIPE_GROWTH_PRODUCT_ID || 'prod_UymEAArBiUHKCX')
-      : (process.env.STRIPE_STARTER_PRODUCT_ID || process.env.STRIPE_FOUNDER_PRODUCT_ID || 'prod_UymECYJi78Ffys');
+    // Dynamic inline product if IDs are missing
 
     // Build form-urlencoded payload for Stripe REST API
     const params = new URLSearchParams();
@@ -115,7 +114,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       params.append('line_items[0][quantity]', '1');
     } else {
       params.append('line_items[0][price_data][currency]', 'gbp');
-      params.append('line_items[0][price_data][product]', productId);
+      params.append('line_items[0][price_data][product_data][name]', `PrivacyReady ${planName} Plan`);
+      params.append('line_items[0][price_data][product_data][description]', planDesc);
       params.append('line_items[0][price_data][unit_amount]', String(unitAmount));
       params.append('line_items[0][price_data][recurring][interval]', 'month');
       params.append('line_items[0][quantity]', '1');
@@ -191,9 +191,63 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     }
   });
 
+  // Create Stripe Customer Portal session
+  app.post('/create-portal-session', async (request, reply) => {
+    const user = request.user as any;
+    const { returnUrl } = (request.body as any) || {};
+
+    if (!returnUrl) {
+      return reply.code(400).send({ error: 'Missing returnUrl' });
+    }
+
+    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+    if (!org || !org.stripeCustomerId) {
+      return reply.code(400).send({ error: 'No active subscription or customer ID found' });
+    }
+
+    const stripeKey = process.env.STRIPE_SECRET_KEY || STRIPE_SECRET_KEY;
+    if (!stripeKey) {
+      return reply.code(400).send({ error: 'Billing is not configured in this environment.' });
+    }
+
+    const params = new URLSearchParams();
+    params.append('customer', org.stripeCustomerId);
+    params.append('return_url', returnUrl);
+
+    try {
+      const response = await fetch('https://api.stripe.com/v1/billing_portal/sessions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${stripeKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+      });
+
+      const session = await response.json();
+
+      if (!response.ok) {
+        app.log.error({ session }, 'Stripe Portal API error');
+        return reply.code(400).send({ error: session.error?.message || 'Failed to create portal session' });
+      }
+
+      return { url: session.url };
+    } catch (err) {
+      app.log.error({ err }, 'Stripe portal error');
+      return reply.code(500).send({ error: 'Internal server error creating portal session' });
+    }
+  });
+
   // Public webhook endpoint for Stripe event handling
+  // SECURITY: Ensure you configure Stripe to send webhooks to /api/billing/webhook?secret=YOUR_SECRET
   app.post('/webhook', async (request, reply) => {
     const event = request.body as any;
+    const { secret } = request.query as { secret?: string };
+
+    const expectedSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    if (expectedSecret && secret !== expectedSecret) {
+      return reply.code(401).send({ error: 'Unauthorized webhook' });
+    }
 
     if (!event || !event.type) {
       return reply.code(400).send({ error: 'Invalid webhook payload' });
@@ -214,6 +268,17 @@ export async function registerBillingRoutes(app: FastifyInstance) {
             }
           });
         }
+      } else if (event.type === 'customer.subscription.updated') {
+        const subscription = event.data.object;
+        const customerId = subscription.customer;
+        const status = subscription.status; // active, past_due, canceled, unpaid
+
+        if (customerId) {
+          await prisma.organization.updateMany({
+            where: { stripeCustomerId: customerId },
+            data: { subscriptionStatus: status === 'active' ? 'active' : (status === 'canceled' ? 'canceled' : 'past_due') }
+          });
+        }
       } else if (event.type === 'customer.subscription.deleted') {
         const subscription = event.data.object;
         const customerId = subscription.customer;
@@ -222,6 +287,16 @@ export async function registerBillingRoutes(app: FastifyInstance) {
           await prisma.organization.updateMany({
             where: { stripeCustomerId: customerId },
             data: { subscriptionStatus: 'canceled' }
+          });
+        }
+      } else if (event.type === 'invoice.payment_failed') {
+        const invoice = event.data.object;
+        const customerId = invoice.customer;
+
+        if (customerId) {
+          await prisma.organization.updateMany({
+            where: { stripeCustomerId: customerId },
+            data: { subscriptionStatus: 'past_due' }
           });
         }
       }

@@ -81,7 +81,11 @@ export default function Register() {
       localStorage.removeItem('freeScanClaimToken');
       setRegistered(true);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
+        setError('⚠️ System is currently offline for maintenance. Please try again later.');
+      } else {
+        setError(err.message || 'Registration failed');
+      }
     }
   };
 
@@ -143,7 +147,7 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Organization Name</label>
+            <label className="form-label">Organisation Name</label>
             <input 
               type="text" 
               className="form-input" 

@@ -49,7 +49,7 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Login failed', err);
-      setError('Network error. Please try again later.');
+      setError('⚠️ System is currently offline for maintenance. Please try again later.');
     }
   };
 
@@ -67,7 +67,7 @@ export default function Login() {
         setResendStatus('Failed to resend. Please try again later.');
       }
     } catch (err) {
-      setResendStatus('Network error.');
+      setResendStatus('⚠️ System is currently offline for maintenance. Please try again later.');
     }
   };
 

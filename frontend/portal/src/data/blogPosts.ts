@@ -33,7 +33,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: [
       {
         type: 'paragraph',
-        text: 'Data privacy and tracking cookies remain a critical battleground for consumer trust and compliance. Regulators across Europe and the UK have significantly stepped up their enforcement actions against non-compliant "cookie banners." To ensure your organization is compliant in 2026, it is essential to understand what constitutes true legal consent.'
+        text: 'Data privacy and tracking cookies remain a critical battleground for consumer trust and compliance. Regulators across Europe and the UK have significantly stepped up their enforcement actions against non-compliant "cookie banners." To ensure your organisation is compliant in 2026, it is essential to understand what constitutes true legal consent.'
       },
       {
         type: 'heading',
