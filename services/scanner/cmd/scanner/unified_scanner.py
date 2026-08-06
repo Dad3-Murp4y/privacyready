@@ -72,7 +72,11 @@ class UnifiedScorer:
         # as safer than a scan with just one or two serious findings.
         # Summing and capping means additional findings can only add risk,
         # never dilute it.
-        normalized_score = min(100, int(total_score))
+        has_scan_error = any(f.get('finding_type') in ('scan_error', 'scan_blocked', 'scan_failed') for f in all_findings)
+        if has_scan_error:
+            normalized_score = 100
+        else:
+            normalized_score = min(100, int(total_score))
 
         # Determine risk level and realistic fine exposure. UK GDPR/DPA
         # 2018 sets statutory maximum fines (enforced by the ICO) of

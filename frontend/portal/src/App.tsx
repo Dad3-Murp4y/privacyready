@@ -11,6 +11,7 @@ import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import PublicDsr from './pages/PublicDsr';
 import CookieConsent from './components/CookieConsent';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
 
 function MaintenanceBanner() {
@@ -24,7 +25,8 @@ function MaintenanceBanner() {
       try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 4000);
-        const resp = await fetch(apiUrl, { signal: controller.signal });
+        const resp = await fetch(apiUrl, {
+      credentials: 'include', signal: controller.signal });
         clearTimeout(timeout);
         
         if (!resp.ok) {
@@ -56,52 +58,27 @@ function MaintenanceBanner() {
 }
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
-  const token = localStorage.getItem('token');
+  const { isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  if (isLoading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
 
   return children;
 }
 
-// Reads the role claim out of the JWT payload purely for client-side
-// routing/UX -- this is NOT a security boundary (a JWT payload is only
-// base64-encoded, not encrypted, and this never verifies the signature).
-// The actual access control is admin.ts's server-side SUPERADMIN check on
-// every /admin/* API call; this only decides whether to bother rendering
-// the admin shell at all.
-function getJwtRole(token: string): string | null {
-  try {
-    const payload = token.split('.')[1] || token;
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const pad = base64.length % 4;
-    const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
-    const decoded = JSON.parse(atob(padded));
-    return decoded.role ?? null;
-  } catch {
-    return null;
-  }
-}
-
 function RequireSuperAdmin({ children }: { children: ReactNode }) {
-  const token = localStorage.getItem('token');
-  const location = useLocation();
+  const { isLoading, isSuperAdmin } = useAuth();
 
-  if (!token) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-  if (getJwtRole(token) !== 'SUPERADMIN') {
-    return <Navigate to="/dashboard" replace />;
-  }
+  if (isLoading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (!isSuperAdmin) return <Navigate to="/dashboard" replace />;
 
   return children;
 }
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <MaintenanceBanner />
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -145,7 +122,7 @@ function App() {
         />
       </Routes>
       <CookieConsent />
-    </>
+    </AuthProvider>
   );
 }
 

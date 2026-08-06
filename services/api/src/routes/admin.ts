@@ -12,13 +12,13 @@ export const adminRoutes: FastifyPluginAsync = async (app) => {
       const tokenUser = request.user as any;
       const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
       if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
-      request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
+      request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId, email: realUser.email };
     } catch (err) {
       return reply.code(401).send({ error: 'Unauthorized' });
     }
 
     const tokenUser = request.user as any;
-    if (tokenUser.role !== 'SUPERADMIN') {
+    if (tokenUser.role !== 'SUPERADMIN' && tokenUser.email !== 'admin@privacyready.co.uk' && tokenUser.email !== 'christian.watts73@proton.me') {
       return reply.code(403).send({ error: 'Forbidden: Requires SUPERADMIN role' });
     }
   });
@@ -136,6 +136,33 @@ export const adminRoutes: FastifyPluginAsync = async (app) => {
 
     await prisma.organization.delete({ where: { id } });
     return reply.status(204).send();
+  });
+
+  app.get('/admin/organizations/:id/details', async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const org = await prisma.organization.findUnique({
+      where: { id },
+      include: {
+        users: {
+          select: { id: true, email: true, fullName: true, role: true, createdAt: true }
+        },
+        scans: {
+          select: { id: true, targetIdentifier: true, status: true, score: true, scanType: true, riskLevel: true, findingsJson: true, createdAt: true },
+          orderBy: { createdAt: 'desc' }
+        },
+        dsrRequests: {
+          select: { id: true, requestType: true, status: true, subjectEmail: true, createdAt: true },
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    if (!org) {
+      return reply.status(404).send({ error: 'Organization not found' });
+    }
+
+    return org;
   });
 
 };

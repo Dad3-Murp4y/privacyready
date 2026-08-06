@@ -16,21 +16,18 @@ export default function Login() {
   const [resetEmail, setResetEmail] = useState('');
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = token.split('.')[1] || token;
-        const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-        const pad = base64.length % 4;
-        const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
-        const decoded = JSON.parse(atob(padded));
-        if (decoded.role === 'SUPERADMIN') {
-          navigate('/admin');
-          return;
+    fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        if (data.role) {
+          if (data.role === 'SUPERADMIN') {
+            navigate('/admin');
+          } else {
+            navigate('/dashboard');
+          }
         }
-      } catch(e) {}
-      navigate('/dashboard');
-    }
+      })
+      .catch(() => {});
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,21 +45,16 @@ export default function Login() {
       
       if (res.ok) {
         const data = await res.json();
-        // Store the full JWT token for Authorization: Bearer header
-        const token = data.token || ('dummy.' + data.payload);
-        localStorage.setItem('token', token);
+        // Authentication is now fully handled via HTTP-only cookies
         
         try {
-          const payload = token.split('.')[1] || token;
-          const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-          const pad = base64.length % 4;
-          const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
-          const decoded = JSON.parse(atob(padded));
-          if (decoded.role === 'SUPERADMIN') {
+          if (data.payload && data.payload.role === 'SUPERADMIN') {
             navigate('/admin');
             return;
           }
         } catch(e) {}
+        
+        navigate('/dashboard');
         
         navigate('/dashboard');
       } else {
@@ -82,6 +74,7 @@ export default function Login() {
     try {
       setResendStatus('Sending...');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/resend-verification`, {
+      credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })

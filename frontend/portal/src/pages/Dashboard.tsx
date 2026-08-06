@@ -9,21 +9,16 @@ import {
   Globe,
   Loader2,
   Clock,
-  Shield,
   CheckCircle2,
-  Printer,
-  TrendingUp,
   AlertCircle,
   Copy,
   ShieldAlert,
   FileCheck,
-  CheckSquare,
   Bell,
   Menu,
   X,
   Settings,
   Award,
-  Repeat,
   Layers,
   Sliders,
   Code,
@@ -34,7 +29,9 @@ import {
   LayoutGrid,
   Lock
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import SettingsComponent from './Settings';
+import OverviewTab from '../components/tabs/OverviewTab';
 
 interface AuditCheck {
   name: string;
@@ -95,25 +92,9 @@ interface VendorRecord {
   riskLevel: 'Low' | 'Medium' | 'High';
 }
 
-interface RopaRecord {
-  id: string;
-  activityName: string;
-  purpose: string;
-  legalBasis: string;
-  dataCategories: string;
-  recipients: string;
-  retentionPeriod: string;
-  safeguards: string;
-}
 
-interface StaffTraining {
-  id: string;
-  employeeName: string;
-  email: string;
-  module: string;
-  status: 'Completed' | 'Pending' | 'Overdue';
-  dateCompleted?: string;
-}
+
+
 
 interface NotificationItem {
   id: string;
@@ -123,13 +104,7 @@ interface NotificationItem {
   read: boolean;
 }
 
-interface ConsentLog {
-  id: string;
-  timestamp: string;
-  category: string;
-  action: 'Accepted' | 'Rejected';
-  ipHash: string;
-}
+
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -146,8 +121,7 @@ export default function Dashboard() {
   const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
   const [toast, setToast] = useState<{ message: string; type: 'info' | 'success' | 'error' } | null>(null);
 
-  // User profile & Subscription paywall state
-  const [userProfile, setUserProfile] = useState<{fullName: string, email: string, organizationName: string, role?: string} | null>(null);
+  const { user: authUser, logout } = useAuth();
   const [hasSubscription, setHasSubscription] = useState<boolean>(false);
 
   // Notifications state
@@ -190,12 +164,7 @@ export default function Dashboard() {
   });
 
   // Vendor Register State
-  const [vendorList, setVendorList] = useState<VendorRecord[]>([
-    { id: 'v1', name: 'Google Cloud EMEA', purpose: 'Hosting & Analytics', dataShared: 'IP Address, Usage Telemetry', dpaSigned: true, country: 'Ireland / EU', riskLevel: 'Low' },
-    { id: 'v2', name: 'Stripe Payments', purpose: 'Payment Processing', dataShared: 'Billing Name, Card Metadata', dpaSigned: true, country: 'United Kingdom', riskLevel: 'Low' },
-    { id: 'v3', name: 'Mailchimp (Intuit)', purpose: 'Email Marketing & Retention', dataShared: 'Customer Email, First Name', dpaSigned: true, country: 'United States (US-EU DPF)', riskLevel: 'Medium' }
-  ]);
-  const [newVendor, setNewVendor] = useState({ name: '', purpose: '', dataShared: '', country: 'United Kingdom', dpaSigned: true });
+  const [vendorList] = useState<VendorRecord[]>([]);
 
   // New Scan Form State
   const [target, setTarget] = useState('');
@@ -226,19 +195,13 @@ export default function Dashboard() {
 
   const handleStripeCheckout = async (plan: 'starter' | 'growth' = 'starter') => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        showToast('Please log in to upgrade your subscription.', 'error');
-        navigate('/login');
-        return;
-      }
+      
       showToast('Redirecting to Stripe Checkout...', 'info');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-checkout-session`, {
+      credentials: 'include',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+          'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           returnUrl: window.location.origin + window.location.pathname,
           plan 
@@ -261,86 +224,23 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    const checkToken = () => {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-      try {
-        const rawPayload = token.split('.')[1] || token;
-        const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
-        const pad = base64.length % 4;
-        const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
-        const payload = JSON.parse(atob(padded));
-        if (payload && payload.exp) {
-          const exp = payload.exp * 1000;
-          if (Date.now() >= exp) {
-            localStorage.removeItem('token');
-            showToast('Session expired. Please log in again.', 'info');
-            navigate('/login');
-          }
-        }
-      } catch (e) {
-        console.warn('Could not parse token client-side:', e);
-      }
-    };
-    const interval = setInterval(checkToken, 60000);
-    return () => clearInterval(interval);
-  }, [navigate]);
+  // Token validation is now handled globally by AuthContext
 
   useEffect(() => {
     const fetchAudits = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
+        
 
-        // Verify token expiration client-side safely
-        try {
-          const rawPayload = token.split('.')[1] || token;
-          const base64 = rawPayload.replace(/-/g, '+').replace(/_/g, '/');
-          const pad = base64.length % 4;
-          const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
-          const payload = JSON.parse(atob(padded));
-          
-          if (payload && payload.exp) {
-            const exp = payload.exp * 1000;
-            if (Date.now() >= exp) {
-              localStorage.removeItem('token');
-              navigate('/login');
-              return;
-            }
-          }
-        } catch (e) {
-          console.warn('Could not parse token client-side:', e);
-        }
+        // Token validation is now handled by cookies on the server
 
-        // Fetch user profile
-        try {
-          const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, {
-            credentials: 'include',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (profileRes.ok) {
-            const pData = await profileRes.json();
-            setUserProfile({
-              fullName: pData.fullName || 'Compliance Admin',
-              email: pData.email || 'admin@privacyready.co.uk',
-              organizationName: pData.organization?.name || 'My Organization',
-              role: pData.role || 'ADMIN'
-            });
-          }
-        } catch (err) {
-          console.error('Failed to fetch profile', err);
-        }
+        // Profile is already handled by AuthContext
 
         // Fetch subscription status from backend
         try {
           const subRes = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/subscription-status`, {
-            credentials: 'include',
-            headers: { 'Authorization': `Bearer ${token}` }
+      credentials: 'include',
+            headers: {  }
           });
           if (subRes.ok) {
             const sData = await subRes.json();
@@ -358,11 +258,10 @@ export default function Dashboard() {
         if (sessionId) {
           try {
             const verifyRes = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/verify-session`, {
+      credentials: 'include',
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-              },
+                'Content-Type': 'application/json' },
               body: JSON.stringify({ sessionId })
             });
             if (verifyRes.ok) {
@@ -376,8 +275,8 @@ export default function Dashboard() {
         }
 
         const res = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, {
-          credentials: 'include',
-          headers: { 'Authorization': `Bearer ${token}` }
+      credentials: 'include',
+          headers: {  }
         });
         if (res.ok) {
           const data = await res.json();
@@ -411,25 +310,22 @@ export default function Dashboard() {
       }
 
       try {
-        const token = localStorage.getItem('token');
-        if (token) {
-          const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
-            credentials: 'include',
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (dsrRes.ok) {
-            const dData = await dsrRes.json();
-            const dsrsMapped = dData.map((d: any) => ({
-              id: d.id,
-              type: d.requestType,
-              email: d.subjectEmail,
-              date: new Date(d.createdAt).toLocaleDateString('en-GB'),
-              createdAtTimestamp: new Date(d.createdAt).getTime(),
-              status: d.status,
-              description: d.reasonText || 'No description provided'
-            }));
-            setDsrs(dsrsMapped);
-          }
+        const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (dsrRes.ok) {
+          const dData = await dsrRes.json();
+          const dsrsMapped = dData.map((d: any) => ({
+            id: d.id,
+            type: d.requestType,
+            email: d.subjectEmail,
+            date: new Date(d.createdAt).toLocaleDateString('en-GB'),
+            createdAtTimestamp: new Date(d.createdAt).getTime(),
+            status: d.status,
+            description: d.reasonText || 'No description provided'
+          }));
+          setDsrs(dsrsMapped);
         }
       } catch (err) {
         console.error('Failed to fetch DSRs', err);
@@ -550,13 +446,13 @@ export default function Dashboard() {
 
   const get8Pillars = () => [
     { title: '1. Consent & Notice', passed: overallScore >= 80, desc: 'Explicit consent gating & Article 13 privacy notice.' },
-    { title: '2. Privacy Governance', passed: userProfile?.role === 'ADMIN' || userProfile?.role === 'SUPERADMIN', desc: 'Designated DPO/Compliance lead & internal privacy policy.' },
+    { title: '2. Privacy Governance', passed: authUser?.role === 'ADMIN' || authUser?.role === 'SUPERADMIN', desc: 'Designated DPO/Compliance lead & internal privacy policy.' },
     { title: '3. Data Subject Rights (DSR)', passed: dsrs.length === 0 || dsrs.every(d => d.status === 'Completed'), desc: 'Workflow for handling access, rectification & erasure requests.' },
     { title: '4. Encryption & Transmission', passed: audits.every(a => a.score > 70), desc: 'Enforced TLS 1.3 & encrypted data storage at rest.' },
     { title: '5. Third-Party Disclosures', passed: vendorList.every(v => v.dpaSigned), desc: 'Data Processing Agreements (DPAs) signed with processors.' },
     { title: '6. Data Retention & Minimisation', passed: true, desc: 'Retention schedules defined and automated deletion in place.' },
     { title: '7. Breach Management', passed: breaches.every(b => b.status === 'Resolved' || b.status === 'ICO Notified'), desc: 'Article 33 incident response plan & 72h notification protocol.' },
-    { title: '8. Safeguards & Staff Hygiene', passed: staffTrainings.some(s => s.status === 'Completed'), desc: 'Employee data protection training & access controls.' }
+    { title: '8. Safeguards & Staff Hygiene', passed: false, desc: 'Employee data protection training & access controls.' }
   ];
 
   const handleCopyPolicy = () => {
@@ -628,7 +524,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="dashboard-layout" style={{ background: 'var(--navy-dark)', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>
+    <div className="dashboard-layout" style={{ background: 'var(--navy-dark)', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
       
       {/* GLOBAL TOAST NOTIFICATION REPLACING ALERT() */}
       {toast && (
@@ -771,13 +667,13 @@ export default function Dashboard() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '12px', borderLeft: '1px solid rgba(255,255,255,0.1)' }}>
             <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--sky), #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 }}>
-              {userProfile?.fullName.charAt(0) || 'A'}
+              {authUser?.fullName.charAt(0) || 'A'}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>{userProfile?.fullName || 'Admin User'}</span>
-              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{userProfile?.organizationName || 'PrivacyReady'}</span>
+              <span style={{ fontSize: '13px', fontWeight: 600 }}>{authUser?.fullName || 'Admin User'}</span>
+              <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{authUser?.organizationName || 'PrivacyReady'}</span>
             </div>
-            <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', marginLeft: '8px' }}>
+            <button onClick={() => { logout(); navigate('/login'); }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', marginLeft: '8px' }}>
               <LogOut size={16} />
             </button>
           </div>
@@ -830,7 +726,7 @@ export default function Dashboard() {
       </nav>
 
       {/* MAIN CONTAINER */}
-      <main style={{ padding: '32px 24px', maxWidth: '1400px', margin: '0 auto' }}>
+      <main style={{ padding: '32px 24px', maxWidth: '1400px', margin: '0 auto', flex: 1, width: '100%' }}>
         
         {/* ITEM 17: LOADING SKELETON */}
         {isLoading ? (
@@ -876,141 +772,14 @@ export default function Dashboard() {
                 </div>
 
                 {/* ALL DETAILED COMPLIANCE RESULTS (8 PILLARS, SCORE PROGRESSION, REMEDIATION TASKS) WRAPPED IN PAYWALL BLUR */}
-                <div className="paywall-blur-container">
-                  <div className={!hasSubscription ? 'paywall-blurred-content' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                    {/* ITEM 1: 8 PILLARS COMPLIANCE WIDGET */}
-                    <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <Shield size={22} color="var(--sky)" />
-                          <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>8 Pillars of UK GDPR Compliance</h3>
-                        </div>
-                        <span style={{ fontSize: '12px', color: '#27ae60', background: 'rgba(39, 174, 96, 0.15)', padding: '4px 10px', borderRadius: '12px', fontWeight: 700 }}>
-                          {get8Pillars().filter(p => p.passed).length} of 8 Pillars Passing
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-                        {get8Pillars().map((p, idx) => (
-                          <div key={idx} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '10px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                              <span style={{ fontWeight: 600, fontSize: '14px' }}>{p.title}</span>
-                              {p.passed ? (
-                                <span style={{ color: '#27ae60', background: 'rgba(39,174,96,0.15)', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>PASS</span>
-                              ) : (
-                                <span style={{ color: 'var(--warning)', background: 'rgba(230,126,34,0.15)', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 700 }}>ATTENTION</span>
-                              )}
-                            </div>
-                            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>{p.desc}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-
-                    {/* ITEM 6: SCORE HISTORY TREND CHART */}
-                    <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <TrendingUp size={22} color="var(--sky)" />
-                          <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>Compliance Score Progression</h3>
-                        </div>
-                        <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Last 30 Days</span>
-                      </div>
-                      <div style={{ height: '140px', width: '100%', position: 'relative' }}>
-                        <svg viewBox="0 0 500 120" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
-                          <path d="M 0,90 Q 125,50 250,70 T 500,20" fill="none" stroke="var(--sky)" strokeWidth="4" />
-                          <path d="M 0,90 Q 125,50 250,70 T 500,20 L 500,120 L 0,120 Z" fill="url(#blue-gradient)" opacity="0.2" />
-                          <defs>
-                            <linearGradient id="blue-gradient" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="var(--sky)" />
-                              <stop offset="100%" stopColor="transparent" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                      </div>
-                    </section>
-
-                    {/* ITEM 2: REMEDIATION TASK LIST */}
-                    {remediationTasks.length > 0 && (
-                      <section style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '24px', padding: '28px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                          <h3 style={{ fontSize: '18px', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <CheckSquare size={20} color="var(--sky)" /> Remediation Action Plan
-                          </h3>
-                          <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
-                            {remediationTasks.filter(t => t.completed).length} of {remediationTasks.length} Completed
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                          {remediationTasks.map((t) => (
-                            <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: t.completed ? 'rgba(39,174,96,0.05)' : 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                                <div>
-                                  <div style={{ fontSize: '14px', fontWeight: 600, textDecoration: t.completed ? 'line-through' : 'none', color: t.completed ? 'var(--text-secondary)' : '#fff' }}>{t.title}</div>
-                                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Asset: {t.auditTarget} — {t.details}</div>
-                                </div>
-                              </div>
-                              <span style={{ fontSize: '11px', padding: '3px 8px', borderRadius: '8px', background: t.priority === 'Critical' ? 'rgba(231,76,60,0.2)' : 'rgba(230,126,34,0.2)', color: t.priority === 'Critical' ? '#e74c3c' : '#e67e22', fontWeight: 700 }}>
-                                {t.priority}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
-                    )}
-                  </div>
-
-                  {!hasSubscription && (
-                    <div className="paywall-overlay">
-                      <ShieldCheck size={52} color="var(--sky)" style={{ marginBottom: '16px' }} />
-                      <h3 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: '#fff' }}>
-                        8-Pillars Compliance Breakdown Locked
-                      </h3>
-                      <p style={{ color: 'var(--text-secondary)', fontSize: '14px', maxWidth: '520px', margin: '0 0 24px 0', lineHeight: 1.6 }}>
-                        Free accounts preview top-level scores only. Choose a Pro plan to unlock granular pillar analysis, evidence logs, and automated remediation tasks.
-                      </p>
-
-                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <button 
-                          onClick={() => handleStripeCheckout('starter')}
-                          style={{
-                            background: 'linear-gradient(135deg, var(--sky), #3b82f6)',
-                            color: '#0f172a',
-                            border: 'none',
-                            padding: '14px 24px',
-                            borderRadius: '12px',
-                            fontWeight: 800,
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            boxShadow: '0 8px 24px rgba(56, 189, 248, 0.35)',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          Starter Pro (£15/mo)
-                        </button>
-
-                        <button 
-                          onClick={() => handleStripeCheckout('growth')}
-                          style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            color: '#fff',
-                            border: '1px solid rgba(255, 255, 255, 0.25)',
-                            padding: '14px 24px',
-                            borderRadius: '12px',
-                            fontWeight: 700,
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                          }}
-                        >
-                          Growth Plan (£39/mo)
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <OverviewTab 
+                  overallScore={overallScore}
+                  get8Pillars={get8Pillars}
+                  remediationTasks={remediationTasks}
+                  handleToggleTask={handleToggleTask}
+                  hasSubscription={hasSubscription}
+                  handleStripeCheckout={handleStripeCheckout}
+                />
               </div>
             )}
 
@@ -1130,7 +899,7 @@ export default function Dashboard() {
                       <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Embed this widget on your website `/privacy` page to receive statutory requests automatically.</div>
                     </div>
                     <button 
-                      onClick={() => { navigator.clipboard.writeText(`<iframe src="https://portal.privacyready.co.uk/public/dsr?org=${userProfile?.organizationName}" width="100%" height="450" frameborder="0"></iframe>`); showToast('DSR Intake Embed Code copied!', 'success'); }}
+                      onClick={() => { navigator.clipboard.writeText(`<iframe src="https://portal.privacyready.co.uk/public/dsr?org=${authUser?.organizationName}" width="100%" height="450" frameborder="0"></iframe>`); showToast('DSR Intake Embed Code copied!', 'success'); }}
                       style={{ background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <Code size={14} /> Copy Embed Code
@@ -1168,11 +937,10 @@ export default function Dashboard() {
                                   const newStatus = e.target.value as any;
                                   try {
                                     const updateRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr/${d.id}`, {
+      credentials: 'include',
                                       method: 'PATCH',
                                       headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                      },
+                                        'Content-Type': 'application/json' },
                                       body: JSON.stringify({ status: newStatus })
                                     });
                                     if (updateRes.ok) {

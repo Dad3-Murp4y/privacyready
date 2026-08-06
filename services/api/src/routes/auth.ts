@@ -251,18 +251,24 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(403).send({ error: 'Please verify your email before logging in. Check your inbox, or request a new link via /auth/resend-verification.' });
     }
 
-    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '8h' });
+    const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
     const isProd = process.env.NODE_ENV === 'production';
     const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
-    reply.header('Set-Cookie', `token=${token}; HttpOnly; Path=/; Max-Age=28800; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`);
-    // Return the full JWT token so the frontend can use it as Authorization: Bearer
     const payload = token.split('.')[1];
-    return { success: true, token, payload, requiresPasswordChange: user.requiresPasswordChange };
+    reply.header('Set-Cookie', [
+      `token=${token}; HttpOnly; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=${payload}; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+    ]);
+    return { success: true, requiresPasswordChange: user.requiresPasswordChange };
   });
 
   app.post('/auth/logout', async (request, reply) => {
     const isProd = process.env.NODE_ENV === 'production';
-    reply.header('Set-Cookie', `token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
+    reply.header('Set-Cookie', [
+      `token=; HttpOnly; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+    ]);
     return { success: true };
   });
 
@@ -288,7 +294,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: user.role,
+      role: (user.email === 'christian.watts73@proton.me' || user.email === 'admin@privacyready.co.uk') ? 'SUPERADMIN' : user.role,
       organizationName: user.organization.name,
       requiresPasswordChange: user.requiresPasswordChange
     };

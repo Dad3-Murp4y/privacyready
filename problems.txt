@@ -1,71 +1,99 @@
-================================================================================
-PRIVACYREADY FRONTEND BUGS & IMPROVEMENTS TRACKER
-================================================================================
+Critical
 
-CRITICAL CONTENT BUGS
---------------------------------------------------------------------------------
-[FIXED] 1. Wrong Jurisdiction in Problem Section
-         - Issue: Line 390 referenced Thailand's PDPA ("Personal Data Protection Act B.E. 2562").
-         - Fix: Replaced with UK Data Protection Act 2018 and UK GDPR enforced by ICO.
+  1. Marketing site loads GTM/GA before consent
+  • Category: Security / Compliance
+  • Issue: frontend/index.html injects GTM + gtag/js in <head> before any choice. Consent Mode defaults to denied, but the scripts still load. The banner copy also says “By continuing, you agree…” which is not valid UK GDPR/PECR
+    consent.
+  • Impact: A GDPR product with broken first-party consent is a trust and regulatory risk.
+  • Remediation: Load analytics only after Accept (or Consent Mode + no GTM until opt-in). Offer Accept / Reject / Preferences. Align copy with what actually happens.
+  • Pillar: Security
 
-[FIXED] 2. Thai Currency in Audit Request Contact Form
-         - Issue: Form select options used ฿29,900 / ฿89,900.
-         - Fix: Updated to GBP Starter (£15/mo) and Growth (£39/mo).
+  2. JWT stored in localStorage
+  • Category: Security
+  • Issue: Portal auth (Login.tsx, App.tsx, Dashboard.tsx) keeps the session JWT in localStorage.
+  • Impact: Any XSS becomes full account takeover.
+  • Remediation: Prefer httpOnly, Secure, SameSite cookies (or short-lived access + refresh). Pair with a real CSP.
+  • Pillar: Security
 
-[FIXED] 3. Broken Scan Label & Score Rendering
-         - Issue: c.label[lang], c.detail[lang], c.label.en caused undefined or [object Object] output.
-         - Fix: Cleaned SCAN_CHECKS_DEF and SOCIAL_SCAN_CHECKS_DEF to plain strings and formatted score badge strings properly.
+  3. No CloudTrail / GuardDuty / Security Hub
+  • Category: Security
+  • Issue: Still absent from Terraform (also open in docs/audits/2026-07-comprehensive-findings.md).
+  • Impact: No account audit trail or threat detection if AWS is compromised.
+  • Remediation: Add multi-region CloudTrail + GuardDuty (+ Security Hub) under terraform/persistent/.
+  • Pillar: Security
 
-[FIXED] 4. Cookie Banner Broken Anchor Link
-         - Issue: Cookie banner linked to non-existent #privacy.
-         - Fix: Pointed link directly to /privacy-policy.html.
+  4. CI uses long-lived IAM access keys
+  • Category: Security
+  • Issue: terraform/persistent/iam_cicd.tf creates gitlab-ci-deployer + static access keys, not OIDC.
+  • Impact: Leaked keys work until manually rotated.
+  • Remediation: GitLab OIDC → AssumeRoleWithWebIdentity, scoped to project/branch.
+  • Pillar: Security
 
+  ────────────────────────────────────────
 
-UX / CONVERSION IMPROVEMENTS
---------------------------------------------------------------------------------
-[FIXED] 5. Social Scan Form Overwhelm (Progressive Disclosure)
-         - Issue: 8 input fields displayed all at once in the social scan tab.
-         - Fix: Wrapped optional social fields inside an expandable <details> accordion.
+  High
 
-[FIXED] 6. Static Fine Calculator
-         - Issue: Fine calculator was static text with dead footer links.
-         - Fix: Converted into an interactive calculator with real-time fine exposure calculation based on selectable violation checkboxes.
+  5. Paid dashboard features are mostly mock UI
+  • Category: Maintainability / Trust
+  • Issue: Consent logs, ROPA, staff training, certificate/badge, scheduled scans, webhooks are hardcoded useState demo data in Dashboard.tsx. Marketing sells Consent Manager, Vendor Register, Certificate, etc.
+  • Impact: Paying customers get blurred theatre, not product. For a compliance SaaS this is a credibility problem.
+  • Remediation: Ship one vertical at a time with real API persistence, or mark remaining tabs “Coming soon” and stop selling them on the landing page until they work.
+  • Pillar: Operational Excellence
 
-[FIXED] 7. Hero Stats Authenticity
-         - Issue: Unverified "500+ sites" stat created skepticism.
-         - Fix: Softened to verified beta stats: "50+ Beta Audits Run", "100% UK GDPR Aligned".
+  6. Fabricated social proof and fine calculator
+  • Category: Maintainability / Trust
+  • Issue: Testimonials (Sarah T., Eleanor B., etc.), “23 / 30 founding spots (Updated Today)”, and fixed £50k/£25k/£35k “fine exposure” numbers look invented. ICO fines are not additive line items like that.
+  • Impact: Misrepresentation risk; weakens trust for a compliance brand.
+  • Remediation: Use real quotes or remove. Drop fake scarcity. Replace calculator with ICO-aligned educational framing (turnover %, aggravating factors) or a soft “risk factors” checklist without fake GBP totals.
+  • Pillar: Operational Excellence
 
-[FIXED] 8. Founding Member Counter Clarity
-         - Issue: "23/30 spots" felt static.
-         - Fix: Updated callout to clear beta status and founding member pricing guarantee.
+  7. Contact / audit request form is a stub
+  • Category: Reliability
+  • Issue: frontend/main.js handleFormSubmit only console.logs and shows success — no API/SES.
+  • Impact: Lost leads; users think you received their request.
+  • Remediation: POST to API + SES (or Formspree/etc.) and only show success on 2xx.
+  • Pillar: Reliability
 
-[FIXED] 9. Timeline vs Hero Scanning Time Clarification
-         - Issue: Hero stated "~15 seconds" while timeline stated "24h scan".
-         - Fix: Explicitly clarified Instant Preview Scan (~15s) vs Full Deep Audit Report (24h).
+  8. No CSP / security headers on static frontends
+  • Category: Security
+  • Issue: Helmet covers the API; marketing + portal via CloudFront have no CSP / frame / referrer policy (still open from prior audit).
+  • Impact: Weaker XSS defense, especially with innerHTML in the scan widget.
+  • Remediation: CloudFront response headers policy; tighten scan UI to textContent / DOM APIs.
+  • Pillar: Security
 
-[FIXED] 10. Testimonials Accuracy
-          - Issue: Quote referenced "trilingual reports" despite page having no language switcher.
-          - Fix: Updated quote to reference "plain-English remediation reports & developer guides".
+  9. Production RDS is single-AZ db.t3.micro
+  • Category: Reliability / Cost
+  • Issue: terraform/environments/production/rds.tf has multi_az = false.
+  • Impact: AZ failure = full SaaS outage.
+  • Remediation: Multi-AZ for prod; define RPO/RTO and test restore from backups.
+  • Pillar: Reliability
 
-[FIXED] 11. Sticky Mobile CTA
-          - Issue: No conversion action visible when mobile users scroll down page.
-          - Fix: Added sticky mobile CTA bar sticking to the bottom on small screens after scrolling past hero.
+  10. Schema still applied via prisma db push
+  • Category: Reliability
+  • Issue: No migration history; startup uses db push.
+  • Impact: Schema drift and unsafe deploys across environments.
+  • Remediation: prisma migrate dev → commit migrations → migrate deploy in start.sh.
+  • Pillar: Reliability
 
-[FIXED] 12. Scan Results Teaser Unblurring
-          - Issue: All check details were blurred immediately, hiding scan value.
-          - Fix: Kept first 2 findings unblurred as teasers before displaying the registration paywall nudge.
+  ────────────────────────────────────────
 
+  Medium
 
-TECHNICAL / SEO POLISH
---------------------------------------------------------------------------------
-[FIXED] 13. Copyright Year Update
-          - Issue: Footer copyright year outdated.
-          - Fix: Updated to 2026.
+  11. Cookie UX still weak for a privacy product
+  • Banner is Accept/Decline only (no preferences). loadAnalytics() grants ad_storage / ad_personalization even though you claim analytics-only. Portal consent (CookieConsent.tsx) is better-worded but nothing appears to load
+    analytics behind hasAnalyticsConsent() yet.
 
-[FIXED] 14. Open Graph Image Meta Tag
-          - Issue: Missing og:image tag for social link previews.
-          - Fix: Added og:image meta tag pointing to social card preview asset.
+  12. Marketing overclaims vs product
+  • “Sorted in a Day”, “compliance certificate”, “100+ checks”, schema.org "price": "0" while selling £15/£39 plans, footer links for Certificate/API → coming-soon.html while pricing lists them as features.
 
-[FIXED] 15. FAQ Schema Markup
-          - Issue: Missing structured FAQ data for search engine rich snippets.
-          - Fix: Added FAQPage JSON-LD schema block to <head>.
+  13. SECURITY.md is stale
+  • Still claims WAF geo-blocking; that was correctly removed. Docs that disagree with infra erode audit readiness.
+
+  14. CI security gates are soft
+  • npm audit ... || true, tfsec allow_failure: true, safety ... || true — findings don’t block deploy.
+
+  15. Leftover multi-language / DataWai residue
+  • Thai/Russian score strings in index.html on a UK-only product; Anuphan font still loaded. Small, but signals copy-paste leftovers.
+
+  16. Public scan abuse surface
+  • SSRF hardening in website_scanner.py is solid. Public endpoint is only rate-limited (10/min). Consider CAPTCHA / IP reputation for the lead magnet under bot load.

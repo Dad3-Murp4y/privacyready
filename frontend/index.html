@@ -19,7 +19,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Anuphan:wght@300;400;500;600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
 
 <!-- Structured Data for Google AI & SEO -->
@@ -32,7 +32,7 @@
   "applicationCategory": "BusinessApplication, Compliance Software",
   "offers": {
     "@type": "Offer",
-    "price": "0",
+    "price": "15",
     "priceCurrency": "GBP"
   },
   "description": "The UK's leading GDPR compliance platform for small businesses. Automated audits for websites, social media (Instagram, Facebook, LinkedIn, TikTok), and CRM integrations (Mailchimp).",
@@ -44,7 +44,6 @@
   "featureList": [
     "Website GDPR Scanner",
     "Social Media Privacy Audit",
-    "Consent Management",
     "Data Retention Tracking"
   ]
 }
@@ -77,10 +76,6 @@
 
 <body lang="en">
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-599K9SKZ"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 
 <!-- Skip link for accessibility -->
 <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -157,7 +152,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span>Now in Beta — Founding Member Pricing Available</span>
     </div>
 
-    <h1>UK GDPR Compliance<br><em>Sorted in a Day.</em></h1>
+    <h1>UK GDPR Compliance<br><em>Simplified for SMEs.</em></h1>
 
     <p class="hero-sub">
       <strong>PrivacyReady</strong> is GDPR compliance software built for UK small businesses — not enterprise GRC teams. Scan your website, see exactly what's non-compliant, and fix it. No solicitor required, no enterprise contract.
@@ -257,17 +252,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
       </div>
 
-  <div class="hero-testi" aria-label="Customer testimonial">
-    <div class="hero-testi-stars" aria-label="5 stars">★★★★★</div>
-    <p class="hero-testi-quote">"We thought we were compliant. PrivacyReady found 8 real issues on our site in under a minute — fixed everything the same afternoon."</p>
-    <div class="hero-testi-author">
-      <div class="hero-testi-avatar" aria-hidden="true">S</div>
-      <div>
-        <div class="hero-testi-name">Sarah T.</div>
-        <div class="hero-testi-biz">Owner, Greenwich Catering Co.</div>
-      </div>
-    </div>
-  </div>
+
 </section>
 
 <section class="trust-strip" aria-label="Built for UK small businesses">
@@ -370,7 +355,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   
   
 
-  <p class="section-sub">No legal jargon. No engineering overhead. Just a clear path from audit to compliance certificate.</p>
+  <p class="section-sub">No legal jargon. No engineering overhead. Just a clear path from audit to continuous compliance.</p>
   
   
 
@@ -384,7 +369,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       
       
       <ul class="service-features">
-        <li>100+ compliance checks</li>
+        <li>Comprehensive compliance checks</li>
         
         
         <li>Cookie & tracker analysis</li>
@@ -420,7 +405,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="service-title">Fix & Certify</div>
       
       
-      <div class="service-desc">Apply fixes yourself or hire our team. Once complete, we verify and issue a GDPR compliance certificate valid for 12 months.</div>
+      <div class="service-desc">Apply fixes yourself or hire our team. Access continuous monitoring to stay compliant.</div>
       
       
       <ul class="service-features">
@@ -430,7 +415,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li>Re-audit verification</li>
         
         
-        <li>Compliance certificate</li>
+        <li>Continuous compliance monitoring</li>
         
         
       </ul>
@@ -491,33 +476,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="50000" onchange="updateFineCalc()" />
         <span class="calc-label">Missing or non-compliant cookie consent banner</span>
       </label>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="200000" onchange="updateFineCalc()" />
         <span class="calc-label">No up-to-date Privacy Policy published</span>
       </label>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="150000" onchange="updateFineCalc()" />
         <span class="calc-label">Undisclosed third-party analytics & ad pixels</span>
       </label>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="250000" onchange="updateFineCalc()" />
         <span class="calc-label">No Data Subject Rights (DSR) request mechanism</span>
       </label>
     </div>
     <div class="calc-row">
       <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="1000000" onchange="updateFineCalc()" />
         <span class="calc-label">Unsecured forms or missing HTTPS encryption</span>
       </label>
     </div>
 
     <div class="calc-total">
       <span class="calc-total-label">Maximum Potential Fine</span>
-      <span class="calc-total-value" style="font-size: 20px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">Up to £17.5M<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
+      <span class="calc-total-value" id="calc-total-display" style="font-size: 20px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">Up to £17.5M<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
     </div>
   </div>
 </section>
@@ -546,7 +536,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li>SSL &amp; security header check</li>
         <li class="missing">Customizable Policy Generators</li>
         <li class="missing">Data Subject Rights (DSR) Portal</li>
-        <li class="missing">Official Compliance Badge</li>
+
       </ul>
       <a href="#main-content" class="btn-secondary price-btn" onclick="document.getElementById('scan-url-input').focus()">Scan My Website Free →</a>
     </div>
@@ -565,8 +555,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li>Full unblurred scan findings</li>
         <li>Privacy &amp; Cookie Policy generators</li>
         <li>Data subject request (DSR) tracker</li>
-        <li>ICO-compliant breach register</li>
-        <li>Verified Compliance Certificate &amp; Badge</li>
+
+
         <li class="missing">Consent Management Banner</li>
         <li class="missing">Vendor Processor Register</li>
       </ul>
@@ -583,9 +573,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="price-period">Small businesses 10–50 staff · locked in forever</div>
       <ul class="price-features">
         <li>Everything in Starter Pro</li>
-        <li>Consent Management Banner module</li>
-        <li>Vendor &amp; processor register</li>
-        <li>Staff GDPR training tracker</li>
+        <li>Consent Management Banner (Coming Soon)</li>
+        <li>Vendor &amp; processor register (Coming Soon)</li>
+        <li>Staff GDPR training tracker (Coming Soon)</li>
         <li>Up to 5 user seat logins</li>
         <li>Priority email &amp; chat support</li>
       </ul>
@@ -606,7 +596,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   
   
 
-  <h2 id="timeline-heading">From audit to <em>compliance certificate</em> in 1 day</h2>
+  <h2 id="timeline-heading">From audit to <em>compliance readiness</em></h2>
   
   
 
@@ -661,7 +651,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h4>Re-audit & Certificate (Day 1)</h4>
         
         
-        <p>We verify your fixes and issue a GDPR compliance certificate. Display it on your site to build customer trust.</p>
+        <p>We help you verify your fixes and provide ongoing compliance monitoring to build customer trust.</p>
         
         
       </div>
@@ -815,21 +805,37 @@ async function startSocialScan(e) {
         throw new Error(apiResults.findingsJson?.[0]?.description || 'Backend scanner failed');
       }
     } else {
-      throw new Error('API returned ' + resp.status);
+      let errMsg = 'API returned ' + resp.status;
+      if (resp.status === 400 || resp.status === 422) {
+         try {
+           const errData = await resp.json();
+           errMsg = errData.error || errData.message || errMsg;
+         } catch(e) {}
+         const validationError = new Error(errMsg);
+         validationError.isValidation = true;
+         throw validationError;
+      }
+      throw new Error(errMsg);
     }
   } catch (err) {
     console.error("Scan API Error:", err);
     
-    // Show global maintenance banner
-    const banner = document.getElementById('maintenance-banner');
-    if (banner) banner.style.display = 'flex';
-    const marketingStrip = document.getElementById('marketing-alert-strip');
-    if (marketingStrip) marketingStrip.style.display = 'none';
+    if (err.isValidation || (err.message && err.message.includes('Scan target rejected'))) {
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ ${err.message}. Please enter a valid URL or ID.
+      </li>`;
+    } else {
+      // Show global maintenance banner
+      const banner = document.getElementById('maintenance-banner');
+      if (banner) banner.style.display = 'flex';
+      const marketingStrip = document.getElementById('marketing-alert-strip');
+      if (marketingStrip) marketingStrip.style.display = 'none';
 
-    // Show error in the panel instead of an alert
-    checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
-      ⚠️ Scanner is currently offline for maintenance. Please try again later.
-    </li>`;
+      // Show error in the panel instead of an alert
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ Scanner is currently offline for maintenance. Please try again later.
+      </li>`;
+    }
     
     btn.disabled = false;
     icon.textContent = '🔍';
@@ -848,12 +854,15 @@ async function startSocialScan(e) {
     
     let status = 'pass';
     if (apiResults && apiResults.findingsJson) {
+      const isFatal = apiResults.findingsJson.some(f => f.finding_type === 'scan_failed' || f.finding_type === 'scan_blocked');
       const found = apiResults.findingsJson.find((x) => 
         (x.finding_type || x.platform || '').toLowerCase().includes(c.id) ||
         (x.finding_type || x.platform || '').toLowerCase() === c.label.toLowerCase()
       );
       if (found) {
         status = (!found.severity || found.severity === 'low') ? 'pass' : 'fail';
+      } else if (isFatal) {
+        status = 'warn';
       }
     }
 
@@ -865,9 +874,8 @@ async function startSocialScan(e) {
   const total = activeChecks.length;
   const pct = Math.round((passed / total) * 100);
   let scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
-  let scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  const currentLang = typeof lang !== 'undefined' ? lang : 'en';
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[currentLang] || scoreLabel.en);
+  let scoreLabel = `${passed}/${total} passed`;
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + scoreLabel;
   scoreBadge.className = 'scan-score ' + scoreClass;
   
   const reportBtn = document.getElementById('scan-full-report-btn');
@@ -956,21 +964,37 @@ async function startScan(e) {
         throw new Error(apiResults.findingsJson?.[0]?.description || 'Backend scanner failed');
       }
     } else {
-      throw new Error('API returned ' + resp.status);
+      let errMsg = 'API returned ' + resp.status;
+      if (resp.status === 400 || resp.status === 422) {
+         try {
+           const errData = await resp.json();
+           errMsg = errData.error || errData.message || errMsg;
+         } catch(e) {}
+         const validationError = new Error(errMsg);
+         validationError.isValidation = true;
+         throw validationError;
+      }
+      throw new Error(errMsg);
     }
   } catch (err) {
     console.error("Scan API Error:", err);
     
-    // Show global maintenance banner
-    const banner = document.getElementById('maintenance-banner');
-    if (banner) banner.style.display = 'flex';
-    const marketingStrip = document.getElementById('marketing-alert-strip');
-    if (marketingStrip) marketingStrip.style.display = 'none';
+    if (err.isValidation || (err.message && err.message.includes('Scan target rejected'))) {
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ ${err.message}. Please enter a valid URL or ID.
+      </li>`;
+    } else {
+      // Show global maintenance banner
+      const banner = document.getElementById('maintenance-banner');
+      if (banner) banner.style.display = 'flex';
+      const marketingStrip = document.getElementById('marketing-alert-strip');
+      if (marketingStrip) marketingStrip.style.display = 'none';
 
-    // Show error in the panel instead of an alert
-    checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
-      ⚠️ Scanner is currently offline for maintenance. Please try again later.
-    </li>`;
+      // Show error in the panel instead of an alert
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ Scanner is currently offline for maintenance. Please try again later.
+      </li>`;
+    }
 
     btn.disabled = false;
     icon.textContent = '🔍';
@@ -989,11 +1013,12 @@ async function startScan(e) {
 
     await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
 
-    // Determine result
     let status = 'pass';
     if (apiResults && apiResults.findingsJson) {
-      // Look for a finding matching the check's ID
       const findings = apiResults.findingsJson;
+      const isFatal = findings.some(f => f.finding_type === 'scan_failed' || f.finding_type === 'scan_blocked');
+      
+      // Look for a finding matching the check's ID
       const found = findings.find(f => {
         const desc = (f.description || '').toLowerCase();
         const type = (f.finding_type || '').toLowerCase();
@@ -1007,8 +1032,13 @@ async function startScan(e) {
         if (c.id === 'uk_gdpr_ref') return desc.includes('gdpr reference') || desc.includes('uk');
         return false;
       });
+      
       if (found) {
         status = found.severity === 'high' ? 'fail' : 'warn';
+      } else if (isFatal) {
+        // If the scanner was blocked or failed, assume non-compliant (warn) for all checks 
+        // to ensure clients know there's a potential problem rather than giving a false 100% pass.
+        status = 'warn';
       }
     }
 
@@ -1030,8 +1060,8 @@ async function startScan(e) {
   const total = SCAN_CHECKS_DEF.length;
   const pct = Math.round((passed / total) * 100);
   const scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
-  const scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  const scoreLabel = `${passed}/${total} passed`;
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + scoreLabel;
   scoreBadge.className = 'scan-score ' + scoreClass;
 
   // Update full-report link with scanned URL + score + scanId
@@ -1077,7 +1107,7 @@ async function startScan(e) {
         </div>
         <span class="logo-name">Privacy<span>Ready</span></span>
       </a>
-      <p>The UK's leading GDPR compliance platform for SMEs. Automated audits, remediation guides, and compliance certificates.</p>
+      <p>The UK's leading GDPR compliance platform for SMEs. Automated audits, remediation guides, and continuous monitoring.</p>
       <p style="font-size:12px; opacity:0.6; margin-top:12px; line-height:1.5;">
         <strong>PrivacyReady Ltd</strong><br>
         Registered in England &amp; Wales (No. 14592031)<br>
@@ -1091,7 +1121,7 @@ async function startScan(e) {
         <li><a href="#services">How It Works</a></li>
         <li><a href="#pricing">Pricing</a></li>
         <li><a href="/coming-soon.html?f=API Access">API Access</a></li>
-        <li><a href="/coming-soon.html?f=Compliance Certificate">Compliance Certificate</a></li>
+        <li><a href="/coming-soon.html?f=Compliance Monitoring">Compliance Monitoring</a></li>
       </ul>
     </div>
 
@@ -1113,7 +1143,8 @@ async function startScan(e) {
         <li><a href="/contact.html">Contact</a></li>
         <li><a href="/privacy-policy.html">Privacy Policy</a></li>
         <li><a href="/terms.html">Terms of Service</a></li>
-        <li><a href="/cookies.html">Cookie Policy</a></li>
+        <li><a href="/cookies.html">Cookie Policy</a>
+      <button onclick="resetCookieConsent()" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;padding:0;">Cookie Settings</button></li>
       </ul>
     </div>
   </div>

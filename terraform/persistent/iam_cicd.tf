@@ -7,14 +7,14 @@
 # not-yet-existing resources can't be looked up anyway (this policy
 # may be applied before environments/production's first apply).
 
-# tfsec:ignore:aws-iam-no-user-attached-policies
-resource "aws_iam_user" "gitlab_ci" {
-  name = "gitlab-ci-deployer"
-  tags = merge(local.tags, { Name = "gitlab-ci-deployer" })
+data "tls_certificate" "gitlab" {
+  url = "https://gitlab.${var.domain_name}"
 }
 
-resource "aws_iam_access_key" "gitlab_ci" {
-  user = aws_iam_user.gitlab_ci.name
+resource "aws_iam_openid_connect_provider" "gitlab" {
+  url             = "https://gitlab.${var.domain_name}"
+  client_id_list  = ["https://gitlab.${var.domain_name}"]
+  thumbprint_list = [data.tls_certificate.gitlab.certificates[0].sha1_fingerprint]
 }
 
 resource "aws_iam_policy" "gitlab_ci" {
@@ -91,24 +91,29 @@ resource "aws_iam_policy" "gitlab_ci" {
   })
 }
 
-resource "aws_iam_user_policy_attachment" "gitlab_ci" {
-  user       = aws_iam_user.gitlab_ci.name
-  policy_arn = aws_iam_policy.gitlab_ci.arn
-}
+resource "aws_iam_role" "gitlab_ci" {
+  name = "gitlab-ci-deployer-role"
 
-# tfsec:ignore:aws-ssm-secret-use-customer-key
-resource "aws_secretsmanager_secret" "gitlab_ci_credentials" {
-  name                    = "privacyready/gitlab/ci-credentials"
-  description             = "AWS Access Keys for the gitlab-ci-deployer IAM user"
-  recovery_window_in_days = 0
-
-  tags = merge(local.tags, { Name = "gitlab-ci-credentials" })
-}
-
-resource "aws_secretsmanager_secret_version" "gitlab_ci_credentials" {
-  secret_id = aws_secretsmanager_secret.gitlab_ci_credentials.id
-  secret_string = jsonencode({
-    AWS_ACCESS_KEY_ID     = aws_iam_access_key.gitlab_ci.id
-    AWS_SECRET_ACCESS_KEY = aws_iam_access_key.gitlab_ci.secret
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.gitlab.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringLike = {
+            "gitlab.${var.domain_name}:sub" : "project_path:Dad3-Murp4y/privacyready:ref_type:branch:ref:*"
+          }
+        }
+      }
+    ]
   })
+}
+
+resource "aws_iam_role_policy_attachment" "gitlab_ci" {
+  role       = aws_iam_role.gitlab_ci.name
+  policy_arn = aws_iam_policy.gitlab_ci.arn
 }

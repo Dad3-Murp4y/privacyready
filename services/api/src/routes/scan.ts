@@ -32,9 +32,6 @@ function redactFindings(findings: any) {
   if (!Array.isArray(findings)) return findings;
   return findings.map((f: any) => ({
     ...f,
-    finding_type: 'REDACTED',
-    severity: 'REDACTED',
-    description: 'Premium detailed finding description is hidden. Upgrade to view full remediation steps.',
     evidence: 'Redacted (Premium only)',
     gdpr_article: 'REDACTED',
     remediation: 'Redacted (Premium only)'
@@ -84,7 +81,8 @@ export async function registerScanRoutes(app: FastifyInstance) {
     schema: CreateScanSchema,
     config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
   }, async (request, reply) => {
-    const { targetIdentifier, scanType } = request.body as any;
+    const { scanType } = request.body as any;
+    const targetIdentifier = (request.body as any).targetIdentifier.trim();
 
     // A raw, single-use claim token is generated alongside the scan and
     // only its hash is stored -- the same pattern used for email
@@ -137,6 +135,11 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
       const result = await response.json();
 
+      const hasOnlyErrors = result.findings.length > 0 && result.findings.every((f: any) => ['scan_error', 'scan_blocked', 'scan_failed'].includes(f.finding_type));
+      if (hasOnlyErrors) {
+        throw new Error(result.findings[0].description);
+      }
+
       const updated = await prisma.scan.update({
         where: { id: scan.id },
         data: {
@@ -152,16 +155,16 @@ export async function registerScanRoutes(app: FastifyInstance) {
         findingsJson: redactFindings(updated.findingsJson),
         claimToken: rawClaimToken 
       };
-    } catch (err) {
+    } catch (err: any) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },
         data: {
           status: 'FAILED',
-          findingsJson: [{ description: `Scanner failed: ${String(err)}` }],
+          findingsJson: [{ description: err.message || String(err) }],
           completedAt: new Date()
         }
       });
-      return { ...failed, claimToken: rawClaimToken };
+      return reply.code(400).send({ error: err.message || 'Scan failed. Please check the URL or ID.' });
     }
   });
 
@@ -187,7 +190,8 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
   app.post('/api/scan', { schema: CreateScanSchema }, async (request, reply) => {
     const user = request.user as any;
-    const { targetIdentifier, scanType } = request.body as any;
+    const { scanType } = request.body as any;
+    const targetIdentifier = (request.body as any).targetIdentifier.trim();
 
     const scan = await prisma.scan.create({
       data: {

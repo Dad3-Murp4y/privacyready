@@ -255,16 +255,23 @@ nav.scrolled {
   box-shadow: 0 0 0 2px var(--mid);
 }
 
-/* HERO */
 .hero {
   min-height: 100vh;
-  background: var(--navy);
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
   padding: 120px 56px 80px;
+  background: linear-gradient(-45deg, #0B2447, #19376D, #0f172a, #0B2447);
+  background-size: 400% 400%;
+  animation: meshGradient 15s ease infinite;
+}
+
+@keyframes meshGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .hero-geo {
@@ -413,7 +420,7 @@ nav.scrolled {
 
 .btn-primary:hover, .btn-primary:focus {
   background: white;
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 24px rgba(165,215,232,0.3);
   outline: none;
 }
@@ -584,7 +591,13 @@ nav.scrolled {
   border-radius: 6px;
   background: rgba(255,255,255,0.03);
   border-left: 3px solid transparent;
-  transition: opacity 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.scan-check:hover {
+  transform: translateY(-2px);
+  background: rgba(255,255,255,0.06);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .scan-check.pending  { opacity: 0.4; }

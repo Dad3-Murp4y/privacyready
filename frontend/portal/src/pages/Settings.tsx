@@ -20,18 +20,18 @@ export default function Settings() {
       try {
         // Fetch org/subscription status
         const subRes = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/subscription-status`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          credentials: 'include'
         });
-        // We'll decode the JWT for user details since there's no dedicated profile endpoint yet
-        const token = localStorage.getItem('token');
+        // Fetch user profile
         let email = '', name = '';
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            email = payload.email || '';
-            name = payload.fullName || 'User';
-          } catch(e) {}
-        }
+        try {
+          const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { credentials: 'include' });
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            email = profileData.email || '';
+            name = profileData.fullName || 'User';
+          }
+        } catch(e) {}
         
         let subData: { subscriptionStatus: string; isPremium: boolean; orgName?: string } = { subscriptionStatus: 'free', isPremium: false };
         if (subRes.ok) {
@@ -59,10 +59,10 @@ export default function Settings() {
     setError('');
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/billing/create-portal-session`, {
+      credentials: 'include',
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ returnUrl: window.location.href })
       });
@@ -131,7 +131,7 @@ export default function Settings() {
             </div>
             <div style={{ borderTop: '1px solid var(--border)', paddingTop: '16px', marginTop: '4px' }}>
               <button 
-                onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
+                onClick={() => { fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, { method: 'POST', credentials: 'include' }); navigate('/login'); }}
                 style={{ background: 'none', border: '1px solid var(--border)', color: 'white', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 500 }}
               >
                 <Key size={16} /> Reset Password

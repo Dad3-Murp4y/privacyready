@@ -130,22 +130,7 @@ if (document.readyState === 'loading') {
   initCookieBanner();
 }
 
-// Form Handling
-function handleFormSubmit(e) {
-  e.preventDefault();
-  const form = e.target;
-  const data = new FormData(form);
 
-  // Simulate submission
-  console.log('Form submitted:', Object.fromEntries(data));
-
-  // Show success state
-  document.getElementById('contactFormWrap').style.display = 'none';
-  document.getElementById('formSuccess').classList.add('show');
-
-  // In production, you would send this to your backend:
-  // fetch('/api/audit-request', { method: 'POST', body: data })
-}
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {

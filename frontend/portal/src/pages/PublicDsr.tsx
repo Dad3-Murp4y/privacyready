@@ -30,6 +30,7 @@ export default function PublicDsr() {
     try {
       const API = import.meta.env.VITE_API_URL || 'https://api.privacyready.co.uk';
       const res = await fetch(`${API}/api/public/dsr`, {
+      credentials: 'include',
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

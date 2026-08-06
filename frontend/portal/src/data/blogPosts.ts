@@ -27,8 +27,8 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: 'July 8, 2026',
     author: {
       name: 'Sarah Jenkins',
-      role: 'Head of Privacy & Compliance',
-    },
+      role: 'Head of Privacy & Compliance'
+},
     readTime: '5 min read',
     content: [
       {
@@ -96,8 +96,8 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: 'June 24, 2026',
     author: {
       name: 'David Kross',
-      role: 'Lead Architect',
-    },
+      role: 'Lead Architect'
+},
     readTime: '4 min read',
     content: [
       {
@@ -159,8 +159,8 @@ export const BLOG_POSTS: BlogPost[] = [
     publishedAt: 'May 15, 2026',
     author: {
       name: 'Marcus Vance',
-      role: 'Principal Security Researcher',
-    },
+      role: 'Principal Security Researcher'
+},
     readTime: '6 min read',
     content: [
       {

@@ -23,15 +23,13 @@ export default function Team() {
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+
 
   const fetchTeam = async () => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+
     try {
-      const res = await fetch(`${API}/api/team`, { credentials: 'include' });
+      const res = await fetch(`${API}/api/team`, {
+      credentials: 'include' });
       if (res.status === 401) {
         navigate('/login');
         return;
@@ -60,8 +58,9 @@ export default function Team() {
     setError('');
     try {
       const res = await fetch(`${API}/api/team`, {
+      credentials: 'include',
         method: 'POST',
-        credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail, fullName: newName, role: newRole })
       });
       const data = await res.json();
@@ -84,8 +83,9 @@ export default function Team() {
     setError('');
     try {
       const res = await fetch(`${API}/api/team/${id}`, {
+      credentials: 'include',
         method: 'DELETE',
-        credentials: 'include'
+
       });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));

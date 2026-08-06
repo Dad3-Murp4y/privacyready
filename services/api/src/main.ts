@@ -12,6 +12,7 @@ import { registerDsrRoutes } from './routes/dsr.js';
 import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
 import { registerBillingRoutes } from './routes/billing.js';
+
 import { Redis } from 'ioredis';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
@@ -66,6 +67,7 @@ async function buildServer() {
   await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
   await app.register(registerBillingRoutes, { prefix: '/api/billing' });
+
 
   return app;
 }
