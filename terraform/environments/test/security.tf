@@ -1,3 +1,7 @@
+data "aws_ec2_managed_prefix_list" "cloudfront" {
+  name = "com.amazonaws.global.cloudfront.origin-facing"
+}
+
 resource "aws_security_group" "alb" {
   name_prefix = "privacyready-test-alb-"
   vpc_id      = module.vpc.vpc_id
@@ -8,14 +12,10 @@ resource "aws_security_group" "alb" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS from anywhere (CloudFront + API)"
   }
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+
 
   egress {
     from_port   = 0

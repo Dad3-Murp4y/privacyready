@@ -14,10 +14,10 @@ resource "aws_s3_bucket_ownership_controls" "frontend" {
 resource "aws_s3_bucket_public_access_block" "frontend" {
   bucket = aws_s3_bucket.frontend.id
 
-  block_public_acls       = false
-  ignore_public_acls      = false
-  block_public_policy     = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_website_configuration" "frontend" {
@@ -66,10 +66,10 @@ resource "aws_s3_bucket_ownership_controls" "portal" {
 resource "aws_s3_bucket_public_access_block" "portal" {
   bucket = aws_s3_bucket.portal.id
 
-  block_public_acls       = false
-  ignore_public_acls      = false
-  block_public_policy     = false
-  restrict_public_buckets = false
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
 }
 
 resource "aws_s3_bucket_website_configuration" "portal" {
@@ -118,6 +118,7 @@ resource "aws_cloudfront_distribution" "frontend" {
   aliases             = ["www.${var.domain_name}", var.domain_name]
 
   default_cache_behavior {
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-frontend"
@@ -182,6 +183,7 @@ resource "aws_cloudfront_distribution" "portal" {
   }
 
   default_cache_behavior {
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
     allowed_methods  = ["GET", "HEAD"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-portal"
@@ -248,5 +250,39 @@ resource "aws_route53_record" "portal" {
     name                   = aws_cloudfront_distribution.portal.domain_name
     zone_id                = aws_cloudfront_distribution.portal.hosted_zone_id
     evaluate_target_health = false
+  }
+}
+
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name    = "privacyready-security-headers-${local.environment}"
+  comment = "Security headers for PrivacyReady ${local.environment}"
+
+  security_headers_config {
+    content_security_policy {
+      content_security_policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com; connect-src 'self' https://*.privacyready.co.uk wss://*.privacyready.co.uk https://www.google-analytics.com; img-src 'self' data: https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;"
+      override                = true
+    }
+    content_type_options {
+      override = true
+    }
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+    strict_transport_security {
+      access_control_max_age_sec = 31536000
+      include_subdomains         = true
+      override                   = true
+      preload                    = true
+    }
+    xss_protection {
+      mode_block = true
+      protection = true
+      override   = true
+    }
   }
 }

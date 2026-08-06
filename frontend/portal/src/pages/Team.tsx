@@ -23,21 +23,19 @@ export default function Team() {
   const [tempPassword, setTempPassword] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+
 
   const fetchTeam = async () => {
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+
     try {
-      const res = await fetch(`${API}/api/team`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/api/team`, {
+      credentials: 'include' });
       if (res.status === 401) {
         navigate('/login');
         return;
       }
       if (res.status === 403) {
-        setError("Only organization admins can manage the team.");
+        setError("Only organisation admins can manage the team.");
         setLoading(false);
         return;
       }
@@ -60,8 +58,9 @@ export default function Team() {
     setError('');
     try {
       const res = await fetch(`${API}/api/team`, {
+      credentials: 'include',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newEmail, fullName: newName, role: newRole })
       });
       const data = await res.json();
@@ -80,12 +79,13 @@ export default function Team() {
   };
 
   const handleRemove = async (id: string, email: string) => {
-    if (!window.confirm(`Remove ${email} from your organization?`)) return;
+    if (!window.confirm(`Remove ${email} from your organisation?`)) return;
     setError('');
     try {
       const res = await fetch(`${API}/api/team/${id}`, {
+      credentials: 'include',
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+
       });
       if (!res.ok && res.status !== 204) {
         const data = await res.json().catch(() => ({}));
@@ -127,7 +127,7 @@ export default function Team() {
             <Users size={32} color="var(--sky)" />
             <h1 className="dashboard-title" style={{ margin: 0 }}>Team</h1>
           </div>
-          <p className="dashboard-subtitle">Manage who has access to your organization's PrivacyReady account</p>
+          <p className="dashboard-subtitle">Manage who has access to your organisation's PrivacyReady account</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <UserPlus size={18} /> Add Teammate
@@ -174,7 +174,7 @@ export default function Team() {
                   <td style={{ padding: '16px' }}>
                     <button
                       onClick={() => handleRemove(t.id, t.email)}
-                      title="Remove from organization"
+                      title="Remove from organisation"
                       style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--danger)', display: 'flex' }}
                     >
                       <Trash2 size={16} />

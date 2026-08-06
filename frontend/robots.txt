@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Explicitly allow major AI crawlers for LLM inclusion
+User-agent: Google-Extended
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Disallow portal/API routes if they ever leak to this domain
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://privacyready.co.uk/sitemap.xml

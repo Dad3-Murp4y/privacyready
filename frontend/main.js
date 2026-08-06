@@ -4,97 +4,6 @@ if ('scrollRestoration' in history) {
 }
 window.scrollTo(0, 0);
 
-// Language Switcher
-const overlayLabels = {
-  en: 'Select Language',
-  th: 'เลือกภาษา',
-  ru: 'Выберите язык'
-};
-
-const overlayFooters = {
-  en: 'PrivacyReady — UK GDPR Compliance',
-  th: 'PrivacyReady — การปฏิบัติตาม GDPR ไทย',
-  ru: 'PrivacyReady — Соответствие GDPR Таиланда'
-};
-
-function setLang(lang) {
-  document.body.setAttribute('lang', lang);
-  localStorage.setItem('privacyready-lang', lang);
-
-  // Update trigger label
-  const label = document.getElementById('currentLangLabel');
-  if (label) label.textContent = lang.toUpperCase();
-
-  // Update overlay label and footer
-  const overlayLabel = document.getElementById('overlayLabel');
-  if (overlayLabel) overlayLabel.textContent = overlayLabels[lang] || overlayLabels.en;
-
-  const overlayFooter = document.getElementById('overlayFooter');
-  if (overlayFooter) overlayFooter.textContent = overlayFooters[lang] || overlayFooters.en;
-
-  // Update active state in overlay
-  document.querySelectorAll('.lang-option').forEach(opt => {
-    opt.classList.toggle('active', opt.dataset.langTarget === lang);
-  });
-
-  // Close overlay if open
-  const overlay = document.getElementById('langOverlay');
-  if (overlay && overlay.classList.contains('show')) {
-    toggleLangOverlay();
-  }
-}
-
-function toggleLangOverlay() {
-  const overlay = document.getElementById('langOverlay');
-  const trigger = document.getElementById('langTrigger');
-  const isOpen = overlay.classList.toggle('show');
-
-  trigger.classList.toggle('open', isOpen);
-  trigger.setAttribute('aria-expanded', isOpen);
-
-  if (isOpen) {
-    // Focus first option for accessibility
-    setTimeout(() => {
-      const firstOption = overlay.querySelector('.lang-option');
-      if (firstOption) firstOption.focus();
-    }, 100);
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-    trigger.focus();
-  }
-}
-
-// Close overlay on Escape key
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') {
-    const overlay = document.getElementById('langOverlay');
-    if (overlay && overlay.classList.contains('show')) {
-      toggleLangOverlay();
-    }
-  }
-});
-
-// Restore saved language
-(function() {
-  const saved = localStorage.getItem('privacyready-lang');
-  if (saved && ['en', 'th', 'ru'].includes(saved)) {
-    document.body.setAttribute('lang', saved);
-    const label = document.getElementById('currentLangLabel');
-    if (label) label.textContent = saved.toUpperCase();
-
-    const overlayLabel = document.getElementById('overlayLabel');
-    if (overlayLabel) overlayLabel.textContent = overlayLabels[saved] || overlayLabels.en;
-
-    const overlayFooter = document.getElementById('overlayFooter');
-    if (overlayFooter) overlayFooter.textContent = overlayFooters[saved] || overlayFooters.en;
-
-    document.querySelectorAll('.lang-option').forEach(opt => {
-      opt.classList.toggle('active', opt.dataset.langTarget === saved);
-    });
-  }
-})();
-
 // Navbar scroll effect
 window.addEventListener('scroll', function() {
   const nav = document.getElementById('navbar');
@@ -125,22 +34,42 @@ function toggleMobileMenu() {
 }
 
 // Cookie Consent
-const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+const GA_MEASUREMENT_ID = 'G-1J0Z7Q1PCV';
+
+function getCookieDomain() {
+  const host = window.location.hostname;
+  return host.endsWith('privacyready.co.uk') ? '; domain=.privacyready.co.uk' : '';
+}
 
 function loadAnalytics() {
   if (window.__gaLoaded) return;
   window.__gaLoaded = true;
 
+  // Insert GTM script dynamically
+  (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-599K9SKZ');
+  
+  // Insert gtag script dynamically
   const script = document.createElement('script');
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
   document.head.appendChild(script);
 
   window.dataLayer = window.dataLayer || [];
   function gtag() { window.dataLayer.push(arguments); }
-  window.gtag = gtag;
+  
   gtag('js', new Date());
   gtag('config', GA_MEASUREMENT_ID);
+  
+  gtag('consent', 'update', {
+    'analytics_storage': 'granted',
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied'
+  });
 }
 
 function closeCookieBanner() {
@@ -150,20 +79,36 @@ function closeCookieBanner() {
 }
 
 function acceptCookies() {
-  document.cookie = "privacyready-cookies=accepted; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=accepted${domainAttr}; path=/; max-age=31536000; SameSite=Lax`;
   closeCookieBanner();
   loadAnalytics();
 }
 
 function declineCookies() {
-  // Declining is a first-class choice, not a dead end: it records the
-  // decline (so we don't ask again this visit) and lets the visitor keep
-  // using the site with no analytics loaded.
-  document.cookie = "privacyready-cookies=declined; domain=.privacyready.co.uk; path=/; max-age=31536000; SameSite=Lax";
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=declined${domainAttr}; path=/; max-age=31536000; SameSite=Lax`;
   closeCookieBanner();
 }
 
-(function() {
+function resetCookieConsent() {
+  const domainAttr = getCookieDomain();
+  document.cookie = `privacyready-cookies=${domainAttr}; path=/; max-age=0`;
+  document.cookie = `privacyready-cookies=; path=/; max-age=0`;
+  location.reload();
+}
+
+function initCookieBanner() {
+  const banner = document.getElementById('cookieBanner');
+  if (!banner) return;
+
+  // Support force reset via query string (e.g. ?reset_cookies=1 or ?cookie_banner=1)
+  if (window.location.search.includes('reset_cookies') || window.location.search.includes('cookie_banner')) {
+    const domainAttr = getCookieDomain();
+    document.cookie = `privacyready-cookies=${domainAttr}; path=/; max-age=0`;
+    document.cookie = `privacyready-cookies=; path=/; max-age=0`;
+  }
+
   const consentMatch = document.cookie.match(/(?:^|;\s*)privacyready-cookies=([^;]*)/);
   const consent = consentMatch ? consentMatch[1] : null;
 
@@ -172,29 +117,20 @@ function declineCookies() {
     return;
   }
   if (consent === 'declined') {
-    return; // respect the earlier choice, don't nag again
+    return; // respect the earlier choice
   }
-  // No decision recorded yet -- ask.
-  document.getElementById('cookieBanner').classList.add('show');
-  document.body.style.overflow = 'hidden';
-})();
 
-// Form Handling
-function handleFormSubmit(e) {
-  e.preventDefault();
-  const form = e.target;
-  const data = new FormData(form);
-
-  // Simulate submission
-  console.log('Form submitted:', Object.fromEntries(data));
-
-  // Show success state
-  document.getElementById('contactFormWrap').style.display = 'none';
-  document.getElementById('formSuccess').classList.add('show');
-
-  // In production, you would send this to your backend:
-  // fetch('/api/audit-request', { method: 'POST', body: data })
+  // Show cookie banner if no choice has been saved
+  banner.classList.add('show');
 }
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initCookieBanner);
+} else {
+  initCookieBanner();
+}
+
+
 
 // Smooth scroll for anchor links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -225,3 +161,58 @@ if ('IntersectionObserver' in window) {
     observer.observe(el);
   });
 }
+
+// Dynamic Environment Routing for Static Links
+if (window.location.hostname.includes('test.')) {
+  document.querySelectorAll('a[href*="portal.privacyready.co.uk"]').forEach(a => {
+    if (!a.href.includes('test-portal.')) {
+      a.href = a.href.replace('portal.privacyready.co.uk', 'test-portal.privacyready.co.uk');
+    }
+  });
+}
+
+// Maintenance Mode Detection
+async function checkMaintenanceMode() {
+  const apiUrl = window.location.hostname.includes('test.') 
+    ? 'https://test-api.privacyready.co.uk/health' 
+    : 'https://api.privacyready.co.uk/health';
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000); // 4 second timeout
+    
+    const resp = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeout);
+    
+    if (!resp.ok) {
+      throw new Error('API returned ' + resp.status);
+    }
+    // If successful, do nothing (maintenance mode is OFF)
+  } catch (err) {
+    console.warn("API is unreachable. Enabling maintenance mode UI.", err);
+    // Show banner
+    const banner = document.getElementById('maintenance-banner');
+    if (banner) banner.style.display = 'flex';
+    
+    // Hide marketing strip so it doesn't clutter
+    const marketingStrip = document.getElementById('marketing-alert-strip');
+    if (marketingStrip) marketingStrip.style.display = 'none';
+
+    // Disable scan buttons
+    const btn1 = document.getElementById('scan-btn');
+    const btn2 = document.getElementById('scan-social-btn');
+    if (btn1) {
+      btn1.disabled = true;
+      btn1.innerHTML = '<span class="scan-btn-text">Scanner Offline</span>';
+      btn1.style.backgroundColor = '#64748b';
+    }
+    if (btn2) {
+      btn2.disabled = true;
+      btn2.innerHTML = '<span class="scan-btn-text">Scanner Offline</span>';
+      btn2.style.backgroundColor = '#64748b';
+    }
+  }
+}
+
+// Run the check when the script loads
+checkMaintenanceMode();

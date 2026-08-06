@@ -80,13 +80,13 @@ resource "aws_lb_listener" "http" {
 
 resource "aws_route53_record" "api" {
   zone_id = local.zone_id
-  name    = "${local.subdomain}-api.${var.domain_name}"
+  name    = local.api_domain
   type    = "A"
 
   alias {
     name                   = aws_lb.main.dns_name
     zone_id                = aws_lb.main.zone_id
-    evaluate_target_health = true
+    evaluate_target_health = false
   }
 }
 

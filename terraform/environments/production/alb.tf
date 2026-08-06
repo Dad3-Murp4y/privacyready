@@ -11,7 +11,7 @@ resource "aws_lb" "main" {
   security_groups    = [aws_security_group.alb.id]
   subnets            = module.vpc.public_subnet_ids
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
   enable_http2                = true
 
   tags = merge(local.tags, { Name = "privacyready-alb" })
@@ -86,7 +86,7 @@ resource "aws_route53_record" "api" {
   alias {
     name                   = aws_lb.main.dns_name
     zone_id                = aws_lb.main.zone_id
-    evaluate_target_health = true
+    evaluate_target_health = false
   }
 }
 

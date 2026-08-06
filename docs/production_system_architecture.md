@@ -1,16 +1,5 @@
 # Production System Architecture
 
-> **Note on accuracy**: this doc describes the production environment's
-> networking topology accurately (multi-VPC via Transit Gateway is
-> real and unchanged by the persistent/environments refactor -- see
-> `terraform/README.md`). The database section below describing
-> Amazon Aurora is **not** accurate to the actual implementation,
-> which uses a single `aws_db_instance` (plain RDS PostgreSQL,
-> Multi-AZ) rather than Aurora's writer/reader replica architecture --
-> this mismatch predates the persistent/environments refactor, not
-> introduced by it. Worth either building real Aurora to match this
-> doc, or rewriting this section to match the simpler reality.
-
 The PrivacyReady Production Environment (`terraform/environments/production`) is a highly available, deeply isolated, and scalable architecture designed for enterprise-grade GDPR compliance. Unlike the consolidated testing environment, the production environment heavily utilizes network segmentation to separate management tools from user-facing services.
 
 ---
@@ -26,7 +15,7 @@ graph TD
     subgraph "VPC Production"
         ALB[Application Load Balancer]
         ECS[ECS Fargate: Core APIs]
-        RDS[(Aurora Multi-AZ)]
+        RDS[(RDS Multi-AZ)]
         Redis[(ElastiCache Multi-Node)]
     end
         
@@ -93,21 +82,21 @@ Data persistence is handled by highly available, managed AWS services spanning m
 ```mermaid
 graph TD
     subgraph "Availability Zone A"
-        AuroraWriter[(Aurora Primary Writer)]
+        RDSPrimary[(RDS Primary DB)]
         RedisPrimary[(Redis Primary)]
     end
         
     subgraph "Availability Zone B"
-        AuroraReader[(Aurora Replica)]
+        RDSStandby[(RDS Standby DB)]
         RedisReplica[(Redis Replica)]
     end
         
-    AuroraWriter -.-> AuroraReader
+    RDSPrimary -.->|Sync Replication| RDSStandby
     RedisPrimary -.-> RedisReplica
 ```
 
 ### Key Components
-- **Amazon Aurora PostgreSQL**: Provisioned with a minimum of 2 instances (1 Writer, 1 Reader) to ensure immediate failover without data loss.
+- **Amazon RDS PostgreSQL (Multi-AZ)**: Provisioned with a Primary instance and a synchronously replicated Standby instance in a separate Availability Zone to ensure immediate failover without data loss.
 - **Amazon ElastiCache (Redis)**: Deployed as a Replication Group across multiple AZs to cache high-velocity consent requests and queue background scanner tasks.
 - **KMS Encryption**: All EBS volumes, RDS instances, and Redis clusters are strictly encrypted at rest using a dedicated customer-managed AWS KMS key.
 

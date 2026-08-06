@@ -12,16 +12,10 @@ resource "aws_security_group" "alb" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from Internet"
+    description = "HTTPS from anywhere (CloudFront + API)"
   }
 
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP from Internet"
-  }
+
 
   egress {
     from_port   = 0
@@ -85,10 +79,13 @@ resource "aws_security_group" "rds" {
     description     = "ECS tasks to RDS"
   }
 
-  # NOTE: the old "Management VPC to RDS (for GitLab)" ingress rule
-  # that used to live here is gone -- GitLab now has its own dedicated
-  # RDS in the persistent layer (see persistent/gitlab_rds.tf) and no
-  # longer needs to reach the app database at all.
+  ingress {
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    cidr_blocks     = ["10.2.0.0/16"]
+    description     = "Management VPC (SES Lambda) to RDS"
+  }
 
   tags = merge(local.tags, { Name = "privacyready-rds-sg" })
 }

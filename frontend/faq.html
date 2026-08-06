@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="PrivacyReady — Thailand GDPR compliance platform. Audit, fix, and maintain your website's data privacy compliance in English, Thai, and Russian.">
+<meta name="description" content="FAQ — Frequently Asked Questions about PrivacyReady and UK GDPR compliance automation.">
 <meta name="theme-color" content="#0B2447">
 <title>FAQ — PrivacyReady</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Anuphan:wght@300;400;500;600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
 
 <style>
@@ -17,46 +17,27 @@
   .simple-page .lede { color: var(--muted); font-size: 18px; margin-bottom: 48px; }
   .simple-page h2 { font-family: var(--font-heading); font-size: 24px; color: var(--ink); margin: 40px 0 16px; }
   .simple-page p, .simple-page li { color: var(--muted); font-size: 16px; line-height: 1.7; margin-bottom: 12px; }
-  .simple-page ul { padding-left: 20px; }
-  .simple-page .updated { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
-  .faq-item { border-bottom: 1px solid var(--border); padding: 20px 0; }
-  .faq-item h2 { margin: 0 0 8px; font-size: 18px; }
-  .contact-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-top: 32px; }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 24px 0; }
+  .faq-item h2 { margin: 0 0 8px; font-size: 20px; color: var(--ink); }
+  .contact-card { background: var(--white); border: 1px solid var(--border); border-radius: 16px; padding: 32px; margin-top: 40px; }
   .contact-card a { color: var(--navy2); font-weight: 600; }
 </style>
 
 </head>
 
-<body lang="en">
+<body lang="en-GB">
 
 <!-- COOKIE CONSENT BANNER -->
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
-  <span class="cookie-text" data-lang="en">
-    We use cookies to ensure you get the best experience. By continuing, you agree to our 
-    <a href="#privacy">Privacy Policy</a> and GDPR-compliant data practices.
-  </span>
-  <span class="cookie-text" data-lang="th">
-    เราใช้คุกกี้เพื่อให้คุณได้รับประสบการณ์ที่ดีที่สุด การใช้งานต่อแสดงว่าคุณยอมรับ
-    <a href="#privacy">นโยบายความเป็นส่วนตัว</a> และการปฏิบัติตาม GDPR ของเรา
-  </span>
-  <span class="cookie-text" data-lang="ru">
-    Мы используем cookie для лучшего опыта. Продолжая, вы соглашаетесь с нашей 
-    <a href="#privacy">политикой конфиденциальности</a> и практиками GDPR.
+  <span class="cookie-text">
+    We use essential cookies to ensure you get the best experience on our website. By continuing, you agree to our 
+    <a href="/privacy-policy.html">Privacy Policy</a> and UK GDPR data practices.
   </span>
   <div class="cookie-actions">
-    <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()" aria-label="Accept cookies">
-      <span data-lang="en">Accept</span>
-      <span data-lang="th">ยอมรับ</span>
-      <span data-lang="ru">Принять</span>
-    </button>
-    <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()" aria-label="Decline cookies">
-      <span data-lang="en">Decline</span>
-      <span data-lang="th">ปฏิเสธ</span>
-      <span data-lang="ru">Отклонить</span>
-    </button>
+    <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()" aria-label="Accept cookies">Accept</button>
+    <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()" aria-label="Decline cookies">Decline</button>
   </div>
 </div>
-
 
 <nav id="navbar" role="navigation" aria-label="Main navigation">
   <a href="/" class="logo" aria-label="PrivacyReady home">
@@ -69,17 +50,11 @@
   </a>
 
   <ul class="nav-links">
-    <li><a href="/#services" data-lang="en">Services</a><a href="/#services" data-lang="th">บริการ</a><a href="/#services" data-lang="ru">Услуги</a></li>
-    <li><a href="/#gdpr" data-lang="en">GDPR Guide</a><a href="/#gdpr" data-lang="th">คู่มือ GDPR</a><a href="/#gdpr" data-lang="ru">Руководство GDPR</a></li>
-    <li><a href="/#pricing" data-lang="en">Pricing</a><a href="/#pricing" data-lang="th">ราคา</a><a href="/#pricing" data-lang="ru">Цены</a></li>
-    <li><a href="https://portal.privacyready.co.uk" data-lang="en">Login</a><a href="https://portal.privacyready.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.privacyready.co.uk" data-lang="ru">Войти</a></li>
-    <li><a href="/#contact" class="nav-cta" data-lang="en">Consultation</a><a href="/#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="/#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
-    <li class="lang-switcher">
-      <button class="lang-trigger" id="langTrigger" onclick="toggleLangOverlay()" aria-label="Change language" aria-expanded="false" aria-controls="langOverlay">
-        <span id="currentLangLabel">EN</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg>
-      </button>
-    </li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/#gdpr">GDPR Guide</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+    <li><a href="https://portal.privacyready.co.uk">Login</a></li>
+    <li><a href="/#contact" class="nav-cta">Free Scan</a></li>
   </ul>
 
   <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle mobile menu" aria-expanded="false">
@@ -87,35 +62,34 @@
   </button>
 </nav>
 
-
 <main class="simple-page">
 
 <h1>Frequently Asked Questions</h1>
-<p class="lede">Common questions about PrivacyReady and GDPR compliance.</p>
+<p class="lede">Common questions about PrivacyReady and UK GDPR compliance automation.</p>
 
 <div class="faq-item">
   <h2>What does the free scan check?</h2>
-  <p>Our free scan checks your website for common GDPR compliance signals: HTTPS encryption, cookie consent banners, privacy policy presence, third-party tracker disclosure, data controller contact details, and data subject rights (DSR) links.</p>
+  <p>Our free scan checks your website for common UK GDPR compliance signals: HTTPS security headers, cookie consent banner functionality, privacy policy accessibility, third-party tracking pixels, data controller disclosures, and Data Subject Rights (DSR) options.</p>
 </div>
 
 <div class="faq-item">
   <h2>Is PrivacyReady a law firm?</h2>
-  <p>No. PrivacyReady is a compliance tooling platform, not a law firm, and our reports are not legal advice. For complex compliance questions specific to your business, we recommend consulting a qualified data protection solicitor.</p>
+  <p>No. PrivacyReady is an automated compliance software platform, not a legal practice. Our scanning reports and policy generation wizards provide automated compliance tooling and are not legal advice. For complex regulatory litigation or custom legal advice, we recommend consulting a registered data protection solicitor in the UK.</p>
 </div>
 
 <div class="faq-item">
-  <h2>What happens to my scan results if I register?</h2>
-  <p>If you run a free scan and then create an account, that scan is automatically linked to your new organization so you don't lose your results.</p>
+  <h2>What happens to my scan results when I sign up?</h2>
+  <p>When you run a free scan and then create an account, your scan results and audit history are automatically linked to your organisation dashboard so you never lose your compliance progress.</p>
 </div>
 
 <div class="faq-item">
   <h2>What is a Data Subject Request (DSR)?</h2>
-  <p>A DSR is when someone -- typically one of your customers or website visitors -- asks to exercise their GDPR rights, such as requesting a copy of their data or asking you to delete it. UK GDPR requires organizations to respond within 30 days. PrivacyReady's dashboard helps you log and track these requests so you don't miss the deadline.</p>
+  <p>A DSR occurs when an individual exercises their rights under UK GDPR (e.g. requesting access to their personal data or requesting account deletion). UK GDPR enforces a strict 30-day response window. PrivacyReady's DSR tracker logs, assigns, and manages these deadlines automatically.</p>
 </div>
 
 <div class="faq-item">
-  <h2>How do I get support?</h2>
-  <p>Reach out via our <a href="/contact.html">contact page</a> and we'll get back to you within 2 business days.</p>
+  <h2>How do I contact support?</h2>
+  <p>You can reach our team anytime at <a href="mailto:support@privacyready.co.uk">support@privacyready.co.uk</a> or via our <a href="/contact.html">contact page</a>. We respond to all queries within 1 business day.</p>
 </div>
 
 </main>
@@ -131,61 +105,48 @@
         </div>
         <span class="logo-name">Privacy<span>Ready</span></span>
       </a>
-      <p data-lang="en">Thailand's leading GDPR compliance platform. Automated audits, remediation guides, and compliance certificates for businesses of all sizes.</p>
-      <p data-lang="th">แพลตฟอร์มการปฏิบัติตาม GDPR ชั้นนำของไทย การตรวจสอบอัตโนมัติ คู่มือการแก้ไข และใบรับรองการปฏิบัติตามสำหรับธุรกิจทุกขนาด</p>
-      <p data-lang="ru">Ведущая платформа соответствия GDPR в Таиланде. Автоматизированные аудиты, руководства по исправлению и сертификаты соответствия для бизнеса любого размера.</p>
+      <p>The UK's leading automated UK GDPR compliance platform. Automated audits, remediation guidance, and continuous compliance monitoring for businesses of all sizes.</p>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Product</h4>
-      <h4 data-lang="th">ผลิตภัณฑ์</h4>
-      <h4 data-lang="ru">Продукт</h4>
+      <h4>Product</h4>
       <ul>
-        <li><a href="#services" data-lang="en">How It Works</a><a href="#services" data-lang="th">วิธีการทำงาน</a><a href="#services" data-lang="ru">Как это работает</a></li>
-        <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-        <li><a href="/coming-soon.html?f=API Access" data-lang="en">API Access</a><a href="/coming-soon.html?f=API Access" data-lang="th">การเข้าถึง API</a><a href="/coming-soon.html?f=API Access" data-lang="ru">Доступ к API</a></li>
-        <li><a href="/coming-soon.html?f=Compliance Certificate" data-lang="en">Compliance Certificate</a><a href="/coming-soon.html?f=Compliance Certificate" data-lang="th">ใบรับรองการปฏิบัติตาม</a><a href="/coming-soon.html?f=Compliance Certificate" data-lang="ru">Сертификат соответствия</a></li>
+        <li><a href="/#services">How It Works</a></li>
+        <li><a href="/#pricing">Pricing</a></li>
+        <li><a href="/coming-soon.html?f=API Access">API Access</a></li>
+        <li><a href="/coming-soon.html?f=Compliance Certificate">Compliance Badge</a></li>
       </ul>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Resources</h4>
-      <h4 data-lang="th">ทรัพยากร</h4>
-      <h4 data-lang="ru">Ресурсы</h4>
+      <h4>Resources</h4>
       <ul>
-        <li><a href="#gdpr" data-lang="en">GDPR Guide</a><a href="#gdpr" data-lang="th">คู่มือ GDPR</a><a href="#gdpr" data-lang="ru">Руководство GDPR</a></li>
-        <li><a href="/faq.html" data-lang="en">FAQ</a><a href="/faq.html" data-lang="th">คำถามที่พบบ่อย</a><a href="/faq.html" data-lang="ru">Часто задаваемые вопросы</a></li>
-        <li><a href="https://portal.privacyready.co.uk/blog" data-lang="en">Blog</a><a href="https://portal.privacyready.co.uk/blog" data-lang="th">บล็อก</a><a href="https://portal.privacyready.co.uk/blog" data-lang="ru">Блог</a></li>
-        <li><a href="/coming-soon.html?f=Fine Calculator" data-lang="en">Fine Calculator</a><a href="/coming-soon.html?f=Fine Calculator" data-lang="th">เครื่องคำนวณค่าปรับ</a><a href="/coming-soon.html?f=Fine Calculator" data-lang="ru">Калькулятор штрафов</a></li>
-        <li><a href="/coming-soon.html?f=Webinars" data-lang="en">Webinars</a><a href="/coming-soon.html?f=Webinars" data-lang="th">เว็บินาร์</a><a href="/coming-soon.html?f=Webinars" data-lang="ru">Вебинары</a></li>
+        <li><a href="/#gdpr">GDPR Guide</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="https://portal.privacyready.co.uk/blog">Blog</a></li>
+        <li><a href="/coming-soon.html?f=Fine Calculator">Fine Calculator</a></li>
       </ul>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Company</h4>
-      <h4 data-lang="th">บริษัท</h4>
-      <h4 data-lang="ru">Компания</h4>
+      <h4>Company</h4>
       <ul>
-        <li><a href="/about.html" data-lang="en">About</a><a href="/about.html" data-lang="th">เกี่ยวกับ</a><a href="/about.html" data-lang="ru">О нас</a></li>
-        <li><a href="/coming-soon.html?f=Careers" data-lang="en">Careers</a><a href="/coming-soon.html?f=Careers" data-lang="th">ร่วมงานกับเรา</a><a href="/coming-soon.html?f=Careers" data-lang="ru">Карьера</a></li>
-        <li><a href="/contact.html" data-lang="en">Contact</a><a href="/contact.html" data-lang="th">ติดต่อ</a><a href="/contact.html" data-lang="ru">Контакты</a></li>
-        <li><a href="/privacy-policy.html" data-lang="en">Privacy Policy</a><a href="/privacy-policy.html" data-lang="th">นโยบายความเป็นส่วนตัว</a><a href="/privacy-policy.html" data-lang="ru">Политика конфиденциальности</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+        <li><a href="/privacy-policy.html">Privacy Policy</a></li>
       </ul>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <span data-lang="en">© 2024 PrivacyReady. All rights reserved.</span>
-    <span data-lang="th">© 2024 PrivacyReady สงวนลิขสิทธิ์</span>
-    <span data-lang="ru">© 2024 PrivacyReady. Все права защищены.</span>
+    <span>© 2026 PrivacyReady Ltd (Reg No. 14592031). Registered in England & Wales. All rights reserved.</span>
     <div class="footer-legal">
-      <a href="/privacy-policy.html" data-lang="en">Privacy</a><a href="/privacy-policy.html" data-lang="th">ความเป็นส่วนตัว</a><a href="/privacy-policy.html" data-lang="ru">Конфиденциальность</a>
-      <a href="/terms.html" data-lang="en">Terms</a><a href="/terms.html" data-lang="th">เงื่อนไข</a><a href="/terms.html" data-lang="ru">Условия</a>
-      <a href="/cookies.html" data-lang="en">Cookies</a><a href="/cookies.html" data-lang="th">คุกกี้</a><a href="/cookies.html" data-lang="ru">Cookie</a>
+      <a href="/privacy-policy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/cookies.html">Cookies</a>
     </div>
   </div>
 </footer>
-
 
 <script src="/main.js"></script>
 </body>

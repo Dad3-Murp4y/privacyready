@@ -7,26 +7,16 @@ from typing import Optional, List, Dict
 from datetime import datetime
 from dataclasses import asdict
 
-# Import our scanner modules
-# Since they are named with dashes in the file system, we need to import them carefully
-# But wait, python doesn't easily import files with dashes. Let's use importlib or rename them.
-# It's better to rename them, but for now we can just use importlib or rename the files.
-import importlib.util
-import sys
-
-def load_module(name, path):
-    spec = importlib.util.spec_from_file_location(name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-facebook_scanner = load_module("facebook_scanner", os.path.join(current_dir, "facebook-scanner.py"))
-line_scanner = load_module("line_scanner", os.path.join(current_dir, "line-scanner.py"))
-tiktok_scanner = load_module("tiktok_scanner", os.path.join(current_dir, "tiktok-scanner.py"))
-website_scanner = load_module("website_scanner", os.path.join(current_dir, "website-scanner.py"))
-unified_scorer = load_module("unified_scorer", os.path.join(current_dir, "unified-scanner.py"))
+import facebook_scanner
+import instagram_scanner
+import linkedin_scanner
+import mailchimp_scanner
+import twitter_scanner
+import google_analytics_scanner as ga_scanner
+import whatsapp_scanner
+import tiktok_scanner
+import website_scanner
+import unified_scanner as unified_scorer
 
 app = FastAPI(title="PrivacyReady Scanner API", version="2.1.0")
 
@@ -56,8 +46,15 @@ class SocialScanRequest(BaseModel):
     customer_id: str
     facebook_token: Optional[str] = None
     facebook_page_id: Optional[str] = None
-    line_token: Optional[str] = None
-    line_channel_id: Optional[str] = None
+    ig_access_token: Optional[str] = None
+    ig_account_id: Optional[str] = None
+    linkedin_token: Optional[str] = None
+    linkedin_company_id: Optional[str] = None
+    mailchimp_api_key: Optional[str] = None
+    twitter_token: Optional[str] = None
+    twitter_username: Optional[str] = None
+    ga_property_id: Optional[str] = None
+    whatsapp_phone: Optional[str] = None
     tiktok_username: Optional[str] = None
 
 class WebsiteScanRequest(BaseModel):
@@ -121,22 +118,67 @@ def scan_social(req: SocialScanRequest):
                 "description": f"Failed to scan Facebook: {str(e)}"
             })
 
-    # 2. LINE Scan
-    if req.line_token and req.line_channel_id:
+    # 2. Instagram Scan
+    if req.ig_access_token and req.ig_account_id:
         try:
-            scanner = line_scanner.LINEScanner(req.line_token, req.line_channel_id)
+            scanner = instagram_scanner.InstagramScanner(req.ig_access_token, req.ig_account_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
         except Exception as e:
-            print(f"LINE scan error: {e}")
+            print(f"Instagram scan error: {e}")
             all_findings.append({
-                "platform": "line",
+                "platform": "instagram",
                 "severity": "medium",
                 "finding_type": "scan_error",
-                "description": f"Failed to scan LINE: {str(e)}"
+                "description": f"Failed to scan Instagram: {str(e)}"
             })
 
-    # 3. TikTok Scan
+    # 3. LinkedIn Scan
+    if req.linkedin_token and req.linkedin_company_id:
+        try:
+            scanner = linkedin_scanner.LinkedInScanner(req.linkedin_token, req.linkedin_company_id)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "linkedin", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 4. Mailchimp Scan
+    if req.mailchimp_api_key:
+        try:
+            scanner = mailchimp_scanner.MailchimpScanner(req.mailchimp_api_key)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "mailchimp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 5. Twitter Scan
+    if req.twitter_token and req.twitter_username:
+        try:
+            scanner = twitter_scanner.TwitterScanner(req.twitter_token, req.twitter_username)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "twitter", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 6. Google Analytics Scan
+    if req.ga_property_id:
+        try:
+            scanner = ga_scanner.GoogleAnalyticsScanner(req.ga_property_id)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "google_analytics", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 7. WhatsApp Scan
+    if req.whatsapp_phone:
+        try:
+            scanner = whatsapp_scanner.WhatsAppScanner(req.whatsapp_phone)
+            findings = scanner.scan_all()
+            all_findings.extend([asdict(f) for f in findings])
+        except Exception as e:
+            all_findings.append({"platform": "whatsapp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+
+    # 8. TikTok Scan
     if req.tiktok_username:
         try:
             scanner = tiktok_scanner.TikTokScanner(req.tiktok_username)
@@ -164,4 +206,4 @@ def scan_social(req: SocialScanRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run(app, host="0.0.0.0", port=8080)  # nosec B104

@@ -13,6 +13,10 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     }
     try {
       await request.jwtVerify();
+      const tokenUser = request.user as any;
+      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
+      request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
       return reply.send(err);
     }
@@ -39,6 +43,10 @@ export async function registerDsrRoutes(app: FastifyInstance) {
   // File a new DSR request (e.g. logged manually from a support channel).
   app.post('/api/dsr', { schema: CreateDsrSchema }, async (request, reply) => {
     const user = request.user as any;
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      return reply.code(403).send({ error: 'Forbidden: Requires ADMIN role' });
+    }
+
     const { subjectEmail, subjectName, requestType, reasonText } = request.body as any;
 
     const normalizedType = requestType.toUpperCase();
@@ -72,6 +80,10 @@ export async function registerDsrRoutes(app: FastifyInstance) {
   // one tenant can't touch another tenant's DSR records.
   app.patch('/api/dsr/:id', { schema: UpdateDsrSchema }, async (request, reply) => {
     const user = request.user as any;
+    if (user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      return reply.code(403).send({ error: 'Forbidden: Requires ADMIN role' });
+    }
+
     const { id } = request.params as { id: string };
     const { status } = request.body as any;
 
@@ -95,5 +107,49 @@ export async function registerDsrRoutes(app: FastifyInstance) {
       }
     });
     return updated;
+  });
+
+  const PublicDsrSchema = {
+    body: Type.Object({
+      organizationName: Type.String(),
+      subjectEmail: Type.String({ format: 'email' }),
+      subjectName: Type.Optional(Type.String()),
+      requestType: Type.String(),
+      reasonText: Type.Optional(Type.String())
+    })
+  };
+
+  // Public endpoint for consumers to file a DSR request. No authentication required.
+  app.post('/api/public/dsr', { schema: PublicDsrSchema }, async (request, reply) => {
+    const { organizationName, subjectEmail, subjectName, requestType, reasonText } = request.body as any;
+
+    const normalizedType = requestType.toUpperCase();
+    if (!VALID_REQUEST_TYPES.includes(normalizedType)) {
+      return reply.status(400).send({ error: `requestType must be one of ${VALID_REQUEST_TYPES.join(', ')}` });
+    }
+
+    const org = await prisma.organization.findFirst({
+      where: { name: organizationName }
+    });
+
+    if (!org) {
+      return reply.status(404).send({ error: 'Organisation not found' });
+    }
+
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + DSR_DEADLINE_DAYS);
+
+    const dsr = await prisma.dsrRequest.create({
+      data: {
+        organizationId: org.id,
+        subjectEmail,
+        subjectName,
+        requestType: normalizedType,
+        reasonText,
+        dueDate
+      }
+    });
+
+    return reply.status(201).send({ success: true, id: dsr.id });
   });
 }

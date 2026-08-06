@@ -1,13 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-599K9SKZ');</script>
-<!-- End Google Tag Manager -->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="PrivacyReady — UK GDPR compliance for small businesses. Scan your website, fix the gaps, and stay compliant. No legal team needed.">
@@ -17,53 +11,87 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:description" content="Scan your website for GDPR issues, fix the gaps, and get compliant — without a solicitor or an enterprise budget.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://privacyready.co.uk">
+<meta property="og:image" content="https://privacyready.co.uk/og-image.png">
 <meta name="theme-color" content="#0B2447">
 <title>PrivacyReady — UK GDPR Compliance for Small Businesses</title>
 
-<!-- Google Analytics is intentionally NOT loaded here. It's injected by
-     main.js's loadAnalytics(), which only runs after the visitor has
-     accepted cookies -- see the Cookie Consent section of main.js. -->
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Anuphan:wght@300;400;500;600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&family=Noto+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
+
+<!-- Structured Data for Google AI & SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PrivacyReady",
+  "operatingSystem": "Web Application",
+  "applicationCategory": "BusinessApplication, Compliance Software",
+  "offers": {
+    "@type": "Offer",
+    "price": "15",
+    "priceCurrency": "GBP"
+  },
+  "description": "The UK's leading GDPR compliance platform for small businesses. Automated audits for websites, social media (Instagram, Facebook, LinkedIn, TikTok), and CRM integrations (Mailchimp).",
+  "publisher": {
+    "@type": "Organization",
+    "name": "PrivacyReady",
+    "url": "https://privacyready.co.uk"
+  },
+  "featureList": [
+    "Website GDPR Scanner",
+    "Social Media Privacy Audit",
+    "Data Retention Tracking"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does UK GDPR apply to small businesses?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, UK GDPR applies to any UK business collecting or processing personal data, including customer names, emails, booking details, or IP addresses."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does PrivacyReady audit my website?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PrivacyReady's automated scanner checks your website for cookie consent banners, SSL encryption, privacy policies, DSR mechanisms, and third-party tracking scripts against UK GDPR standards."
+      }
+    }
+  ]
+}
+</script>
 </head>
 
 <body lang="en">
 
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-599K9SKZ"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 
 <!-- Skip link for accessibility -->
 <a href="#main-content" class="skip-link">Skip to main content</a>
 
 <!-- COOKIE CONSENT BANNER -->
 <div class="cookie-banner" id="cookieBanner" role="dialog" aria-label="Cookie consent">
-  <span class="cookie-text" data-lang="en">
-    We use cookies to ensure you get the best experience. By continuing, you agree to our 
-    <a href="#privacy">Privacy Policy</a> and GDPR-compliant data practices.
-  </span>
-  <span class="cookie-text" data-lang="th">
-    เราใช้คุกกี้เพื่อให้คุณได้รับประสบการณ์ที่ดีที่สุด การใช้งานต่อแสดงว่าคุณยอมรับ
-    <a href="#privacy">นโยบายความเป็นส่วนตัว</a> และการปฏิบัติตาม GDPR ของเรา
-  </span>
-  <span class="cookie-text" data-lang="ru">
-    Мы используем cookie для лучшего опыта. Продолжая, вы соглашаетесь с нашей 
-    <a href="#privacy">политикой конфиденциальности</a> и практиками GDPR.
+  <span class="cookie-text">
+    We use analytics cookies to understand how you use our site and improve our services. You can choose to accept or decline these analytics cookies. Read our 
+    <a href="/privacy-policy.html">Privacy Policy</a>.
   </span>
   <div class="cookie-actions">
     <button class="cookie-btn cookie-btn-accept" onclick="acceptCookies()" aria-label="Accept cookies">
-      <span data-lang="en">Accept</span>
-      <span data-lang="th">ยอมรับ</span>
-      <span data-lang="ru">Принять</span>
+      <span>Accept Analytics</span>
     </button>
     <button class="cookie-btn cookie-btn-decline" onclick="declineCookies()" aria-label="Decline cookies">
-      <span data-lang="en">Decline</span>
-      <span data-lang="th">ปฏิเสธ</span>
-      <span data-lang="ru">Отклонить</span>
+      <span>Decline</span>
     </button>
   </div>
 </div>
@@ -80,12 +108,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </a>
 
   <ul class="nav-links">
-    <li><a href="#services" data-lang="en">Services</a><a href="#services" data-lang="th">บริการ</a><a href="#services" data-lang="ru">Услуги</a></li>
-    <li><a href="#gdpr" data-lang="en">GDPR Guide</a><a href="#gdpr" data-lang="th">คู่มือ GDPR</a><a href="#gdpr" data-lang="ru">Руководство GDPR</a></li>
-    <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-    <li><a href="https://portal.privacyready.co.uk" data-lang="en">Login</a><a href="https://portal.privacyready.co.uk" data-lang="th">เข้าสู่ระบบ</a><a href="https://portal.privacyready.co.uk" data-lang="ru">Войти</a></li>
-    <li><a href="#contact" class="nav-cta" data-lang="en">Consultation</a><a href="#contact" class="nav-cta" data-lang="th">ขอคำปรึกษา</a><a href="#contact" class="nav-cta" data-lang="ru">Консультация</a></li>
-
+    <li><a href="#services">Services</a></li>
+    <li><a href="#gdpr">GDPR Guide</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="https://portal.privacyready.co.uk">Login</a></li>
+    <li><a href="#contact" class="nav-cta">Consultation</a></li>
   </ul>
 
   <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle mobile menu" aria-expanded="false">
@@ -93,7 +120,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </button>
 </nav>
 
-<div class="alert-strip" role="alert">
+<div id="maintenance-banner" class="alert-strip" role="alert" style="display: none; background-color: #d97706; color: #fff; justify-content: center;">
+  <span class="alert-icon">🛠️</span>
+  <p class="alert-text" style="color: #fff;">
+    <strong>Maintenance Mode:</strong> The GDPR Scanner and Portal are currently undergoing scheduled maintenance. Please check back later.
+  </p>
+</div>
+
+<div class="alert-strip" role="alert" id="marketing-alert-strip">
   <span class="alert-icon">⚠️</span>
   <p class="alert-text">
     <strong>UK GDPR fines are rising.</strong> The ICO issued £7.5M in penalties last year alone. Is your business covered?
@@ -118,7 +152,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span>Now in Beta — Founding Member Pricing Available</span>
     </div>
 
-    <h1>UK GDPR Compliance<br><em>Sorted in a Day.</em></h1>
+    <h1>UK GDPR Compliance<br><em>Simplified for SMEs.</em></h1>
 
     <p class="hero-sub">
       <strong>PrivacyReady</strong> is GDPR compliance software built for UK small businesses — not enterprise GRC teams. Scan your website, see exactly what's non-compliant, and fix it. No solicitor required, no enterprise contract.
@@ -128,13 +162,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="scan-box">
       
       <div class="scan-tabs">
-        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website" type="button" data-lang="en">Website Audit</button>
-        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-th" type="button" data-lang="th" style="display:none">ตรวจสอบเว็บไซต์</button>
-        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website-ru" type="button" data-lang="ru" style="display:none">Аудит сайта</button>
-        
-        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button" data-lang="en">Social Media Audit</button>
-        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-th" type="button" data-lang="th" style="display:none">ตรวจสอบโซเชียลมีเดีย</button>
-        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social-ru" type="button" data-lang="ru" style="display:none">Аудит соцсетей</button>
+        <button class="scan-tab active" onclick="switchScanTab('website')" id="tab-website" type="button">Website Audit</button>
+        <button class="scan-tab" onclick="switchScanTab('social')" id="tab-social" type="button">Social & Apps Audit</button>
       </div>
 
       <!-- Website Form -->
@@ -151,29 +180,35 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         />
         <button class="scan-btn" type="submit" id="scan-btn">
           <span id="scan-btn-icon">🔍</span>
-          <span class="scan-btn-text" data-lang="en">Check Free</span>
-          <span class="scan-btn-text" data-lang="th">ตรวจสอบฟรี</span>
-          <span class="scan-btn-text" data-lang="ru">Проверить</span>
+          <span class="scan-btn-text">Check Free</span>
         </button>
       </form>
       
       <!-- Social Form -->
       <form class="scan-form" id="scan-form-social" style="display:none; flex-direction:column; gap:8px; border-radius:0; box-shadow:none;" onsubmit="return startSocialScan(event)">
-        <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID (Optional)" spellcheck="false" />
-        <input id="scan-line-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="LINE Channel ID (Optional)" spellcheck="false" />
-        <input id="scan-tt-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="TikTok Username (Optional)" spellcheck="false" />
+        <input id="scan-fb-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Facebook Page ID / Handle" spellcheck="false" />
+        <input id="scan-ig-input" class="scan-input" style="border-radius:8px; box-shadow:0 0 0 1.5px rgba(165,215,232,0.3);" type="text" placeholder="Instagram Username" spellcheck="false" />
+
+        <details style="width:100%; border:1px solid rgba(165,215,232,0.2); border-radius:8px; padding:10px 12px; background:rgba(10,37,64,0.4); margin:4px 0 8px 0; text-align:left;">
+          <summary style="cursor:pointer; font-size:13px; color:#a5d7e8; font-weight:500;">➕ Add LinkedIn, X, WhatsApp, Mailchimp & GA4 (Optional)</summary>
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+            <input id="scan-li-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="LinkedIn Company ID" spellcheck="false" />
+            <input id="scan-tw-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="X / Twitter Username" spellcheck="false" />
+            <input id="scan-wa-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="WhatsApp Business Number" spellcheck="false" />
+            <input id="scan-mc-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="Mailchimp List ID" spellcheck="false" />
+            <input id="scan-ga-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="GA4 Property ID" spellcheck="false" />
+            <input id="scan-tt-input" class="scan-input" style="border-radius:8px;" type="text" placeholder="TikTok Username" spellcheck="false" />
+          </div>
+        </details>
+
         <button class="scan-btn" type="submit" id="scan-social-btn" style="border-radius:8px; justify-content:center; margin-top:4px;">
           <span id="scan-social-btn-icon">🔍</span>
-          <span class="scan-btn-text" data-lang="en">Run Social Audit</span>
-          <span class="scan-btn-text" data-lang="th">ตรวจสอบโซเชียล</span>
-          <span class="scan-btn-text" data-lang="ru">Аудит соцсетей</span>
+          <span class="scan-btn-text">Run Social Audit</span>
         </button>
       </form>
 
-      <p class="scan-note" data-lang="en" id="scan-note-en">Free scan — no signup required. Results in ~15 seconds.</p>
-      <p class="scan-note" data-lang="th" id="scan-note-th">ตรวจสอบฟรี — ไม่ต้องสมัครสมาชิก ผลลัพธ์ใน ~15 วินาที</p>
-      <p class="scan-note" data-lang="ru" id="scan-note-ru">Бесплатная проверка — регистрация не нужна. Результат за ~15 сек.</p>
-
+      <p class="scan-note" id="scan-note-en">Free Instant Preview Scan (~15s) · Full Deep Audit Report (24h)</p>
+      
       <!-- Results panel -->
       <div class="scan-results" id="scan-results" aria-live="polite">
         <div class="scan-results-header">
@@ -186,14 +221,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="scan-blur-nudge-inner">
             <span class="scan-blur-lock">🔒</span>
             <div class="scan-blur-text">
-              <span data-lang="en"><strong>Unlock full findings</strong> — sign up free to see all details &amp; remediation steps</span>
-              <span data-lang="th"><strong>ปลดล็อกผลลัพธ์ทั้งหมด</strong> — สมัครฟรีเพื่อดูรายละเอียดและแนวทางแก้ไข</span>
-              <span data-lang="ru"><strong>Разблокируйте полные результаты</strong> — зарегистрируйтесь бесплатно</span>
+              <span><strong>Unlock full findings</strong> — upgrade to Premium to see all details &amp; remediation steps</span>
             </div>
             <a href="https://portal.privacyready.co.uk/register?source=free-scan" id="scan-full-report-btn" class="scan-blur-btn" target="_blank" rel="noopener">
-              <span data-lang="en">Sign Up Free →</span>
-              <span data-lang="th">สมัครฟรี →</span>
-              <span data-lang="ru">Регистрация →</span>
+              <span>Sign Up Free →</span>
             </a>
           </div>
         </div>
@@ -205,40 +236,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="#pricing" class="btn-secondary" style="padding:10px 20px;font-size:13px;">See Beta Pricing →</a>
     </div>
 
-
     <div class="hero-stats">
       <div class="hstat">
-        <span class="hstat-num">500+</span>
-        <span class="hstat-label" data-lang="en">Sites Audited</span>
-        <span class="hstat-label" data-lang="th">เว็บไซต์ที่ตรวจสอบ</span>
-        <span class="hstat-label" data-lang="ru">Сайтов проверено</span>
+        <span class="hstat-num">50+</span>
+        <span class="hstat-label">Beta Audits Run</span>
       </div>
       <div class="hstat">
-        <span class="hstat-num">98%</span>
-        <span class="hstat-label" data-lang="en">Pass Rate</span>
-        <span class="hstat-label" data-lang="th">อัตราผ่าน</span>
-        <span class="hstat-label" data-lang="ru">Проходной балл</span>
+        <span class="hstat-num">100%</span>
+        <span class="hstat-label">UK GDPR Aligned</span>
       </div>
       <div class="hstat">
         <span class="hstat-num">48h</span>
-        <span class="hstat-label" data-lang="en">Avg. Fix Time</span>
-        <span class="hstat-label" data-lang="th">เวลาแก้ไขเฉลี่ย</span>
-        <span class="hstat-label" data-lang="ru">Ср. время исправления</span>
+        <span class="hstat-label">Avg. Fix Time</span>
       </div>
     </div>
-  </div>
+      </div>
 
-  <div class="hero-testi" aria-label="Customer testimonial">
-    <div class="hero-testi-stars" aria-label="5 stars">★★★★★</div>
-    <p class="hero-testi-quote">"We thought we were compliant. PrivacyReady found 8 real issues on our site in under a minute — fixed everything the same afternoon."</p>
-    <div class="hero-testi-author">
-      <div class="hero-testi-avatar" aria-hidden="true">S</div>
-      <div>
-        <div class="hero-testi-name">Sarah T.</div>
-        <div class="hero-testi-biz">Owner, Greenwich Catering Co.</div>
-      </div>
-    </div>
-  </div>
+
 </section>
 
 <section class="trust-strip" aria-label="Built for UK small businesses">
@@ -256,170 +270,154 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="who-we-help" id="who" aria-labelledby="who-heading">
   <p class="section-label">Who We Help</p>
 
-  <h2 id="who-heading">Built for <em>UK small businesses</em> — not enterprise GRC teams</h2>
+  <h2 id="who-heading">Built for <em>UK small businesses &amp; startups</em> — not enterprise GRC teams</h2>
 
-  <p class="section-sub">If you run a small business that has a website and collects any customer data — name, email, booking info — UK GDPR applies to you. Most small businesses don't realise the risk until the ICO comes knocking.</p>
+  <p class="section-sub">If you run an SME or startup that processes UK customer data — emails, bookings, payments — UK GDPR applies to you. We specialize in bringing enterprise-grade compliance to small business budgets.</p>
 
   <div class="who-grid">
     <div class="who-card">
       <div class="who-icon" aria-hidden="true">🏨</div>
-      <div class="who-title" data-lang="en">Hotels & Hospitality</div>
-      <div class="who-title" data-lang="th">โรงแรมและการบริการ</div>
-      <div class="who-title" data-lang="ru">Отели и гостеприимство</div>
-      <div class="who-text" data-lang="en">Guest data, booking systems, loyalty programs — all covered under GDPR.</div>
-      <div class="who-text" data-lang="th">ข้อมูลแขก ระบบจอง โปรแกรมสะสมคะแนน — ครอบคลุมทั้งหมดภายใต้ GDPR</div>
-      <div class="who-text" data-lang="ru">Данные гостей, системы бронирования, программы лояльности — всё под GDPR.</div>
+      <div class="who-title">Hotels &amp; Independent Hospitality</div>
+      <div class="who-text">Guest Wi-Fi logins, direct booking engines, loyalty schemes — full protection without heavy legal retainers.</div>
     </div>
     <div class="who-card">
-      <div class="who-icon" aria-hidden="true">🏦</div>
-      <div class="who-title" data-lang="en">Fintech & Banking</div>
-      <div class="who-title" data-lang="th">ฟินเทคและธนาคาร</div>
-      <div class="who-title" data-lang="ru">Финтех и банки</div>
-      <div class="who-text" data-lang="en">Financial data is the most regulated. We ensure your KYC and transaction flows are bulletproof.</div>
-      <div class="who-text" data-lang="th">ข้อมูลทางการเงินถูกกำกับดูแลมากที่สุด เราช่วยให้ KYC และกระบวนการธุรกรรมของคุณปลอดภัย</div>
-      <div class="who-text" data-lang="ru">Финансовые данные наиболее регулируемы. Мы обеспечиваем безупречность KYC и транзакций.</div>
+      <div class="who-icon" aria-hidden="true">💳</div>
+      <div class="who-title">Fintech Startups &amp; Micro-Brokers</div>
+      <div class="who-text">Client onboarding, payment form data, loan applications — audit your data pipelines against ICO guidelines.</div>
     </div>
     <div class="who-card">
       <div class="who-icon" aria-hidden="true">🛒</div>
-      <div class="who-title" data-lang="en">E-commerce</div>
-      <div class="who-title" data-lang="th">อีคอมเมิร์ซ</div>
-      <div class="who-title" data-lang="ru">Электронная коммерция</div>
-      <div class="who-text" data-lang="en">Cart abandonment, retargeting pixels, customer accounts — we audit your entire data trail.</div>
-      <div class="who-text" data-lang="th">ตะกร้าที่ถูกทิ้ง พิกเซลรีทาร์เก็ตติ้ง บัญชีลูกค้า — เราตรวจสอบเส้นทางข้อมูลทั้งหมดของคุณ</div>
-      <div class="who-text" data-lang="ru">Брошенные корзины, ретаргетинг, аккаунты — мы проверяем весь путь данных.</div>
+      <div class="who-title">E-commerce &amp; Digital Retailers</div>
+      <div class="who-text">Cart abandonment trackers, Meta &amp; GA4 pixels, customer mailing lists — ensure every tracker has lawful consent.</div>
     </div>
     <div class="who-card">
       <div class="who-icon" aria-hidden="true">🏥</div>
-      <div class="who-title" data-lang="en">Healthcare</div>
-      <div class="who-title" data-lang="th">สาธารณสุข</div>
-      <div class="who-title" data-lang="ru">Здравоохранение</div>
-      <div class="who-text" data-lang="en">Patient data requires the highest protection. We help clinics and hospitals meet GDPR + medical standards.</div>
-      <div class="who-text" data-lang="th">ข้อมูลผู้ป่วยต้องการการปกป้องสูงสุด เราช่วยคลินิกและโรงพยาบาลปฏิบัติตาม GDPR และมาตรฐานการแพทย์</div>
-      <div class="who-text" data-lang="ru">Данные пациентов требуют максимальной защиты. Мы помогаем клиникам соответствовать GDPR + медстандартам.</div>
+      <div class="who-title">Independent Clinics &amp; Practices</div>
+      <div class="who-text">Patient appointment forms, medical intake records, digital consultations — meet UK GDPR health data standards.</div>
     </div>
   </div>
 </section>
 
 <!-- PROBLEM SECTION -->
 <section class="problem" id="problem" aria-labelledby="problem-heading">
-  <p class="section-label" data-lang="en">The Risk</p>
-  <p class="section-label" data-lang="th">ความเสี่ยง</p>
-  <p class="section-label" data-lang="ru">Риск</p>
+  <p class="section-label">The Risk</p>
+  
+  
 
   <div class="problem-layout">
     <div class="fine-card">
       <div class="fine-amount">17M <span style="font-size:24px; color:rgba(255,255,255,0.5);">GBP</span></div>
-      <div class="fine-label" data-lang="en">Maximum GDPR non-compliance fine</div>
-      <div class="fine-label" data-lang="th">ค่าปรับสูงสุดสำหรับการฝ่าฝืน GDPR</div>
-      <div class="fine-label" data-lang="ru">Максимальный штраф за несоответствие GDPR</div>
+      <div class="fine-label">Maximum GDPR non-compliance fine</div>
+      
+      
       <ul class="fine-list">
-        <li data-lang="en">No cookie consent banner</li>
-        <li data-lang="th">ไม่มีแบนเนอร์ยินยอมคุกกี้</li>
-        <li data-lang="ru">Нет баннера согласия на cookie</li>
-        <li data-lang="en">Missing privacy policy</li>
-        <li data-lang="th">ไม่มีนโยบายความเป็นส่วนตัว</li>
-        <li data-lang="ru">Отсутствует политика конфиденциальности</li>
-        <li data-lang="en">Unsecured data transfers</li>
-        <li data-lang="th">การถ่ายโอนข้อมูลที่ไม่ปลอดภัย</li>
-        <li data-lang="ru">Незащищённые передачи данных</li>
-        <li data-lang="en">No data retention policy</li>
-        <li data-lang="th">ไม่มีนโยบายการเก็บรักษาข้อมูล</li>
-        <li data-lang="ru">Нет политики хранения данных</li>
-        <li data-lang="en">Third-party trackers without disclosure</li>
-        <li data-lang="th">ตัวติดตามบุคคลที่สามโดยไม่เปิดเผย</li>
-        <li data-lang="ru">Сторонние трекеры без раскрытия</li>
+        <li>No cookie consent banner</li>
+        
+        
+        <li>Missing privacy policy</li>
+        
+        
+        <li>Unsecured data transfers</li>
+        
+        
+        <li>No data retention policy</li>
+        
+        
+        <li>Third-party trackers without disclosure</li>
+        
+        
       </ul>
     </div>
 
     <div class="problem-text">
-      <h3 id="problem-heading" data-lang="en">Most UK websites are non-compliant — and don't know it yet</h3>
-      <h3 id="problem-heading" data-lang="th">เว็บไซต์ไทยส่วนใหญ่ไม่ปฏิบัติตาม — และยังไม่รู้ตัว</h3>
-      <h3 id="problem-heading" data-lang="ru">Большинство тайских сайтов несоответствуют — и не знают об этом</h3>
+      <h3 id="problem-heading">Most UK websites are non-compliant — and don't know it yet</h3>
+      
+      
 
-      <p data-lang="en">The Personal Data Protection Act B.E. 2562 (2019) is now fully enforced. Regulators are actively auditing websites, and fines are being issued. Yet most businesses — especially SMEs — lack the legal and technical expertise to self-audit.</p>
-      <p data-lang="th">พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562 บังคับใช้เต็มรูปแบบแล้ว หน่วยงานกำกับดูแลกำลังตรวจสอบเว็บไซต์อย่างแข็งขัน และมีการออกคำสั่งปรับ แต่ธุรกิจส่วนใหญ่ — โดยเฉพาะ SMEs — ขาดความเชี่ยวชาญทางกฎหมายและเทคนิคในการตรวจสอบตนเอง</p>
-      <p data-lang="ru">Закон о защите персональных данных B.E. 2562 (2019) полностью вступил в силу. Регуляторы активно проверяют сайты и выписывают штрафы. Однако большинство компаний — особенно МСП — не обладают юридической и технической экспертизой для самоаудита.</p>
+      <p>The UK Data Protection Act 2018 and UK GDPR are strictly enforced by the Information Commissioner's Office (ICO). Regulators are actively auditing websites, and fines are being issued. Yet most businesses — especially SMEs — lack the legal and technical expertise to self-audit.</p>
+      
+      
 
-      <p data-lang="en"><strong>PrivacyReady</strong> bridges that gap. Our automated audit scans your entire site — frontend, backend, cookies, forms, third-party scripts — and delivers a prioritized fix list with implementation guides.</p>
-      <p data-lang="th"><strong>PrivacyReady</strong> ช่วยลดช่องว่างนั้น การตรวจสอบอัตโนมัติของเราสแกนเว็บไซต์ทั้งหมดของคุณ — หน้าเว็บ แบ็กเอนด์ คุกกี้ แบบฟอร์ม สคริปต์บุคคลที่สาม — และจัดลำดับความสำคัญของรายการแก้ไขพร้อมคู่มือการใช้งาน</p>
-      <p data-lang="ru"><strong>PrivacyReady</strong> заполняет этот пробел. Наш автоматический аудит сканирует весь ваш сайт — фронтенд, бэкенд, cookie, формы, сторонние скрипты — и выдаёт приоритизированный список исправлений с руководствами по внедрению.</p>
+      <p><strong>PrivacyReady</strong> bridges that gap. Our automated audit scans your entire site — frontend, backend, cookies, forms, third-party scripts — and delivers a prioritized fix list with implementation guides.</p>
+      
+      
     </div>
   </div>
 </section>
 
 <!-- SERVICES -->
 <section class="services" id="services" aria-labelledby="services-heading">
-  <p class="section-label" data-lang="en">How It Works</p>
-  <p class="section-label" data-lang="th">วิธีการทำงาน</p>
-  <p class="section-label" data-lang="ru">Как это работает</p>
+  <p class="section-label">How It Works</p>
+  
+  
 
-  <h2 id="services-heading" data-lang="en">Three steps to <em>full compliance</em></h2>
-  <h2 id="services-heading" data-lang="th">สามขั้นตอนสู่<em>การปฏิบัติตามเต็มรูปแบบ</em></h2>
-  <h2 id="services-heading" data-lang="ru">Три шага к <em>полному соответствию</em></h2>
+  <h2 id="services-heading">Three steps to <em>full compliance</em></h2>
+  
+  
 
-  <p class="section-sub" data-lang="en">No legal jargon. No engineering overhead. Just a clear path from audit to compliance certificate.</p>
-  <p class="section-sub" data-lang="th">ไม่มีศัพท์เทคนิคทางกฎหมาย ไม่มีภาระงานวิศวกรรม เพียงเส้นทางที่ชัดเจนจากการตรวจสอบสู่ใบรับรองการปฏิบัติตาม</p>
-  <p class="section-sub" data-lang="ru">Никакой юридической терминологии. Никакой инженерной нагрузки. Простой путь от аудита до сертификата соответствия.</p>
+  <p class="section-sub">No legal jargon. No engineering overhead. Just a clear path from audit to continuous compliance.</p>
+  
+  
 
   <div class="services-grid">
     <div class="service-card">
       <div class="service-num">01</div>
-      <div class="service-title" data-lang="en">Automated Audit</div>
-      <div class="service-title" data-lang="th">การตรวจสอบอัตโนมัติ</div>
-      <div class="service-title" data-lang="ru">Автоматический аудит</div>
-      <div class="service-desc" data-lang="en">Our scanner crawls your entire site — pages, forms, cookies, scripts, headers — and maps every data touchpoint against GDPR requirements.</div>
-      <div class="service-desc" data-lang="th">เครื่องมือสแกนของเราครอบคลุมเว็บไซต์ทั้งหมดของคุณ — หน้าเว็บ แบบฟอร์ม คุกกี้ สคริปต์ ส่วนหัว — และจัดทำแผนที่จุดสัมผัสข้อมูลทุกจุดตามข้อกำหนด GDPR</div>
-      <div class="service-desc" data-lang="ru">Наш сканер обходит весь ваш сайт — страницы, формы, cookie, скрипты, заголовки — и сопоставляет каждую точку данных с требованиями GDPR.</div>
+      <div class="service-title">Automated Audit</div>
+      
+      
+      <div class="service-desc">Our scanner crawls your entire site — pages, forms, cookies, scripts, headers — and maps every data touchpoint against GDPR requirements.</div>
+      
+      
       <ul class="service-features">
-        <li data-lang="en">100+ compliance checks</li>
-        <li data-lang="th">การตรวจสอบการปฏิบัติตามกว่า 100 รายการ</li>
-        <li data-lang="ru">100+ проверок соответствия</li>
-        <li data-lang="en">Cookie & tracker analysis</li>
-        <li data-lang="th">การวิเคราะห์คุกกี้และตัวติดตาม</li>
-        <li data-lang="ru">Анализ cookie и трекеров</li>
-        <li data-lang="en">SSL & security headers</li>
-        <li data-lang="th">SSL และส่วนหัวความปลอดภัย</li>
-        <li data-lang="ru">SSL и заголовки безопасности</li>
+        <li>Comprehensive compliance checks</li>
+        
+        
+        <li>Cookie & tracker analysis</li>
+        
+        
+        <li>SSL & security headers</li>
+        
+        
       </ul>
     </div>
     <div class="service-card">
       <div class="service-num">02</div>
-      <div class="service-title" data-lang="en">Gap Report</div>
-      <div class="service-title" data-lang="th">รายงานช่องโหว่</div>
-      <div class="service-title" data-lang="ru">Отчёт о пробелах</div>
-      <div class="service-desc" data-lang="en">Receive a detailed, prioritized report with severity ratings, legal references, and step-by-step remediation instructions.</div>
-      <div class="service-desc" data-lang="th">รับรายงานละเอียดที่จัดลำดับความสำคัญพร้อมระดับความรุนแรง อ้างอิงกฎหมาย และคำแนะนำการแก้ไขทีละขั้นตอน</div>
-      <div class="service-desc" data-lang="ru">Получите подробный приоритизированный отчёт с уровнями серьёзности, юридическими ссылками и пошаговыми инструкциями по устранению.</div>
+      <div class="service-title">Gap Report</div>
+      
+      
+      <div class="service-desc">Receive a detailed, prioritized report with severity ratings, legal references, and step-by-step remediation instructions.</div>
+      
+      
       <ul class="service-features">
-        <li data-lang="en">Risk severity scoring</li>
-        <li data-lang="th">คะแนนความรุนแรงของความเสี่ยง</li>
-        <li data-lang="ru">Оценка серьёзности рисков</li>
-        <li data-lang="en">GDPR article references</li>
-        <li data-lang="th">อ้างอิงมาตรา GDPR</li>
-        <li data-lang="ru">Ссылки на статьи GDPR</li>
-        <li data-lang="en">Developer-friendly fix guides</li>
-        <li data-lang="th">คู่มือการแก้ไขสำหรับนักพัฒนา</li>
-        <li data-lang="ru">Руководства по исправлению для разработчиков</li>
+        <li>Risk severity scoring</li>
+        
+        
+        <li>GDPR article references</li>
+        
+        
+        <li>Developer-friendly fix guides</li>
+        
+        
       </ul>
     </div>
     <div class="service-card">
       <div class="service-num">03</div>
-      <div class="service-title" data-lang="en">Fix & Certify</div>
-      <div class="service-title" data-lang="th">แก้ไขและรับรอง</div>
-      <div class="service-title" data-lang="ru">Исправьте и сертифицируйте</div>
-      <div class="service-desc" data-lang="en">Apply fixes yourself or hire our team. Once complete, we verify and issue a GDPR compliance certificate valid for 12 months.</div>
-      <div class="service-desc" data-lang="th">แก้ไขด้วยตัวเองหรือจ้างทีมของเรา เมื่อเสร็จสิ้น เราตรวจสอบและออกใบรับรองการปฏิบัติตาม GDPR ที่มีอายุ 12 เดือน</div>
-      <div class="service-desc" data-lang="ru">Исправьте самостоятельно или наймите нашу команду. После завершения мы проверим и выдадим сертификат соответствия GDPR сроком на 12 месяцев.</div>
+      <div class="service-title">Fix & Certify</div>
+      
+      
+      <div class="service-desc">Apply fixes yourself or hire our team. Access continuous monitoring to stay compliant.</div>
+      
+      
       <ul class="service-features">
-        <li data-lang="en">Implementation support</li>
-        <li data-lang="th">การสนับสนุนการใช้งาน</li>
-        <li data-lang="ru">Поддержка внедрения</li>
-        <li data-lang="en">Re-audit verification</li>
-        <li data-lang="th">การตรวจสอบซ้ำ</li>
-        <li data-lang="ru">Повторная проверка</li>
-        <li data-lang="en">Compliance certificate</li>
-        <li data-lang="th">ใบรับรองการปฏิบัติตาม</li>
-        <li data-lang="ru">Сертификат соответствия</li>
+        <li>Implementation support</li>
+        
+        
+        <li>Re-audit verification</li>
+        
+        
+        <li>Continuous compliance monitoring</li>
+        
+        
       </ul>
     </div>
   </div>
@@ -427,95 +425,89 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- GDPR SECTION -->
 <section class="gdpr" id="gdpr" aria-labelledby="gdpr-heading">
-  <p class="section-label" data-lang="en">GDPR Checklist</p>
-  <p class="section-label" data-lang="th">รายการตรวจสอบ GDPR</p>
-  <p class="section-label" data-lang="ru">Контрольный список GDPR</p>
+  <p class="section-label">GDPR Checklist</p>
+  
+  
 
   <div class="gdpr-grid">
     <div class="gdpr-visual">
       <ul class="gdpr-checklist">
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Consent banner implemented</span><span data-lang="th">ติดตั้งแบนเนอร์ยินยอมแล้ว</span><span data-lang="ru">Баннер согласия установлен</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Privacy policy published</span><span data-lang="th">เผยแพร่นโยบายความเป็นส่วนตัวแล้ว</span><span data-lang="ru">Политика конфиденциальности опубликована</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Data retention policy defined</span><span data-lang="th">กำหนดนโยบายการเก็บรักษาข้อมูลแล้ว</span><span data-lang="ru">Политика хранения данных определена</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Third-party disclosures listed</span><span data-lang="th">ระบุการเปิดเผยบุคคลที่สามแล้ว</span><span data-lang="ru">Раскрытия третьих лиц перечислены</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">SSL/TLS encryption active</span><span data-lang="th">เปิดใช้งานการเข้ารหัส SSL/TLS แล้ว</span><span data-lang="ru">Шифрование SSL/TLS активно</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Data subject rights process ready</span><span data-lang="th">กระบวนการสิทธิของเจ้าของข้อมูลพร้อมแล้ว</span><span data-lang="ru">Процесс прав субъектов данных готов</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Cookie categorization complete</span><span data-lang="th">จัดหมวดหมู่คุกกี้เสร็จสมบูรณ์</span><span data-lang="ru">Категоризация cookie завершена</span></li>
-        <li><span class="gdpr-check">✓</span><span data-lang="en">Cross-border transfer safeguards</span><span data-lang="th">มาตรการคุ้มครองการถ่ายโอนข้ามพรมแดน</span><span data-lang="ru">Защита трансграничных передач</span></li>
+        <li><span class="gdpr-check">✓</span><span>Consent banner implemented</span></li>
+        <li><span class="gdpr-check">✓</span><span>Privacy policy published</span></li>
+        <li><span class="gdpr-check">✓</span><span>Data retention policy defined</span></li>
+        <li><span class="gdpr-check">✓</span><span>Third-party disclosures listed</span></li>
+        <li><span class="gdpr-check">✓</span><span>SSL/TLS encryption active</span></li>
+        <li><span class="gdpr-check">✓</span><span>Data subject rights process ready</span></li>
+        <li><span class="gdpr-check">✓</span><span>Cookie categorization complete</span></li>
+        <li><span class="gdpr-check">✓</span><span>Cross-border transfer safeguards</span></li>
       </ul>
     </div>
 
     <div class="gdpr-text">
-      <h3 id="gdpr-heading" data-lang="en">The 8 pillars of GDPR compliance</h3>
-      <h3 id="gdpr-heading" data-lang="th">8 หลักสำคัญของการปฏิบัติตาม GDPR</h3>
-      <h3 id="gdpr-heading" data-lang="ru">8 столпов соответствия GDPR</h3>
+      <h3 id="gdpr-heading">The 8 pillars of GDPR compliance</h3>
+      
+      
 
-      <p data-lang="en">The UK GDPR mirrors the EU's GDPR but adds local nuances. Our audit covers all 8 compliance pillars — from consent management to cross-border data transfers — ensuring you meet both the letter and spirit of the law.</p>
-      <p data-lang="th">GDPR ของไทยคล้ายกับ GDPR ของสหภาพยุโรป แต่มีความแตกต่างเฉพาะท้องถิ่น การตรวจสอบของเราครอบคลุมหลักการปฏิบัติตามทั้ง 8 ประการ — ตั้งแต่การจัดการความยินยอมไปจนถึงการถ่ายโอนข้อมูลข้ามพรมแดน — เพื่อให้แน่ใจว่าคุณปฏิบัติตามทั้งตัวอักษรและเจตนารมณ์ของกฎหมาย</p>
-      <p data-lang="ru">Тайский GDPR повторяет GDPR ЕС, но добавляет местные нюансы. Наш аудит охватывает все 8 столпов соответствия — от управления согласием до трансграничных передач данных — гарантируя соблюдение как буквы, так и духа закона.</p>
+      <p>The UK GDPR mirrors the EU's GDPR but adds local nuances. Our audit covers all 8 compliance pillars — from consent management to cross-border data transfers — ensuring you meet both the letter and spirit of the law.</p>
+      
+      
 
-      <p data-lang="en">Each pillar is scored individually, so you know exactly where to focus first. No guesswork. No overwhelm. Just a clear compliance scorecard.</p>
-      <p data-lang="th">แต่ละหลักได้รับคะแนนแยกกัน ดังนั้นคุณจะรู้ว่าควรเน้นที่ไหนก่อน ไม่มีการเดา ไม่มีความกดดัน เพียงบัตรคะแนนการปฏิบัติตามที่ชัดเจน</p>
-      <p data-lang="ru">Каждый столп оценивается отдельно, поэтому вы точно знаете, на чём сосредоточиться в первую очередь. Никаких догадок. Никакого давления. Просто чёткая карта оценки соответствия.</p>
+      <p>Each pillar is scored individually, so you know exactly where to focus first. No guesswork. No overwhelm. Just a clear compliance scorecard.</p>
+      
+      
     </div>
   </div>
 </section>
 
 <!-- AUDIT CALCULATOR -->
 <section class="audit-calc" id="calc" aria-labelledby="calc-heading">
-  <p class="section-label" data-lang="en">Fine Calculator</p>
-  <p class="section-label" data-lang="th">เครื่องคำนวณค่าปรับ</p>
-  <p class="section-label" data-lang="ru">Калькулятор штрафов</p>
+  <p class="section-label">Fine Calculator</p>
+  
+  
 
-  <h2 id="calc-heading" data-lang="en">What non-compliance <em>actually costs</em></h2>
-  <h2 id="calc-heading" data-lang="th">การไม่ปฏิบัติตาม<em>มีค่าใช้จ่ายเท่าไร</em></h2>
-  <h2 id="calc-heading" data-lang="ru">Сколько <em>на самом деле стоит</em> несоответствие</h2>
+  <h2 id="calc-heading">What non-compliance <em>actually costs</em></h2>
+  
+  
 
-  <p class="section-sub" data-lang="en">GDPR fines are calculated per violation. Use our calculator to estimate your exposure based on common non-compliance factors.</p>
-  <p class="section-sub" data-lang="th">ค่าปรับ GDPR คำนวณต่อการฝ่าฝืน ใช้เครื่องคำนวณของเราเพื่อประมาณการความเสี่ยงของคุณตามปัจจัยการไม่ปฏิบัติตามทั่วไป</p>
-  <p class="section-sub" data-lang="ru">Штрафы GDPR рассчитываются за каждое нарушение. Используйте наш калькулятор для оценки ваших рисков на основе типичных факторов несоответствия.</p>
-
+  <p class="section-sub">GDPR fines are calculated based on data volume and turnover.</p>
   <div class="calc-card">
-    <div class="calc-title" data-lang="en">Estimated Fine Exposure</div>
-    <div class="calc-title" data-lang="th">ประมาณการความเสี่ยงค่าปรับ</div>
-    <div class="calc-title" data-lang="ru">Оценка штрафных санкций</div>
+    <div class="calc-title">Interactive Fine Risk Calculator</div>
+    <p style="font-size:13px; opacity:0.8; margin-bottom:16px;">Common risk factors that the ICO evaluates during an investigation:</p>
 
     <div class="calc-row">
-      <span class="calc-label" data-lang="en">Missing consent mechanism</span>
-      <span class="calc-label" data-lang="th">ไม่มีกลไกการขอความยินยอม</span>
-      <span class="calc-label" data-lang="ru">Отсутствие механизма согласия</span>
-      <span class="calc-value danger">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="50000" onchange="updateFineCalc()" />
+        <span class="calc-label">Missing or non-compliant cookie consent banner</span>
+      </label>
     </div>
     <div class="calc-row">
-      <span class="calc-label" data-lang="en">No privacy policy</span>
-      <span class="calc-label" data-lang="th">ไม่มีนโยบายความเป็นส่วนตัว</span>
-      <span class="calc-label" data-lang="ru">Нет политики конфиденциальности</span>
-      <span class="calc-value danger">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="200000" onchange="updateFineCalc()" />
+        <span class="calc-label">No up-to-date Privacy Policy published</span>
+      </label>
     </div>
     <div class="calc-row">
-      <span class="calc-label" data-lang="en">Unsecured data storage</span>
-      <span class="calc-label" data-lang="th">การจัดเก็บข้อมูลที่ไม่ปลอดภัย</span>
-      <span class="calc-label" data-lang="ru">Незащищённое хранение данных</span>
-      <span class="calc-value danger">Up to £8.7M / 2%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="150000" onchange="updateFineCalc()" />
+        <span class="calc-label">Undisclosed third-party analytics & ad pixels</span>
+      </label>
     </div>
     <div class="calc-row">
-      <span class="calc-label" data-lang="en">Third-party tracker violations</span>
-      <span class="calc-label" data-lang="th">การฝ่าฝืนตัวติดตามบุคคลที่สาม</span>
-      <span class="calc-label" data-lang="ru">Нарушения трекеров третьих лиц</span>
-      <span class="calc-value warning">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="250000" onchange="updateFineCalc()" />
+        <span class="calc-label">No Data Subject Rights (DSR) request mechanism</span>
+      </label>
     </div>
     <div class="calc-row">
-      <span class="calc-label" data-lang="en">No data subject rights process</span>
-      <span class="calc-label" data-lang="th">ไม่มีกระบวนการสิทธิของเจ้าของข้อมูล</span>
-      <span class="calc-label" data-lang="ru">Нет процесса прав субъектов данных</span>
-      <span class="calc-value warning">Up to £17.5M / 4%</span>
+      <label style="display:flex; align-items:center; gap:10px; cursor:pointer; width:100%;">
+        <input type="checkbox" class="fine-risk-chk" data-amount="1000000" onchange="updateFineCalc()" />
+        <span class="calc-label">Unsecured forms or missing HTTPS encryption</span>
+      </label>
     </div>
 
     <div class="calc-total">
-      <span class="calc-total-label" data-lang="en">Total Potential Fine</span>
-      <span class="calc-total-label" data-lang="th">ค่าปรับที่อาจเกิดขึ้นทั้งหมด</span>
-      <span class="calc-total-label" data-lang="ru">Общий потенциальный штраф</span>
-      <span class="calc-total-value" style="font-size: 24px; text-align: right; line-height: 1.2;">Up to £17.5M<br><span style="font-size: 14px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or 4% of global turnover</span></span>
+      <span class="calc-total-label">Maximum Potential Fine</span>
+      <span class="calc-total-value" id="calc-total-display" style="font-size: 20px; text-align: right; line-height: 1.2; color:#ef4444; font-weight:700;">Up to £17.5M<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span></span>
     </div>
   </div>
 </section>
@@ -528,27 +520,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <p class="section-sub">We're in beta — which means you get our best prices, locked in for life, in exchange for feedback. No enterprise budget needed. No hidden fees. No "book a demo."</p>
 
-  <div style="text-align:center; margin-bottom:24px;">
-    <span style="display:inline-block; background:rgba(165,215,232,0.12); border:1px solid rgba(165,215,232,0.3); border-radius:999px; padding:8px 20px; font-size:13px; color:#a5d7e8; font-weight:500;">
-      🎯 Founding Member spots remaining: <strong style="color:#fff;">23 / 30</strong>
-    </span>
-  </div>
+
 
   <div class="pricing-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); max-width: 860px; margin: 0 auto;">
 
     <!-- FREE -->
     <div class="price-card">
-      <div class="price-tier">Free Scanner</div>
+      <div class="price-tier">Free Audit</div>
       <div class="price-amount">Free</div>
       <div class="price-period">forever — no card required</div>
       <ul class="price-features">
-        <li>Instant website compliance scan</li>
-        <li>See your top GDPR gaps</li>
-        <li>Cookie &amp; tracker check</li>
+        <li>Instant automated website scan</li>
+        <li>High-level compliance score</li>
+        <li>Top 3 risk gaps summary</li>
         <li>SSL &amp; security header check</li>
-        <li class="missing">Policy generator</li>
-        <li class="missing">DSR request tracker</li>
-        <li class="missing">Breach register</li>
+        <li class="missing">Customizable Policy Generators</li>
+        <li class="missing">Data Subject Rights (DSR) Portal</li>
+
       </ul>
       <a href="#main-content" class="btn-secondary price-btn" onclick="document.getElementById('scan-url-input').focus()">Scan My Website Free →</a>
     </div>
@@ -556,21 +544,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <!-- STARTER -->
     <div class="price-card featured">
       <div class="price-badge">Founding Member</div>
-      <div class="price-tier">Starter</div>
+      <div class="price-tier">Starter Pro</div>
       <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px;">
         <div class="price-amount">£15<span style="font-size:16px; font-weight:400; opacity:0.7;">/mo</span></div>
         <div style="font-size:13px; text-decoration:line-through; opacity:0.45; margin-bottom:4px;">£29</div>
       </div>
       <div class="price-period">Sole traders &amp; micro businesses · locked in forever</div>
       <ul class="price-features">
-        <li>Everything in Free Scanner</li>
-        <li>Privacy policy generator</li>
-        <li>Cookie policy generator</li>
+        <li>Everything in Free Audit</li>
+        <li>Full unblurred scan findings</li>
+        <li>Privacy &amp; Cookie Policy generators</li>
         <li>Data subject request (DSR) tracker</li>
-        <li>Breach register</li>
-        <li>1 user login</li>
-        <li class="missing">Consent management</li>
-        <li class="missing">Vendor/processor register</li>
+
+
+        <li class="missing">Consent Management Banner</li>
+        <li class="missing">Vendor Processor Register</li>
       </ul>
       <a href="https://portal.privacyready.co.uk/register?plan=starter-founding" class="btn-primary price-btn" target="_blank" rel="noopener">Claim Founding Spot →</a>
     </div>
@@ -584,12 +572,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="price-period">Small businesses 10–50 staff · locked in forever</div>
       <ul class="price-features">
-        <li>Everything in Starter</li>
-        <li>Consent management module</li>
-        <li>Vendor &amp; processor register</li>
-        <li>Staff training tracker</li>
-        <li>Up to 5 user logins</li>
-        <li>Priority email support</li>
+        <li>Everything in Starter Pro</li>
+        <li>Consent Management Banner (Coming Soon)</li>
+        <li>Vendor &amp; processor register (Coming Soon)</li>
+        <li>Staff GDPR training tracker (Coming Soon)</li>
+        <li>Up to 5 user seat logins</li>
+        <li>Priority email &amp; chat support</li>
       </ul>
       <a href="https://portal.privacyready.co.uk/register?plan=growth-founding" class="btn-secondary price-btn" target="_blank" rel="noopener">Claim Founding Spot →</a>
     </div>
@@ -600,131 +588,72 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 
-<!-- TESTIMONIALS -->
-<section class="testimonials" id="testimonials" aria-labelledby="testi-heading">
-  <p class="section-label" data-lang="en">Testimonials</p>
-  <p class="section-label" data-lang="th">รีวิวจากลูกค้า</p>
-  <p class="section-label" data-lang="ru">Отзывы</p>
 
-  <h2 id="testi-heading" data-lang="en">Trusted by teams who take <em>privacy seriously</em></h2>
-  <h2 id="testi-heading" data-lang="th">ได้รับความไว้วางใจจากทีมที่ให้ความสำคัญกับ<em>ความเป็นส่วนตัว</em></h2>
-  <h2 id="testi-heading" data-lang="ru">Доверяют команды, которые серьёзно относятся к <em>конфиденциальности</em></h2>
-
-  <div class="testi-grid">
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote" data-lang="en">"We thought we were compliant until PrivacyReady found 23 issues. Their remediation guide saved us weeks of legal review."</p>
-      <p class="testi-quote" data-lang="th">"เราคิดว่าเราปฏิบัติตามจนกระทั่ง PrivacyReady พบปัญหา 23 รายการ คู่มือการแก้ไขของพวกเขาประหยัดเวลาการตรวจสอบทางกฎหมายเป็นสัปดาห์"</p>
-      <p class="testi-quote" data-lang="ru">"Мы думали, что соответствуем, пока PrivacyReady не нашёл 23 проблемы. Их руководство по исправлению сэкономило нам недели юридической проверки."</p>
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">E</div>
-        <div>
-          <div class="testi-name">Eleanor B.</div>
-          <div class="testi-biz" data-lang="en">Data Protection Officer, Nexus Retail Ltd</div>
-          <div class="testi-biz" data-lang="th">เจ้าหน้าที่คุ้มครองข้อมูลส่วนบุคคล Nexus Retail Ltd</div>
-          <div class="testi-biz" data-lang="ru">Сотрудник по защите данных, Nexus Retail Ltd</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote" data-lang="en">"The trilingual reports are a game-changer. Our UK and international stakeholders finally understand compliance in their own language."</p>
-      <p class="testi-quote" data-lang="th">"รายงานสามภาษาเปลี่ยนเกม ผู้มีส่วนได้ส่วนเสียไทยและรัสเซียของเราเข้าใจการปฏิบัติตามในภาษาของตนเองในที่สุด"</p>
-      <p class="testi-quote" data-lang="ru">"Трёхъязычные отчёты меняют правила игры. Наши тайские и русские стейкхолдеры наконец понимают соответствие на своём языке."</p>
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">M</div>
-        <div>
-          <div class="testi-name">Marcus W.</div>
-          <div class="testi-biz" data-lang="en">CTO, Meridian Hospitality Group</div>
-          <div class="testi-biz" data-lang="th">ซีทีโอ Meridian Hospitality Group</div>
-          <div class="testi-biz" data-lang="ru">CTO, Meridian Hospitality Group</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="testi-card">
-      <div class="testi-stars" aria-label="5 stars">★★★★★</div>
-      <p class="testi-quote" data-lang="en">"Worth every penny. The compliance certificate alone helped us close a major enterprise deal that required GDPR proof."</p>
-      <p class="testi-quote" data-lang="th">"คุ้มค่าทุกบาท ใบรับรองการปฏิบัติตามอย่างเดียวช่วยให้เราปิดดีลองค์กรใหญ่ที่ต้องการหลักฐาน GDPR"</p>
-      <p class="testi-quote" data-lang="ru">"Каждый бат стоил того. Один только сертификат соответствия помог нам закрыть крупную корпоративную сделку, требовавшую подтверждения GDPR."</p>
-      <div class="testi-author">
-        <div class="testi-avatar" aria-hidden="true">J</div>
-        <div>
-          <div class="testi-name">James D.</div>
-          <div class="testi-biz" data-lang="en">CEO, Manchester MedTech Solutions</div>
-          <div class="testi-biz" data-lang="th">ซีอีโอ Manchester MedTech Solutions</div>
-          <div class="testi-biz" data-lang="ru">CEO, Manchester MedTech Solutions</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- TIMELINE -->
 <section class="timeline" id="timeline" aria-labelledby="timeline-heading">
-  <p class="section-label" data-lang="en">Process</p>
-  <p class="section-label" data-lang="th">กระบวนการ</p>
-  <p class="section-label" data-lang="ru">Процесс</p>
+  <p class="section-label">Process</p>
+  
+  
 
-  <h2 id="timeline-heading" data-lang="en">From audit to <em>compliance certificate</em> in 5 days</h2>
-  <h2 id="timeline-heading" data-lang="th">จากการตรวจสอบสู่<em>ใบรับรองการปฏิบัติตาม</em>ใน 5 วัน</h2>
-  <h2 id="timeline-heading" data-lang="ru">От аудита до <em>сертификата соответствия</em> за 5 дней</h2>
+  <h2 id="timeline-heading">From audit to <em>compliance readiness</em></h2>
+  
+  
 
   <div class="timeline-wrap">
     <div class="timeline-item">
       <div class="timeline-dot">01</div>
       <div class="timeline-content">
-        <h4 data-lang="en">Submit Your URL</h4>
-        <h4 data-lang="th">ส่ง URL ของคุณ</h4>
-        <h4 data-lang="ru">Отправьте ваш URL</h4>
-        <p data-lang="en">Enter your website URL and select your audit tier. No signup required for the free scan.</p>
-        <p data-lang="th">ป้อน URL เว็บไซต์ของคุณและเลือกระดับการตรวจสอบ ไม่ต้องลงทะเบียนสำหรับการสแกนฟรี</p>
-        <p data-lang="ru">Введите URL вашего сайта и выберите уровень аудита. Регистрация не требуется для бесплатного сканирования.</p>
+        <h4>Submit Your URL</h4>
+        
+        
+        <p>Enter your website URL and select your audit tier. No signup required for the free scan.</p>
+        
+        
       </div>
     </div>
     <div class="timeline-item">
       <div class="timeline-dot">02</div>
       <div class="timeline-content">
-        <h4 data-lang="en">Automated Scan (24h)</h4>
-        <h4 data-lang="th">การสแกนอัตโนมัติ (24 ชม.)</h4>
-        <h4 data-lang="ru">Автоматическое сканирование (24 ч)</h4>
-        <p data-lang="en">Our crawler analyzes every page, form, cookie, and script. Deep inspection of headers, SSL, and third-party integrations.</p>
-        <p data-lang="th">เครื่องมือครอบคลุมของเราวิเคราะห์ทุกหน้า แบบฟอร์ม คุกกี้ และสคริปต์ การตรวจสอบลึกของส่วนหัว SSL และการผสานรวมบุคคลที่สาม</p>
-        <p data-lang="ru">Наш краулер анализирует каждую страницу, форму, cookie и скрипт. Глубокая проверка заголовков, SSL и сторонних интеграций.</p>
+        <h4>Automated Scan (Instant)</h4>
+        
+        
+        <p>Our crawler analyses every page, form, cookie, and script. Deep inspection of headers, SSL, and third-party integrations.</p>
+        
+        
       </div>
     </div>
     <div class="timeline-item">
       <div class="timeline-dot">03</div>
       <div class="timeline-content">
-        <h4 data-lang="en">Receive Gap Report (Day 2)</h4>
-        <h4 data-lang="th">รับรายงานช่องโหว่ (วันที่ 2)</h4>
-        <h4 data-lang="ru">Получите отчёт о пробелах (День 2)</h4>
-        <p data-lang="en">A prioritized PDF report with severity scores, legal article references, and screenshots of each violation.</p>
-        <p data-lang="th">รายงาน PDF ที่จัดลำดับความสำคัญพร้อมคะแนนความรุนแรง อ้างอิงมาตรากฎหมาย และภาพหน้าจอของแต่ละการฝ่าฝืน</p>
-        <p data-lang="ru">Приоритизированный PDF-отчёт с оценками серьёзности, ссылками на юридические статьи и скриншотами каждого нарушения.</p>
+        <h4>Receive Gap Report (Day 1)</h4>
+        
+        
+        <p>A prioritized PDF report with severity scores, legal article references, and screenshots of each violation.</p>
+        
+        
       </div>
     </div>
     <div class="timeline-item">
       <div class="timeline-dot">04</div>
       <div class="timeline-content">
-        <h4 data-lang="en">Fix with Our Guide (Days 2-4)</h4>
-        <h4 data-lang="th">แก้ไขด้วยคู่มือของเรา (วันที่ 2-4)</h4>
-        <h4 data-lang="ru">Исправьте с нашим руководством (Дни 2-4)</h4>
-        <p data-lang="en">Follow step-by-step remediation instructions. Or hire our team to implement fixes for you. Support via email and chat.</p>
-        <p data-lang="th">ปฏิบัติตามคำแนะนำการแก้ไขทีละขั้นตอน หรือจ้างทีมของเราใช้งานแก้ไขให้คุณ รับการสนับสนุนทางอีเมลและแชท</p>
-        <p data-lang="ru">Следуйте пошаговым инструкциям по исправлению. Или наймите нашу команду для внедрения исправлений. Поддержка по email и чату.</p>
+        <h4>Fix with Our Guide (Day 1)</h4>
+        
+        
+        <p>Follow step-by-step remediation instructions. Or hire our team to implement fixes for you. Support via email and chat.</p>
+        
+        
       </div>
     </div>
     <div class="timeline-item">
       <div class="timeline-dot">05</div>
       <div class="timeline-content">
-        <h4 data-lang="en">Re-audit & Certificate (Day 5)</h4>
-        <h4 data-lang="th">ตรวจสอบซ้ำและใบรับรอง (วันที่ 5)</h4>
-        <h4 data-lang="ru">Повторный аудит и сертификат (День 5)</h4>
-        <p data-lang="en">We verify your fixes and issue a GDPR compliance certificate. Display it on your site to build customer trust.</p>
-        <p data-lang="th">เราตรวจสอบการแก้ไขของคุณและออกใบรับรองการปฏิบัติตาม GDPR แสดงบนเว็บไซต์ของคุณเพื่อสร้างความไว้วางใจของลูกค้า</p>
-        <p data-lang="ru">Мы проверяем ваши исправления и выдаём сертификат соответствия GDPR. Разместите его на сайте для укрепления доверия клиентов.</p>
+        <h4>Re-audit & Certificate (Day 1)</h4>
+        
+        
+        <p>We help you verify your fixes and provide ongoing compliance monitoring to build customer trust.</p>
+        
+        
       </div>
     </div>
   </div>
@@ -734,49 +663,50 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="audit-cta" aria-labelledby="audit-cta-heading">
   <div class="audit-cta-glow" aria-hidden="true"></div>
       <div class="audit-cta-content">
-    <h2 id="audit-cta-heading" data-lang="en">Don't wait for the regulator to <em>find you first</em></h2>
-    <h2 id="audit-cta-heading" data-lang="th">อย่ารอให้หน่วยงานกำกับดูแล<em>พบคุณก่อน</em></h2>
-    <h2 id="audit-cta-heading" data-lang="ru">Не ждите, пока регулятор <em>найдёт вас первым</em></h2>
+    <h2 id="audit-cta-heading">Don't wait for the regulator to <em>find you first</em></h2>
+    
+    
 
-    <p data-lang="en">Every day of non-compliance is a day of risk. Get your free audit today and know exactly where you stand.</p>
-    <p data-lang="th">ทุกวันที่ไม่ปฏิบัติตามคือวันที่มีความเสี่ยง รับการตรวจสอบฟรีวันนี้และรู้ว่าคุณอยู่ตรงไหน</p>
-    <p data-lang="ru">Каждый день несоответствия — это день риска. Получите бесплатный аудит сегодня и узнайте, где вы находитесь.</p>
+    <p>Every day of non-compliance is a day of risk. Get your free audit today and know exactly where you stand.</p>
+    
+    
 
-    <a href="#contact" class="btn-primary" data-lang="en">Start Free Audit →</a>
-    <a href="#contact" class="btn-primary" data-lang="th">เริ่มตรวจสอบฟรี →</a>
-    <a href="#contact" class="btn-primary" data-lang="ru">Бесплатный аудит →</a>
+    <a href="#contact" class="btn-primary">Start Free Audit →</a>
+    
+    
   </div>
 </section>
 
 <script>
+const lang = 'en';
 const SCAN_CHECKS_DEF = [
-  { id: 'cookie_banner',    label: { en: 'Cookie consent banner',        th: 'แบนเนอร์คุกกี้',           ru: 'Баннер согласия на куки' },
-    detail: { en: 'GDPR requires explicit consent before setting cookies',   th: 'GDPR กำหนดให้ขอความยินยอมก่อนตั้งค่าคุกกี้', ru: 'GDPR требует явного согласия перед установкой куки' } },
-  { id: 'privacy_policy',  label: { en: 'Privacy policy page',           th: 'หน้านโยบายความเป็นส่วนตัว', ru: 'Страница политики конфиденциальности' },
-    detail: { en: 'Must be clearly linked and accessible',                   th: 'ต้องเชื่อมโยงและเข้าถึงได้ชัดเจน',          ru: 'Должна быть чётко указана и доступна' } },
-  { id: 'data_controller',  label: { en: 'Data controller contact',       th: 'ข้อมูลผู้ควบคุมข้อมูล',       ru: 'Контакт контролёра данных' },
-    detail: { en: 'Organisation must publish contact details for data requests', th: 'องค์กรต้องเผยแพร่ข้อมูลติดต่อสำหรับคำขอข้อมูล', ru: 'Организация должна публиковать контакт для запросов' } },
-  { id: 'https',           label: { en: 'HTTPS encryption',              th: 'การเข้ารหัส HTTPS',           ru: 'HTTPS шифрование' },
-    detail: { en: 'All pages must be served over HTTPS',                     th: 'ทุกหน้าต้องให้บริการผ่าน HTTPS',              ru: 'Все страницы должны работать через HTTPS' } },
-  { id: 'third_party',     label: { en: 'Third-party tracker disclosure', th: 'การเปิดเผย tracker บุคคลที่สาม', ru: 'Раскрытие сторонних трекеров' },
+  { id: 'cookie_banner',    label: 'Cookie consent banner',
+    detail: 'GDPR requires explicit consent before setting cookies' },
+  { id: 'privacy_policy',  label: 'Privacy policy page',
+    detail: 'Must be clearly linked and accessible' },
+  { id: 'data_controller',  label: 'Data controller contact',
+    detail: 'Organisation must publish contact details for data requests' },
+  { id: 'https',           label: 'HTTPS encryption',
+    detail: 'All pages must be served over HTTPS' },
+  { id: 'third_party',     label: 'Third-party tracker disclosure',
     detail: { en: 'Google Analytics, Meta Pixel etc. must be disclosed',     th: 'Google Analytics, Meta Pixel ฯลฯ ต้องได้รับการเปิดเผย', ru: 'Google Analytics, Meta Pixel и др. должны быть раскрыты' } },
-  { id: 'dsr_link',        label: { en: 'Data Subject Rights (DSR) link', th: 'ลิงก์สิทธิ์เจ้าของข้อมูล',    ru: 'Ссылка на права субъекта данных' },
-    detail: { en: 'Users must be able to request data access or deletion',   th: 'ผู้ใช้ต้องสามารถขอเข้าถึงหรือลบข้อมูลได้', ru: 'Пользователи должны иметь возможность запросить данные' } },
-  { id: 'uk_gdpr_ref',   label: { en: 'GDPR reference in policy',       th: 'การอ้างอิง GDPR ในนโยบาย',   ru: 'Ссылка на GDPR в политике' },
-    detail: { en: 'Privacy policy should reference the UK GDPR law',     th: 'นโยบายความเป็นส่วนตัวควรอ้างอิงกฎหมาย GDPR', ru: 'Политика должна ссылаться на закон GDPR Таиланда' } },
+  { id: 'dsr_link',        label: 'Data Subject Rights (DSR) link',
+    detail: 'Users must be able to request data access or deletion' },
+  { id: 'uk_gdpr_ref',   label: 'GDPR reference in policy',
+    detail: 'Privacy policy should reference the UK GDPR law' },
 ];
 
 const SOCIAL_SCAN_CHECKS_DEF = [
-  { id: 'fb_lead_form',    label: { en: 'Facebook Lead Forms Consent', th: 'ความยินยอมแบบฟอร์ม Facebook', ru: 'Согласие в лид-формах FB' },
-    detail: { en: 'Checks if lead forms have privacy policy links & consent checkboxes', th: 'ตรวจสอบลิงก์นโยบายและความยินยอมในแบบฟอร์ม', ru: 'Проверяет ссылки на политику в формах' } },
-  { id: 'fb_pii',          label: { en: 'Public PII Exposure',         th: 'การเปิดเผย PII ต่อสาธารณะ',  ru: 'Публичное раскрытие PII' },
-    detail: { en: 'Scans public comments for leaked phone numbers/emails', th: 'สแกนความคิดเห็นสาธารณะเพื่อหาเบอร์โทร/อีเมลหลุด', ru: 'Сканирует комментарии на утечку телефонов/email' } },
-  { id: 'line_consent',    label: { en: 'LINE Auto-reply Consent',     th: 'ความยินยอมตอบกลับอัตโนมัติ LINE', ru: 'Согласие в автоответах LINE' },
-    detail: { en: 'Ensures LINE bots collect consent before PII', th: 'บอท LINE ต้องขอความยินยอมก่อนเก็บ PII', ru: 'LINE-боты должны запрашивать согласие' } },
-  { id: 'line_richmenu',   label: { en: 'LINE Rich Menu Privacy',      th: 'ความเป็นส่วนตัวใน Rich Menu', ru: 'Приватность LINE Rich Menu' },
-    detail: { en: 'Checks if rich menus link to privacy policies', th: 'เมนูต้องลิงก์ไปยังนโยบายความเป็นส่วนตัว', ru: 'Меню должно ссылаться на политику' } },
-  { id: 'tiktok_bio',      label: { en: 'TikTok Bio Link Tracking',    th: 'การติดตามลิงก์ในไบโอ TikTok', ru: 'Отслеживание ссылок в TikTok' },
-    detail: { en: 'Checks for undisclosed trackers in bio URLs', th: 'ตรวจสอบ tracker ที่ไม่เปิดเผยในลิงก์ไบโอ', ru: 'Проверяет скрытые трекеры в ссылках' } },
+  { id: 'fb_lead_form',   platform: 'fb', label: 'Facebook Lead Forms Consent', detail: 'Checks if lead forms have privacy policy links & consent checkboxes' },
+  { id: 'fb_pii',         platform: 'fb', label: 'Public PII Exposure', detail: 'Scans public comments for leaked phone numbers/emails' },
+  { id: 'ig_lead_form',   platform: 'ig', label: 'Instagram Lead Ads Privacy', detail: 'Ensures Instagram Lead Ads link to a valid privacy policy' },
+  { id: 'ig_dm_bot',      platform: 'ig', label: 'Instagram DM Bot Consent', detail: 'Checks if automated DMs provide privacy notices before collecting data' },
+  { id: 'tiktok_bio',     platform: 'tt', label: 'TikTok Bio Link Tracking', detail: 'Checks for undisclosed trackers in bio URLs' },
+  { id: 'li_lead_form',   platform: 'li', label: 'LinkedIn Lead Gen Privacy', detail: 'Checks if LinkedIn Lead Gen forms link to a valid privacy policy' },
+  { id: 'tw_support_pii', platform: 'tw', label: 'X (Twitter) Support PII', detail: 'Scans for PII exposed in public support replies' },
+  { id: 'wa_greeting',    platform: 'wa', label: 'WhatsApp Business Privacy', detail: 'Ensures automated WhatsApp greetings include privacy notices' },
+  { id: 'mc_retention',   platform: 'mc', label: 'CRM Data Retention', detail: 'Checks for inactive subscribers retained without justification' },
+  { id: 'ga_sharing',     platform: 'ga', label: 'GA4 Data Sharing Controls', detail: 'Ensures Google Analytics 4 data sharing is restricted' },
 ];
 
 function switchScanTab(tab) {
@@ -798,9 +728,22 @@ function switchScanTab(tab) {
 async function startSocialScan(e) {
   e.preventDefault();
   const fb = document.getElementById('scan-fb-input').value.trim();
-  const line = document.getElementById('scan-line-input').value.trim();
+  const ig = document.getElementById('scan-ig-input').value.trim();
   const tt = document.getElementById('scan-tt-input').value.trim();
-  const targetId = fb || line || tt || 'SocialProfile';
+  const li = document.getElementById('scan-li-input').value.trim();
+  const tw = document.getElementById('scan-tw-input').value.trim();
+  const wa = document.getElementById('scan-wa-input').value.trim();
+  const mc = document.getElementById('scan-mc-input').value.trim();
+  const ga = document.getElementById('scan-ga-input').value.trim();
+  
+  const populatedMap = { fb, ig, tt, li, tw, wa, mc, ga };
+  const hasAnyPopulated = Object.values(populatedMap).some(val => val.length > 0);
+  const targetId = fb || ig || tt || li || tw || wa || mc || ga || 'SocialProfile';
+
+  // Filter checks to ONLY include platforms that were populated (or default all if none)
+  const activeChecks = hasAnyPopulated 
+    ? SOCIAL_SCAN_CHECKS_DEF.filter(c => Boolean(populatedMap[c.platform]))
+    : SOCIAL_SCAN_CHECKS_DEF;
 
   const btn = document.getElementById('scan-social-btn');
   const icon = document.getElementById('scan-social-btn-icon');
@@ -817,33 +760,42 @@ async function startSocialScan(e) {
   if (blurNudgeReset) blurNudgeReset.style.display = 'none';
   scoreBadge.textContent = '';
   scoreBadge.className = 'scan-score';
-  targetEl.textContent = 'Social Media Audit';
+  targetEl.textContent = 'Social & Apps Audit (' + targetId + ')';
   checksList.innerHTML = '';
   
-  const lang = document.body.getAttribute('lang') || 'en';
-  
-  const rows = SOCIAL_SCAN_CHECKS_DEF.map((c, i) => {
+  const rows = activeChecks.map((c, i) => {
     const li = document.createElement('li');
     li.className = 'scan-check pending';
     li.innerHTML = `
       <span class="check-icon">○</span>
       <span class="check-body">
-        <span class="check-label ${i >= 3 ? 'blurred' : ''}">${c.label[lang] || c.label.en}</span>
-        <span class="check-detail ${i >= 2 ? 'blurred' : ''}">${c.detail[lang] || c.detail.en}</span>
+        <span class="check-label ${i >= 3 ? 'blurred' : ''}">${c.label}</span>
+        <span class="check-detail blurred">${c.detail}</span>
       </span>`;
     checksList.appendChild(li);
-    return li;
+    return { element: li, checkDef: c };
   });
+
+  let actualScanType = 'facebook'; // default
+  if (fb) actualScanType = 'facebook';
+  else if (ig) actualScanType = 'instagram';
+  else if (tt) actualScanType = 'tiktok';
+  else if (li) actualScanType = 'linkedin';
+  else if (tw) actualScanType = 'twitter';
+  else if (wa) actualScanType = 'whatsapp';
+  else if (mc) actualScanType = 'mailchimp';
+  else if (ga) actualScanType = 'google_analytics';
 
   // Call the public API
   let apiResults = null;
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
-    const resp = await fetch('https://api.privacyready.co.uk/api/public/scan', {
+    const apiUrl = window.location.hostname.includes('test.') ? 'https://test-api.privacyready.co.uk/api/public/scan' : 'https://api.privacyready.co.uk/api/public/scan';
+    const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIdentifier: targetId, scanType: 'Social' }),
+      body: JSON.stringify({ targetIdentifier: targetId, scanType: actualScanType }),
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -853,33 +805,64 @@ async function startSocialScan(e) {
         throw new Error(apiResults.findingsJson?.[0]?.description || 'Backend scanner failed');
       }
     } else {
-      throw new Error('API returned ' + resp.status);
+      let errMsg = 'API returned ' + resp.status;
+      if (resp.status === 400 || resp.status === 422) {
+         try {
+           const errData = await resp.json();
+           errMsg = errData.error || errData.message || errMsg;
+         } catch(e) {}
+         const validationError = new Error(errMsg);
+         validationError.isValidation = true;
+         throw validationError;
+      }
+      throw new Error(errMsg);
     }
   } catch (err) {
     console.error("Scan API Error:", err);
-    alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง' : lang === 'ru' ? 'Ошибка подключения к серверу. Пожалуйста, попробуйте еще раз.' : 'Error connecting to the scanner API. Please try again later.');
+    
+    if (err.isValidation || (err.message && err.message.includes('Scan target rejected'))) {
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ ${err.message}. Please enter a valid URL or ID.
+      </li>`;
+    } else {
+      // Show global maintenance banner
+      const banner = document.getElementById('maintenance-banner');
+      if (banner) banner.style.display = 'flex';
+      const marketingStrip = document.getElementById('marketing-alert-strip');
+      if (marketingStrip) marketingStrip.style.display = 'none';
+
+      // Show error in the panel instead of an alert
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ Scanner is currently offline for maintenance. Please try again later.
+      </li>`;
+    }
+    
     btn.disabled = false;
     icon.textContent = '🔍';
     return false;
   }
   
   let passed = 0;
-  for (let i = 0; i < SOCIAL_SCAN_CHECKS_DEF.length; i++) {
-    const c = SOCIAL_SCAN_CHECKS_DEF[i];
-    const row = rows[i];
+
+  for (let i = 0; i < activeChecks.length; i++) {
+    const { element: row, checkDef: c } = rows[i];
+    
     row.className = 'scan-check running';
     row.querySelector('.check-icon').innerHTML = '<span class="spin"></span>';
     
-    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
+    await new Promise(r => setTimeout(r, 500 + Math.random() * 400));
     
     let status = 'pass';
     if (apiResults && apiResults.findingsJson) {
+      const isFatal = apiResults.findingsJson.some(f => f.finding_type === 'scan_failed' || f.finding_type === 'scan_blocked');
       const found = apiResults.findingsJson.find((x) => 
         (x.finding_type || x.platform || '').toLowerCase().includes(c.id) ||
-        (x.finding_type || x.platform || '').toLowerCase() === c.label.en.toLowerCase()
+        (x.finding_type || x.platform || '').toLowerCase() === c.label.toLowerCase()
       );
       if (found) {
         status = (!found.severity || found.severity === 'low') ? 'pass' : 'fail';
+      } else if (isFatal) {
+        status = 'warn';
       }
     }
 
@@ -888,17 +871,18 @@ async function startSocialScan(e) {
     row.querySelector('.check-icon').textContent = status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⚠️';
   }
   
-  const total = SOCIAL_SCAN_CHECKS_DEF.length;
+  const total = activeChecks.length;
   const pct = Math.round((passed / total) * 100);
   let scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
-  let scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  let scoreLabel = `${passed}/${total} passed`;
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + scoreLabel;
   scoreBadge.className = 'scan-score ' + scoreClass;
   
   const reportBtn = document.getElementById('scan-full-report-btn');
   if (reportBtn) {
     const scanId = apiResults?.id || '';
-    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(targetId)}&score=${pct}&scanId=${scanId}`;
+    const portalBaseUrl = window.location.hostname.includes('test.') ? 'https://test-portal.privacyready.co.uk' : 'https://portal.privacyready.co.uk';
+    reportBtn.href = `${portalBaseUrl}/register?source=free-scan&url=${encodeURIComponent(targetId)}&score=${pct}&scanId=${scanId}`;
   }
 
   const blurNudge = document.getElementById('scan-blur-nudge');
@@ -912,9 +896,6 @@ async function startSocialScan(e) {
 
 const iconFor = { pass: '✅', fail: '❌', warn: '⚠️', running: '', pending: '○' };
 
-function getLang() {
-  return document.body.getAttribute('lang') || 'en';
-}
 
 async function startScan(e) {
   e.preventDefault();
@@ -947,19 +928,18 @@ async function startScan(e) {
   targetEl.textContent = url.hostname;
   checksList.innerHTML = '';
 
-  const lang = getLang();
-
+  
   // Build pending rows
   const rows = SCAN_CHECKS_DEF.map((c, i) => {
     const li = document.createElement('li');
     li.className = 'scan-check pending';
     li.id = 'chk-' + c.id;
-    const isDetailBlurred = i >= 2 ? ' blurred' : '';
+    const isDetailBlurred = ' blurred';
     li.innerHTML = `
       <span class="check-icon">${iconFor.pending}</span>
       <span class="check-body">
-        <span class="check-label">${c.label[lang] || c.label.en}</span>
-        <span class="check-detail${isDetailBlurred}">${c.detail[lang] || c.detail.en}</span>
+        <span class="check-label">${typeof c.label === 'object' ? (c.label[lang] || c.label.en) : c.label}</span>
+        <span class="check-detail${isDetailBlurred}">${typeof c.detail === 'object' ? (c.detail[lang] || c.detail.en) : c.detail}</span>
       </span>`;
     checksList.appendChild(li);
     return li;
@@ -970,10 +950,11 @@ async function startScan(e) {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout for scanner
-    const resp = await fetch('https://api.privacyready.co.uk/api/public/scan', {
+    const apiUrl = window.location.hostname.includes('test.') ? 'https://test-api.privacyready.co.uk/api/public/scan' : 'https://api.privacyready.co.uk/api/public/scan';
+    const resp = await fetch(apiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ targetIdentifier: url.href, scanType: 'Website' }),
+      body: JSON.stringify({ targetIdentifier: url.href, scanType: 'website' }),
       signal: controller.signal
     });
     clearTimeout(timeout);
@@ -983,11 +964,38 @@ async function startScan(e) {
         throw new Error(apiResults.findingsJson?.[0]?.description || 'Backend scanner failed');
       }
     } else {
-      throw new Error('API returned ' + resp.status);
+      let errMsg = 'API returned ' + resp.status;
+      if (resp.status === 400 || resp.status === 422) {
+         try {
+           const errData = await resp.json();
+           errMsg = errData.error || errData.message || errMsg;
+         } catch(e) {}
+         const validationError = new Error(errMsg);
+         validationError.isValidation = true;
+         throw validationError;
+      }
+      throw new Error(errMsg);
     }
   } catch (err) {
     console.error("Scan API Error:", err);
-    alert(lang === 'th' ? 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง' : lang === 'ru' ? 'Ошибка подключения к серверу. Пожалуйста, попробуйте еще раз.' : 'Error connecting to the scanner API. Please try again later.');
+    
+    if (err.isValidation || (err.message && err.message.includes('Scan target rejected'))) {
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ ${err.message}. Please enter a valid URL or ID.
+      </li>`;
+    } else {
+      // Show global maintenance banner
+      const banner = document.getElementById('maintenance-banner');
+      if (banner) banner.style.display = 'flex';
+      const marketingStrip = document.getElementById('marketing-alert-strip');
+      if (marketingStrip) marketingStrip.style.display = 'none';
+
+      // Show error in the panel instead of an alert
+      checksList.innerHTML = `<li style="color: #ef4444; text-align: center; padding: 32px 20px; font-weight: 500;">
+        ⚠️ Scanner is currently offline for maintenance. Please try again later.
+      </li>`;
+    }
+
     btn.disabled = false;
     icon.textContent = '🔍';
     return false;
@@ -1005,11 +1013,12 @@ async function startScan(e) {
 
     await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
 
-    // Determine result
     let status = 'pass';
     if (apiResults && apiResults.findingsJson) {
-      // Look for a finding matching the check's ID
       const findings = apiResults.findingsJson;
+      const isFatal = findings.some(f => f.finding_type === 'scan_failed' || f.finding_type === 'scan_blocked');
+      
+      // Look for a finding matching the check's ID
       const found = findings.find(f => {
         const desc = (f.description || '').toLowerCase();
         const type = (f.finding_type || '').toLowerCase();
@@ -1023,8 +1032,13 @@ async function startScan(e) {
         if (c.id === 'uk_gdpr_ref') return desc.includes('gdpr reference') || desc.includes('uk');
         return false;
       });
+      
       if (found) {
         status = found.severity === 'high' ? 'fail' : 'warn';
+      } else if (isFatal) {
+        // If the scanner was blocked or failed, assume non-compliant (warn) for all checks 
+        // to ensure clients know there's a potential problem rather than giving a false 100% pass.
+        status = 'warn';
       }
     }
 
@@ -1032,24 +1046,22 @@ async function startScan(e) {
     row.className = 'scan-check ' + status;
     row.querySelector('.check-icon').textContent = iconFor[status] || '⚠️';
 
-    // Blur detail text for teaser effect (after first 2 items)
-    if (i >= 2) {
-      const detail = row.querySelector('.check-detail');
-      if (detail) detail.classList.add('blurred');
-    }
+    // Blur detail text for teaser effect
+    const detail = row.querySelector('.check-detail');
+    if (detail) detail.classList.add('blurred');
   }
 
   // Blur detail spans after animation completes — real data, premium paywall
-  checksList.querySelectorAll('.check-detail').forEach((el, idx) => {
-    if (idx >= 2) el.classList.add('blurred');
+  checksList.querySelectorAll('.check-detail').forEach((el) => {
+    el.classList.add('blurred');
   });
 
   // Score badge
   const total = SCAN_CHECKS_DEF.length;
   const pct = Math.round((passed / total) * 100);
   const scoreClass = pct >= 70 ? 'good' : pct >= 40 ? 'medium' : 'poor';
-  const scoreLabel = { en: `${passed}/${total} passed`, th: `ผ่าน ${passed}/${total}`, ru: `${passed}/${total} пройдено` };
-  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + (scoreLabel[lang] || scoreLabel.en);
+  const scoreLabel = `${passed}/${total} passed`;
+  scoreBadge.textContent = (pct >= 70 ? '✅ ' : pct >= 40 ? '⚠️ ' : '🚨 ') + scoreLabel;
   scoreBadge.className = 'scan-score ' + scoreClass;
 
   // Update full-report link with scanned URL + score + scanId
@@ -1057,114 +1069,27 @@ async function startScan(e) {
   if (reportBtn) {
     const scanId = apiResults?.id || '';
     const claimToken = apiResults?.claimToken || '';
-    reportBtn.href = `https://portal.privacyready.co.uk/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}&scanClaimToken=${encodeURIComponent(claimToken)}`;
+    const portalBaseUrl = window.location.hostname.includes('test.') ? 'https://test-portal.privacyready.co.uk' : 'https://portal.privacyready.co.uk';
+    reportBtn.href = `${portalBaseUrl}/register?source=free-scan&url=${encodeURIComponent(url.href)}&score=${pct}&scanId=${scanId}&scanClaimToken=${encodeURIComponent(claimToken)}`;
   }
 
   // Show blur nudge banner and CTA
   const blurNudge = document.getElementById('scan-blur-nudge');
   if (blurNudge) blurNudge.style.display = 'flex';
-  // ctaEl.style.display = 'flex';
+  // ctaEl.style.display = 'block';
 
-  // Reset button
   btn.disabled = false;
   icon.textContent = '🔍';
-
+  
   return false;
 }
 </script>
 
-<!-- CONTACT FORM -->
-<section class="contact-form" id="contact" aria-labelledby="contact-heading">
-  <p class="section-label" data-lang="en">Get Started</p>
-  <p class="section-label" data-lang="th">เริ่มต้นใช้งาน</p>
-  <p class="section-label" data-lang="ru">Начать</p>
-
-  <h2 id="contact-heading" data-lang="en">Request a <em>Consultation</em></h2>
-  <h2 id="contact-heading" data-lang="th">ขอ<em>คำปรึกษา</em></h2>
-  <h2 id="contact-heading" data-lang="ru">Запросите <em>консультацию</em></h2>
-
-  <div class="form-card">
-    <div id="contactFormWrap">
-      <div class="form-title" data-lang="en">Tell us about your needs</div>
-      <div class="form-title" data-lang="th">บอกเราเกี่ยวกับความต้องการของคุณ</div>
-      <div class="form-title" data-lang="ru">Расскажите о ваших потребностях</div>
-
-      <div class="form-subtitle" data-lang="en">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
-      <div class="form-subtitle" data-lang="th">ไม่ว่าคุณจะต้องการการปฏิบัติตามข้อกำหนดสำหรับองค์กร การทำงานร่วมกันแบบกำหนดเอง หรือคำแนะนำทางกฎหมาย ทีมงานของเราพร้อมช่วยเหลือ</div>
-      <div class="form-subtitle" data-lang="ru">Нужен ли вам корпоративный комплаенс, интеграции или юридический совет — мы поможем.</div>
-
-      <form id="auditForm" onsubmit="handleFormSubmit(event)">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="name" data-lang="en">Full Name</label>
-            <label for="name" data-lang="th">ชื่อ-นามสกุล</label>
-            <label for="name" data-lang="ru">Полное имя</label>
-            <input type="text" id="name" name="name" required aria-required="true">
-          </div>
-          <div class="form-group">
-            <label for="email" data-lang="en">Business Email</label>
-            <label for="email" data-lang="th">อีเมลธุรกิจ</label>
-            <label for="email" data-lang="ru">Рабочий email</label>
-            <input type="email" id="email" name="email" required aria-required="true">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="company" data-lang="en">Company Name</label>
-          <label for="company" data-lang="th">ชื่อบริษัท</label>
-          <label for="company" data-lang="ru">Название компании</label>
-          <input type="text" id="company" name="company" required aria-required="true">
-        </div>
-
-        <div class="form-group">
-          <label for="url" data-lang="en">Website URL</label>
-          <label for="url" data-lang="th">URL เว็บไซต์</label>
-          <label for="url" data-lang="ru">URL сайта</label>
-          <input type="url" id="url" name="url" placeholder="https://your-site.com" required aria-required="true">
-        </div>
-
-        <div class="form-group">
-          <label for="tier" data-lang="en">Audit Tier</label>
-          <label for="tier" data-lang="th">ระดับการตรวจสอบ</label>
-          <label for="tier" data-lang="ru">Уровень аудита</label>
-          <select id="tier" name="tier" required aria-required="true">
-            <option value="" data-lang="en">Select a tier...</option>
-            <option value="" data-lang="th">เลือกระดับ...</option>
-            <option value="" data-lang="ru">Выберите уровень...</option>
-            <option value="free" data-lang="en">Free — Single Page Scan</option>
-            <option value="free" data-lang="th">ฟรี — สแกนหน้าเดียว</option>
-            <option value="free" data-lang="ru">Бесплатно — Скан одной страницы</option>
-            <option value="pro" data-lang="en">Professional — Full Site (฿29,900)</option>
-            <option value="pro" data-lang="th">มืออาชีพ — เว็บไซต์ทั้งหมด (฿29,900)</option>
-            <option value="pro" data-lang="ru">Профессиональный — Полный сайт (฿29,900)</option>
-            <option value="enterprise" data-lang="en">Enterprise — Unlimited + Implementation (฿89,900)</option>
-            <option value="enterprise" data-lang="th">องค์กร — ไม่จำกัด + การใช้งาน (฿89,900)</option>
-            <option value="enterprise" data-lang="ru">Корпоративный — Безлимит + Внедрение (฿89,900)</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="message" data-lang="en">Additional Notes (optional)</label>
-          <label for="message" data-lang="th">หมายเหตุเพิ่มเติม (ไม่บังคับ)</label>
-          <label for="message" data-lang="ru">Дополнительные примечания (необязательно)</label>
-          <textarea id="message" name="message" rows="3"></textarea>
-        </div>
-
-        <button type="submit" class="btn-primary form-submit" data-lang="en">Submit Audit Request</button>
-        <button type="submit" class="btn-primary form-submit" data-lang="th">ส่งคำขอตรวจสอบ</button>
-        <button type="submit" class="btn-primary form-submit" data-lang="ru">Отправить запрос на аудит</button>
-      </form>
-    </div>
-
-    <div class="form-success" id="formSuccess">
-      <div class="form-success-icon" aria-hidden="true">✓</div>
-      <h3 data-lang="en">Request Received!</h3>
-      <h3 data-lang="th">ได้รับคำขอแล้ว!</h3>
-      <h3 data-lang="ru">Запрос получен!</h3>
-      <p data-lang="en">We'll scan your site and send a preliminary report to your email within 24 hours.</p>
-      <p data-lang="th">เราจะสแกนเว็บไซต์ของคุณและส่งรายงานเบื้องต้นไปยังอีเมลของคุณภายใน 24 ชั่วโมง</p>
-      <p data-lang="ru">Мы просканируем ваш сайт и отправим предварительный отчёт на ваш email в течение 24 часов.</p>
-    </div>
+<section class="contact-section" id="contact">
+  <div class="form-card" style="text-align: center; padding: 60px 40px;">
+    <div class="form-title" style="margin-bottom: 16px;">Tell us about your needs</div>
+    <div class="form-subtitle" style="margin-bottom: 32px;">Whether you need enterprise compliance, custom integrations, or legal advice, our team is here to help.</div>
+    <a href="mailto:hello@privacyready.co.uk" class="btn-primary" style="display: inline-block; padding: 16px 32px; font-size: 16px;">Email hello@privacyready.co.uk</a>
   </div>
 </section>
 
@@ -1182,63 +1107,89 @@ async function startScan(e) {
         </div>
         <span class="logo-name">Privacy<span>Ready</span></span>
       </a>
-      <p data-lang="en">The UK's leading GDPR compliance platform. Automated audits, remediation guides, and compliance certificates for businesses of all sizes.</p>
-      <p data-lang="th">แพลตฟอร์มการปฏิบัติตาม GDPR ชั้นนำของไทย การตรวจสอบอัตโนมัติ คู่มือการแก้ไข และใบรับรองการปฏิบัติตามสำหรับธุรกิจทุกขนาด</p>
-      <p data-lang="ru">Ведущая платформа соответствия GDPR в Таиланде. Автоматизированные аудиты, руководства по исправлению и сертификаты соответствия для бизнеса любого размера.</p>
+      <p>The UK's leading GDPR compliance platform for SMEs. Automated audits, remediation guides, and continuous monitoring.</p>
+      <p style="font-size:12px; opacity:0.6; margin-top:12px; line-height:1.5;">
+        <strong>PrivacyReady Ltd</strong><br>
+        Registered in England &amp; Wales (No. 14592031)<br>
+        128 City Road, London, EC1V 2NX, UK
+      </p>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Product</h4>
-      <h4 data-lang="th">ผลิตภัณฑ์</h4>
-      <h4 data-lang="ru">Продукт</h4>
+      <h4>Product</h4>
       <ul>
-        <li><a href="#services" data-lang="en">How It Works</a><a href="#services" data-lang="th">วิธีการทำงาน</a><a href="#services" data-lang="ru">Как это работает</a></li>
-        <li><a href="#pricing" data-lang="en">Pricing</a><a href="#pricing" data-lang="th">ราคา</a><a href="#pricing" data-lang="ru">Цены</a></li>
-        <li><a href="/coming-soon.html?f=API Access" data-lang="en">API Access</a><a href="/coming-soon.html?f=API Access" data-lang="th">การเข้าถึง API</a><a href="/coming-soon.html?f=API Access" data-lang="ru">Доступ к API</a></li>
-        <li><a href="/coming-soon.html?f=Compliance Certificate" data-lang="en">Compliance Certificate</a><a href="/coming-soon.html?f=Compliance Certificate" data-lang="th">ใบรับรองการปฏิบัติตาม</a><a href="/coming-soon.html?f=Compliance Certificate" data-lang="ru">Сертификат соответствия</a></li>
+        <li><a href="#services">How It Works</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="/coming-soon.html?f=API Access">API Access</a></li>
+        <li><a href="/coming-soon.html?f=Compliance Monitoring">Compliance Monitoring</a></li>
       </ul>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Resources</h4>
-      <h4 data-lang="th">ทรัพยากร</h4>
-      <h4 data-lang="ru">Ресурсы</h4>
+      <h4>Resources</h4>
       <ul>
-        <li><a href="#gdpr" data-lang="en">GDPR Guide</a><a href="#gdpr" data-lang="th">คู่มือ GDPR</a><a href="#gdpr" data-lang="ru">Руководство GDPR</a></li>
-        <li><a href="/faq.html" data-lang="en">FAQ</a><a href="/faq.html" data-lang="th">คำถามที่พบบ่อย</a><a href="/faq.html" data-lang="ru">Часто задаваемые вопросы</a></li>
-        <li><a href="https://portal.privacyready.co.uk/blog" data-lang="en">Blog</a><a href="https://portal.privacyready.co.uk/blog" data-lang="th">บล็อก</a><a href="https://portal.privacyready.co.uk/blog" data-lang="ru">Блог</a></li>
-        <li><a href="/coming-soon.html?f=Fine Calculator" data-lang="en">Fine Calculator</a><a href="/coming-soon.html?f=Fine Calculator" data-lang="th">เครื่องคำนวณค่าปรับ</a><a href="/coming-soon.html?f=Fine Calculator" data-lang="ru">Калькулятор штрафов</a></li>
-        <li><a href="/coming-soon.html?f=Webinars" data-lang="en">Webinars</a><a href="/coming-soon.html?f=Webinars" data-lang="th">เว็บินาร์</a><a href="/coming-soon.html?f=Webinars" data-lang="ru">Вебинары</a></li>
+        <li><a href="#gdpr">GDPR Guide</a></li>
+        <li><a href="/faq.html">FAQ</a></li>
+        <li><a href="https://portal.privacyready.co.uk/blog">Blog</a></li>
+        <li><a href="#calc">Fine Calculator</a></li>
+        <li><a href="/coming-soon.html?f=Webinars">Webinars</a></li>
       </ul>
     </div>
 
     <div class="footer-col">
-      <h4 data-lang="en">Company</h4>
-      <h4 data-lang="th">บริษัท</h4>
-      <h4 data-lang="ru">Компания</h4>
+      <h4>Company</h4>
       <ul>
-        <li><a href="/about.html" data-lang="en">About</a><a href="/about.html" data-lang="th">เกี่ยวกับ</a><a href="/about.html" data-lang="ru">О нас</a></li>
-        <li><a href="/coming-soon.html?f=Careers" data-lang="en">Careers</a><a href="/coming-soon.html?f=Careers" data-lang="th">ร่วมงานกับเรา</a><a href="/coming-soon.html?f=Careers" data-lang="ru">Карьера</a></li>
-        <li><a href="/contact.html" data-lang="en">Contact</a><a href="/contact.html" data-lang="th">ติดต่อ</a><a href="/contact.html" data-lang="ru">Контакты</a></li>
-        <li><a href="/privacy-policy.html" data-lang="en">Privacy Policy</a><a href="/privacy-policy.html" data-lang="th">นโยบายความเป็นส่วนตัว</a><a href="/privacy-policy.html" data-lang="ru">Политика конфиденциальности</a></li>
+        <li><a href="/about.html">About Us</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+        <li><a href="/privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="/terms.html">Terms of Service</a></li>
+        <li><a href="/cookies.html">Cookie Policy</a>
+      <button onclick="resetCookieConsent()" style="background:none;border:none;color:inherit;font:inherit;cursor:pointer;text-decoration:underline;padding:0;">Cookie Settings</button></li>
       </ul>
     </div>
   </div>
 
   <div class="footer-bottom">
-    <span data-lang="en">© 2024 PrivacyReady. All rights reserved.</span>
-    <span data-lang="th">© 2024 PrivacyReady สงวนลิขสิทธิ์</span>
-    <span data-lang="ru">© 2024 PrivacyReady. Все права защищены.</span>
+    <span>© 2026 PrivacyReady Ltd. All rights reserved.</span>
     <div class="footer-legal">
-      <a href="/privacy-policy.html" data-lang="en">Privacy</a><a href="/privacy-policy.html" data-lang="th">ความเป็นส่วนตัว</a><a href="/privacy-policy.html" data-lang="ru">Конфиденциальность</a>
-      <a href="/terms.html" data-lang="en">Terms</a><a href="/terms.html" data-lang="th">เงื่อนไข</a><a href="/terms.html" data-lang="ru">Условия</a>
-      <a href="/cookies.html" data-lang="en">Cookies</a><a href="/cookies.html" data-lang="th">คุกกี้</a><a href="/cookies.html" data-lang="ru">Cookie</a>
+      <a href="/privacy-policy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Service</a>
+      <a href="/cookies.html">Cookie Policy</a>
     </div>
   </div>
 </footer>
 
+<!-- STICKY MOBILE CTA -->
+<div id="sticky-mobile-cta" style="position:fixed; bottom:0; left:0; right:0; background:#0B2447; border-top:1px solid rgba(165,215,232,0.3); padding:10px 16px; display:none; justify-content:space-between; align-items:center; z-index:9999; box-shadow:0 -4px 20px rgba(0,0,0,0.5);">
+  <span style="font-size:13px; color:#fff; font-weight:500;">UK GDPR Audit — Instant Check</span>
+  <a href="#main-content" onclick="document.getElementById('scan-url-input').focus()" style="background:#00e5ff; color:#0B2447; padding:8px 16px; border-radius:6px; font-weight:700; font-size:13px; text-decoration:none;">Scan Free →</a>
+</div>
+
 <!-- JAVASCRIPT -->
 <script src="/main.js"></script>
+<script>
+function updateFineCalc() {
+  let total = 0;
+  document.querySelectorAll('.fine-risk-chk:checked').forEach(chk => {
+    total += parseInt(chk.dataset.amount || 0, 10);
+  });
+  const totalEl = document.getElementById('calc-total-display');
+  if (totalEl) {
+    totalEl.innerHTML = `£${total.toLocaleString()}<br><span style="font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 400; color: rgba(10, 37, 64, 0.6);">or up to 4% of global turnover</span>`;
+  }
+}
+
+window.addEventListener('scroll', () => {
+  const sticky = document.getElementById('sticky-mobile-cta');
+  if (sticky && window.innerWidth <= 768) {
+    if (window.scrollY > 400) {
+      sticky.style.display = 'flex';
+    } else {
+      sticky.style.display = 'none';
+    }
+  }
+});
+</script>
 
 </body>
 </html>

@@ -1,5 +1,6 @@
 stages:
   - lint-and-test
+  - test
   - security-scan
   - infrastructure
   - build-and-scan
@@ -59,16 +60,15 @@ npm-security-audit:
   image: node:22-alpine
   script:
     - echo "Auditing API dependencies..."
-    - cd services/api && npm audit --audit-level=high || true
+    - cd services/api && npm audit --audit-level=high
     - echo "Auditing Portal dependencies..."
-    - cd ../../frontend/portal && npm audit --audit-level=high || true
+    - cd ../../frontend/portal && npm audit --audit-level=high
 
 tfsec-scan:
   stage: security-scan
   image: aquasec/tfsec-ci
   script:
     - tfsec terraform/
-  allow_failure: true
 
 python-sast:
   stage: security-scan
@@ -79,8 +79,8 @@ python-sast:
     - echo "Running Bandit SAST..."
     - bandit -r services/scanner/ services/dsr/ -ll -ii
     - echo "Running Safety dependency check..."
-    - safety check -r services/scanner/requirements.txt || true
-    - safety check -r services/dsr/requirements.txt || true
+    - safety check -r services/scanner/requirements.txt
+    - safety check -r services/dsr/requirements.txt
 
 shellcheck-scan:
   stage: security-scan
@@ -90,13 +90,13 @@ shellcheck-scan:
 
 # Custom DAST Check (Verifies API security headers and endpoints)
 dast-security-check:
-  stage: security-scan
+  stage: .post
   image: curlimages/curl:latest
   script:
     - echo "Running DAST endpoint validation..."
     - curl -s -I https://api.privacyready.co.uk/health | grep -i "HTTP/1.1 200\|HTTP/2 200"
     - echo "Checking security headers..."
-    - curl -s -I https://api.privacyready.co.uk/health | grep -i "strict-transport-security\|x-content-type-options\|x-frame-options" || true
+    - curl -s -I https://api.privacyready.co.uk/health | grep -i "strict-transport-security\|x-content-type-options\|x-frame-options"
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
@@ -115,8 +115,20 @@ dast-security-check:
 
 .terraform-base:
   image: hashicorp/terraform:1.9
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.privacyready.co.uk
   before_script:
-    - apk add --no-cache make bash aws-cli
+    - apk add --no-cache make bash aws-cli jq
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
+      --role-arn arn:aws:iam::700951986348:role/gitlab-ci-deployer-role
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token ${GITLAB_OIDC_TOKEN}
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
 
 persistent-plan:
   extends: .terraform-base
@@ -135,12 +147,13 @@ persistent-apply:
   stage: infrastructure
   script:
     - make persistent-apply
-  when: manual
   environment:
     name: persistent
     action: start
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true
 
 terraform-plan:
   extends: .terraform-base
@@ -158,7 +171,6 @@ terraform-apply:
   stage: infrastructure
   script:
     - make apply ENV=production
-  when: manual
   environment:
     name: production
     action: start
@@ -167,6 +179,8 @@ terraform-apply:
       changes:
         - terraform/environments/production/**/*
         - terraform/modules/**/*
+      when: manual
+      allow_failure: false
 
 # Destroys only environments/production's app infrastructure --
 # GitLab/DNS/SES/ECR live in a completely separate state
@@ -179,12 +193,13 @@ terraform-destroy:
   stage: infrastructure
   script:
     - make destroy ENV=production CONFIRM=yes
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      when: manual
   environment:
     name: production
     action: stop
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true
 
 # ---------------------------------------------
 # 4. BUILD, SCAN, AND PUSH (TRIVY + ECR)
@@ -195,12 +210,24 @@ terraform-destroy:
   image: docker:24.0.5
   services:
     - docker:24.0.5-dind
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.privacyready.co.uk
   variables:
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
     AWS_DEFAULT_REGION: "eu-west-2"
   before_script:
-    - apk add --no-cache aws-cli curl
+    - apk add --no-cache aws-cli curl jq
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
+      --role-arn arn:aws:iam::700951986348:role/gitlab-ci-deployer-role
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token ${GITLAB_OIDC_TOKEN}
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
     - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin v0.48.0
     - export ECR_REGISTRY="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.eu-west-2.amazonaws.com"
     - aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin $ECR_REGISTRY
@@ -224,16 +251,6 @@ build-api:
       changes:
         - services/api/**/*
 
-build-dsr:
-  extends: .build-scan-push
-  variables:
-    SERVICE_NAME: "privacyready-dsr"
-    BUILD_CONTEXT: "services/dsr"
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - services/dsr/**/*
-
 build-scanner:
   extends: .build-scan-push
   variables:
@@ -252,8 +269,20 @@ build-scanner:
 .deploy-base:
   stage: deploy
   image: hashicorp/terraform:1.9
+  id_tokens:
+    GITLAB_OIDC_TOKEN:
+      aud: https://gitlab.privacyready.co.uk
   before_script:
-    - apk add --no-cache make bash aws-cli
+    - apk add --no-cache make bash aws-cli jq
+    - >
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
+      --role-arn arn:aws:iam::700951986348:role/gitlab-ci-deployer-role
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token ${GITLAB_OIDC_TOKEN}
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
 
 deploy-api:
   extends: .deploy-base
@@ -263,15 +292,6 @@ deploy-api:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - services/api/**/*
-
-deploy-dsr:
-  extends: .deploy-base
-  script:
-    - make roll SERVICE=dsr ENV=production
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - services/dsr/**/*
 
 deploy-scanner:
   extends: .deploy-base
@@ -294,9 +314,8 @@ deploy-frontend:
 
 deploy-portal:
   extends: .deploy-base
-  image: node:22-alpine
   before_script:
-    - apk add --no-cache make bash aws-cli terraform
+    - apk add --no-cache make bash aws-cli nodejs npm
   script:
     - make deploy-portal ENV=production
   rules:
@@ -309,26 +328,54 @@ deploy-portal:
 # 6. COST-SAVER STAGES (MANUAL CLEANUP)
 # ---------------------------------------------
 
-environment-shutdown:
+prod-environment-shutdown:
   stage: cost-saver
-  image: alpine:latest
+  image: hashicorp/terraform:1.9
   before_script:
-    - apk add --no-cache aws-cli terraform make bash curl jq
+    - apk add --no-cache aws-cli make bash curl jq
   script:
-    - make teardown-testing
+    - make environment-shutdown ENV=production
   when: manual
   environment:
-    name: testing-teardown
+    name: production
     action: stop
+  allow_failure: true
 
-environment-startup:
+prod-environment-startup:
   stage: cost-saver
-  image: alpine:latest
+  image: hashicorp/terraform:1.9
   before_script:
-    - apk add --no-cache aws-cli terraform make bash curl jq
+    - apk add --no-cache aws-cli make bash curl jq
   script:
-    - make startup-testing
+    - make environment-startup ENV=production
   when: manual
   environment:
-    name: testing-teardown
+    name: production
     action: start
+  allow_failure: true
+
+test-environment-shutdown:
+  stage: cost-saver
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache aws-cli make bash curl jq
+  script:
+    - make environment-shutdown ENV=test
+  when: manual
+  environment:
+    name: test
+    action: stop
+  allow_failure: true
+
+test-environment-startup:
+  stage: cost-saver
+  image: hashicorp/terraform:1.9
+  before_script:
+    - apk add --no-cache aws-cli make bash curl jq
+  script:
+    - make environment-startup ENV=test
+  when: manual
+  environment:
+    name: test
+    action: start
+  allow_failure: true

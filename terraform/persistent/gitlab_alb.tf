@@ -5,17 +5,20 @@
 # GitLab its own small ALB, reusing the wildcard ACM cert already
 # issued in acm.tf (*.privacyready.co.uk covers gitlab.privacyready.co.uk).
 
+# tfsec:ignore:aws-ec2-no-public-ingress-sgr
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "gitlab_alb" {
   name_prefix = "privacyready-gitlab-alb-"
   vpc_id      = module.management_vpc.vpc_id
   description = "GitLab ALB security group"
 
   ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from Internet"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = [for ip in var.allowed_admin_ip_cidrs : ip if !can(regex(":", ip))]
+    ipv6_cidr_blocks = [for ip in var.allowed_admin_ip_cidrs : ip if can(regex(":", ip))]
+    description      = "HTTPS restricted to Administrator IP"
   }
 
   egress {
@@ -23,11 +26,13 @@ resource "aws_security_group" "gitlab_alb" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
 
   tags = merge(local.tags, { Name = "privacyready-gitlab-alb-sg" })
 }
 
+# tfsec:ignore:aws-elb-alb-not-public
 resource "aws_lb" "gitlab" {
   count              = var.gitlab_enabled ? 1 : 0
   name               = "privacyready-gitlab-alb"
@@ -36,8 +41,9 @@ resource "aws_lb" "gitlab" {
   security_groups    = [aws_security_group.gitlab_alb.id]
   subnets            = module.management_vpc.public_subnet_ids
 
-  enable_deletion_protection = false
+  enable_deletion_protection = true
   enable_http2                = true
+  drop_invalid_header_fields  = true
 
   tags = merge(local.tags, { Name = "privacyready-gitlab-alb" })
 }

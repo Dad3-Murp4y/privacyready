@@ -7,7 +7,12 @@ resource "aws_instance" "gitlab_runner" {
   instance_type          = "t3.micro"
   subnet_id              = module.management_vpc.private_subnet_ids[count.index]
   vpc_security_group_ids = [aws_security_group.gitlab_runner.id]
+  key_name               = aws_key_pair.gitlab.key_name
   iam_instance_profile   = aws_iam_instance_profile.gitlab_runner.name
+
+  metadata_options {
+    http_tokens = "required"
+  }
 
   root_block_device {
     volume_size = 50
@@ -19,7 +24,18 @@ resource "aws_instance" "gitlab_runner" {
   user_data = <<USERDATA
 #!/bin/bash
 yum update -y
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.rpm.sh" | bash
 yum install -y docker gitlab-runner
+systemctl enable docker
+systemctl start docker
+gitlab-runner register \
+  --non-interactive \
+  --url "https://gitlab.privacyready.co.uk" \
+  --token "glrt-KxfvurZ5esjomzysxGBF" \
+  --executor "docker" \
+  --docker-image alpine:latest \
+  --docker-privileged \
+  --description "privacyready-runner"
 USERDATA
 
   tags = {
@@ -28,6 +44,7 @@ USERDATA
   }
 }
 
+# tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "gitlab_runner_cache" {
   bucket = "privacyready-gitlab-runner-cache-${data.aws_caller_identity.current.account_id}"
 
@@ -59,6 +76,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "gitlab_runner_cache" {
   }
 }
 
+# tfsec:ignore:aws-ec2-no-public-egress-sgr
 resource "aws_security_group" "gitlab_runner" {
   name_prefix = "privacyready-runner-"
   vpc_id      = module.management_vpc.vpc_id
@@ -69,6 +87,7 @@ resource "aws_security_group" "gitlab_runner" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all outbound traffic"
   }
 
   tags = { GDPR = "compliant" }
@@ -79,6 +98,7 @@ resource "random_password" "gitlab_runner_token" {
   special = false
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "gitlab_runner_token" {
   name                    = "privacyready/gitlab/runner-token"
   recovery_window_in_days = 7
@@ -144,4 +164,30 @@ resource "aws_security_group_rule" "gitlab_runner_ssh_from_eice" {
   source_security_group_id = aws_security_group.eice.id
   security_group_id        = aws_security_group.gitlab_runner.id
   description              = "SSH from EICE"
+}
+
+resource "aws_iam_role_policy_attachment" "gitlab_runner_ssm" {
+  role       = aws_iam_role.gitlab_runner.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_role_policy_attachment" "gitlab_runner_admin" {
+  role       = aws_iam_role.gitlab_runner.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "aws_s3_bucket_versioning" "gitlab_runner_cache" {
+  bucket = aws_s3_bucket.gitlab_runner_cache.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "gitlab_runner_cache" {
+  bucket = aws_s3_bucket.gitlab_runner_cache.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
 }

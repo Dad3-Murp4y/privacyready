@@ -28,6 +28,16 @@ function scannerEndpoint(isWebsite: boolean): string {
   return isWebsite ? `${baseUrl}/v1/scan/website` : `${baseUrl}/v1/scan/social`;
 }
 
+function redactFindings(findings: any) {
+  if (!Array.isArray(findings)) return findings;
+  return findings.map((f: any) => ({
+    ...f,
+    evidence: 'Redacted (Premium only)',
+    gdpr_article: 'REDACTED',
+    remediation: 'Redacted (Premium only)'
+  }));
+}
+
 export async function registerScanRoutes(app: FastifyInstance) {
   app.addHook('onRequest', async (request, reply) => {
     // Only protect /api/scan (but not /api/public)
@@ -37,6 +47,10 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
     try {
       await request.jwtVerify();
+      const tokenUser = request.user as any;
+      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
+      request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
       return reply.send(err);
     }
@@ -45,7 +59,17 @@ export async function registerScanRoutes(app: FastifyInstance) {
   const CreateScanSchema = {
     body: Type.Object({
       targetIdentifier: Type.String({ minLength: 1, maxLength: 512 }),
-      scanType: Type.String()
+      scanType: Type.Union([
+        Type.Literal('website'),
+        Type.Literal('facebook'),
+        Type.Literal('instagram'),
+        Type.Literal('linkedin'),
+        Type.Literal('mailchimp'),
+        Type.Literal('twitter'),
+        Type.Literal('google_analytics'),
+        Type.Literal('whatsapp'),
+        Type.Literal('tiktok')
+      ])
     })
   };
 
@@ -57,7 +81,8 @@ export async function registerScanRoutes(app: FastifyInstance) {
     schema: CreateScanSchema,
     config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
   }, async (request, reply) => {
-    const { targetIdentifier, scanType } = request.body as any;
+    const { scanType } = request.body as any;
+    const targetIdentifier = (request.body as any).targetIdentifier.trim();
 
     // A raw, single-use claim token is generated alongside the scan and
     // only its hash is stored -- the same pattern used for email
@@ -79,13 +104,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       }
     });
 
-    const isWebsite = scanType.toLowerCase() === 'website';
-    const payload = isWebsite
-      ? { customer_id: 'guest', url: targetIdentifier }
-      : {
-          customer_id: 'guest',
-          tiktok_username: targetIdentifier
-        };
+    const isWebsite = scanType === 'website';
+    let payload: any = { customer_id: 'guest' };
+    if (isWebsite) {
+      payload.url = targetIdentifier;
+    } else {
+      const typeMap: Record<string, string> = {
+        'tiktok': 'tiktok_username',
+        'facebook': 'facebook_page_id',
+        'instagram': 'ig_account_id',
+        'twitter': 'twitter_username',
+        'google_analytics': 'ga_property_id',
+        'whatsapp': 'whatsapp_phone',
+        'linkedin': 'linkedin_company_id',
+        'mailchimp': 'mailchimp_api_key'
+      };
+      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
+    }
 
     try {
       const response = await fetch(scannerEndpoint(isWebsite), {
@@ -100,6 +135,11 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
       const result = await response.json();
 
+      const hasOnlyErrors = result.findings.length > 0 && result.findings.every((f: any) => ['scan_error', 'scan_blocked', 'scan_failed'].includes(f.finding_type));
+      if (hasOnlyErrors) {
+        throw new Error(result.findings[0].description);
+      }
+
       const updated = await prisma.scan.update({
         where: { id: scan.id },
         data: {
@@ -110,17 +150,21 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return { ...updated, claimToken: rawClaimToken };
-    } catch (err) {
+      return { 
+        ...updated, 
+        findingsJson: redactFindings(updated.findingsJson),
+        claimToken: rawClaimToken 
+      };
+    } catch (err: any) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },
         data: {
           status: 'FAILED',
-          findingsJson: [{ description: `Scanner failed: ${String(err)}` }],
+          findingsJson: [{ description: err.message || String(err) }],
           completedAt: new Date()
         }
       });
-      return { ...failed, claimToken: rawClaimToken };
+      return reply.code(400).send({ error: err.message || 'Scan failed. Please check the URL or ID.' });
     }
   });
 
@@ -131,12 +175,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       where: { organizationId: user.org },
       orderBy: { createdAt: 'desc' }
     });
+
+    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+    const isPremium = org?.subscriptionStatus === 'active';
+
+    if (!isPremium) {
+      scans.forEach(scan => {
+        scan.findingsJson = redactFindings(scan.findingsJson);
+      });
+    }
+
     return scans;
   });
 
   app.post('/api/scan', { schema: CreateScanSchema }, async (request, reply) => {
     const user = request.user as any;
-    const { targetIdentifier, scanType } = request.body as any;
+    const { scanType } = request.body as any;
+    const targetIdentifier = (request.body as any).targetIdentifier.trim();
 
     const scan = await prisma.scan.create({
       data: {
@@ -147,13 +202,23 @@ export async function registerScanRoutes(app: FastifyInstance) {
       }
     });
 
-    const isWebsite = scanType.toLowerCase() === 'website';
-    const payload = isWebsite
-      ? { customer_id: user.org, url: targetIdentifier }
-      : {
-          customer_id: user.org,
-          tiktok_username: targetIdentifier
-        };
+    const isWebsite = scanType === 'website';
+    let payload: any = { customer_id: user.org };
+    if (isWebsite) {
+      payload.url = targetIdentifier;
+    } else {
+      const typeMap: Record<string, string> = {
+        'tiktok': 'tiktok_username',
+        'facebook': 'facebook_page_id',
+        'instagram': 'ig_account_id',
+        'twitter': 'twitter_username',
+        'google_analytics': 'ga_property_id',
+        'whatsapp': 'whatsapp_phone',
+        'linkedin': 'linkedin_company_id',
+        'mailchimp': 'mailchimp_api_key'
+      };
+      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
+    }
 
     try {
       const response = await fetch(scannerEndpoint(isWebsite), {
@@ -174,11 +239,22 @@ export async function registerScanRoutes(app: FastifyInstance) {
           status: 'COMPLETED',
           score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
-          findingsJson: result.findings,
+          findingsJson: result.findings, // Store the real findings securely in DB
           completedAt: new Date()
         }
       });
-      return updated;
+      
+      // Redact for response if not premium
+      let responseFindings = result.findings;
+      const org = await prisma.organization.findUnique({ where: { id: user.org } });
+      if (org?.subscriptionStatus !== 'active') {
+        responseFindings = redactFindings(responseFindings);
+      }
+
+      return {
+        ...updated,
+        findingsJson: responseFindings
+      };
     } catch (err) {
       const failed = await prisma.scan.update({
         where: { id: scan.id },

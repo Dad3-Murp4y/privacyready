@@ -9,10 +9,30 @@ export default function Register() {
   const [orgName, setOrgName] = useState('');
   const [error, setError] = useState('');
   const [registered, setRegistered] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
 
+  const calculatePasswordStrength = (pass: string) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length > 7) score += 25;
+    if (pass.match(/[a-z]/) && pass.match(/[A-Z]/)) score += 25;
+    if (pass.match(/[0-9]/)) score += 25;
+    if (pass.match(/[^a-zA-Z0-9]/)) score += 25;
+    return score;
+  };
+  const strength = calculatePasswordStrength(password);
+  
+  let strengthColor = 'var(--text-muted)';
+  let strengthLabel = 'Too short';
+  if (password.length > 0) {
+    if (strength <= 25) { strengthColor = '#ef4444'; strengthLabel = 'Weak'; }
+    else if (strength <= 50) { strengthColor = '#f59e0b'; strengthLabel = 'Fair'; }
+    else if (strength <= 75) { strengthColor = '#10b981'; strengthLabel = 'Good'; }
+    else { strengthColor = '#059669'; strengthLabel = 'Strong'; }
+  }
+
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
     const scanUrlRaw = queryParams.get('url');
@@ -49,17 +69,21 @@ export default function Register() {
       if (isValidClaimToken(scanClaimTokenRaw)) localStorage.setItem('freeScanClaimToken', scanClaimTokenRaw);
     }
 
-    if (token) {
-      navigate('/dashboard');
-    }
+    
   }, [navigate]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
+    if (!termsAccepted) {
+      setError('You must agree to the Terms of Service and Privacy Policy to create an account.');
+      return;
+    }
+    
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+      credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,7 +105,11 @@ export default function Register() {
       localStorage.removeItem('freeScanClaimToken');
       setRegistered(true);
     } catch (err: any) {
-      setError(err.message);
+      if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
+        setError('⚠️ System is currently offline for maintenance. Please try again later.');
+      } else {
+        setError(err.message || 'Registration failed');
+      }
     }
   };
 
@@ -143,7 +171,7 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Organization Name</label>
+            <label className="form-label">Organisation Name</label>
             <input 
               type="text" 
               className="form-input" 
@@ -164,8 +192,11 @@ export default function Register() {
               required 
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Password</label>
+          <div className="form-group" style={{ marginBottom: '24px' }}>
+            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+              Password
+              {password && <span style={{ fontSize: '11px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>}
+            </label>
             <input 
               type="password" 
               className="form-input" 
@@ -175,9 +206,28 @@ export default function Register() {
               autoComplete="new-password"
               required 
             />
+            {password && (
+              <div style={{ height: '4px', background: 'var(--glass-border)', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.max(10, strength)}%`, background: strengthColor, transition: 'all 0.3s ease' }} />
+              </div>
+            )}
           </div>
 
-          <button type="submit" className="btn btn-primary">
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '24px' }}>
+            <input 
+              type="checkbox" 
+              id="terms" 
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              required
+              style={{ marginTop: '3px', cursor: 'pointer' }}
+            />
+            <label htmlFor="terms" style={{ fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: '1.5' }}>
+              I agree to the <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Terms of Service</a> and <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Privacy Policy</a>, and I acknowledge that PrivacyReady is a compliance management tool, not legal advice.
+            </label>
+          </div>
+
+          <button type="submit" className="btn btn-primary" disabled={!termsAccepted}>
             Create Account <ArrowRight size={18} />
           </button>
         </form>

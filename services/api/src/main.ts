@@ -11,6 +11,9 @@ import { registerScanRoutes } from './routes/scan.js';
 import { registerDsrRoutes } from './routes/dsr.js';
 import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
+import { registerBillingRoutes } from './routes/billing.js';
+
+import { Redis } from 'ioredis';
 
 const port = Number(process.env.PORT ?? process.env.APP_PORT ?? 8080);
 const host = process.env.HOST ?? '0.0.0.0';
@@ -26,14 +29,32 @@ const JWT_SECRET = process.env.JWT_SECRET;
 async function buildServer() {
   const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
   
+  // Extract token from HttpOnly cookie and place in Authorization header
+  app.addHook('onRequest', async (request, reply) => {
+    const cookie = request.headers.cookie;
+    if (cookie && !request.headers.authorization) {
+      const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
+      if (match) {
+        request.headers.authorization = `Bearer ${match[1]}`;
+      }
+    }
+  });
+  
   // Register JWT plugin
   await app.register(jwt, { secret: JWT_SECRET });
   
   // Register Rate Limiting plugin
-  await app.register(rateLimit, {
+  const redisHost = process.env.REDIS_HOST;
+  const rateLimitOpts: any = {
     max: 100,
     timeWindow: '1 minute'
-  });
+  };
+  
+  if (redisHost) {
+    rateLimitOpts.redis = new (Redis as any)({ host: redisHost, port: 6379 });
+  }
+
+  await app.register(rateLimit, rateLimitOpts);
 
   await registerSecurity(app);
   await registerHealthRoutes(app);
@@ -45,6 +66,8 @@ async function buildServer() {
   await app.register(registerDsrRoutes);
   await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
+  await app.register(registerBillingRoutes, { prefix: '/api/billing' });
+
 
   return app;
 }

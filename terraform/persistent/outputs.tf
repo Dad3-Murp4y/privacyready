@@ -22,10 +22,6 @@ output "ecr_scanner_url" {
   value = aws_ecr_repository.scanner.repository_url
 }
 
-output "ecr_dsr_url" {
-  value = aws_ecr_repository.dsr.repository_url
-}
-
 output "transit_gateway_id" {
   value = aws_ec2_transit_gateway.main.id
 }

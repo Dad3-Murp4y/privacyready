@@ -98,7 +98,7 @@ All backend services are dockerized, pushed to AWS Elastic Container Registry (E
 - **DSR Service (`services/dsr`)**: Written in Python (FastAPI). Manages Data Subject Rights (DSR) workflows, such as automated data deletion and access requests.
 
 ### 3. Data Storage (AWS RDS & ElastiCache)
-- **Primary Database**: Amazon Aurora PostgreSQL (`db.t3.medium`). Used for storing user profiles, scan histories, and DSR records.
+- **Primary Database**: Amazon RDS PostgreSQL (Multi-AZ) (`db.t3.medium`). Used for storing user profiles, scan histories, and DSR records.
 - **Caching & Message Broker**: Amazon ElastiCache (Redis 7.0). Used for rate limiting, session management, and asynchronous task queues between the Core API and the Scanner service.
 
 ### 4. Monitoring & Alerting (CloudWatch, SNS, SES)
@@ -224,7 +224,7 @@ EC2 instances (such as the GitLab server) are configured dynamically using **Ans
 The infrastructure blueprints include a fully isolated, self-hosted GitLab instance deployed on a private EC2 instance. This instance handles:
 - Version Control for strict internal code governance.
 - Automated CI/CD pipelines to build Docker images and push them directly to ECR.
-- *Note:* The production application (ECS, API, RDS) runs completely independent of GitLab. The SaaS remains online even if the GitLab instance is shut down to save costs.
+- *Note:* The production application (ECS, API, RDS) runs completely independent of GitLab. Using the Cost-Saver teardown scripts, the expensive SaaS environments can be taken offline to minimize billing while the persistent GitLab instance remains fully online for continuous development.
 
 #### Least Privilege CI/CD Pipeline Configuration
 To ensure maximum security, the CI/CD pipelines do not use root or administrator AWS keys. Instead, Terraform provisions a dedicated, strict **least-privilege IAM user** (`gitlab-ci-deployer`). This user only has permission to:
@@ -285,6 +285,22 @@ terraform apply                 # builds all infrastructure fresh
 scripts/post-import.sh          # re-imports zone + instance, starts GitLab
 terraform apply                 # reconcile any tag/record drift
 ```
+
+### Cost-Saver Operations (Testing/Staging)
+
+If you want to radically reduce your AWS bill when the SaaS application is not actively needed (e.g., overnight or on weekends during active development), you can use the cost-saver scripts. These scripts destroy the expensive ephemeral SaaS components (ECS Fargate containers, Application Load Balancers, and NAT Gateways) and stop the main SaaS database, while leaving the persistent infrastructure (GitLab, DNS, S3 buckets) fully online.
+
+**Shutting down SaaS:**
+```bash
+make teardown-testing
+```
+This is also available as a manual `environment-shutdown` job in the `cost-saver` stage of the GitLab CI/CD pipeline.
+
+**Starting up SaaS:**
+```bash
+make startup-testing
+```
+This is also available as a manual `environment-startup` job in the `cost-saver` stage of the GitLab CI/CD pipeline.
 
 ---
 

@@ -85,8 +85,8 @@ export default function Blog() {
                 fontWeight: 500,
                 cursor: 'pointer',
                 transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                backdropFilter: 'blur(10px)',
-              }}
+                backdropFilter: 'blur(10px)'
+}}
               onMouseEnter={(e) => {
                 if (selectedCategory !== cat) {
                   e.currentTarget.style.color = 'var(--text-primary)';
@@ -128,8 +128,8 @@ export default function Blog() {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-              }}
+                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+}}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(0, 229, 255, 0.3)';
                 e.currentTarget.style.transform = 'translateY(-4px)';

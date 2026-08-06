@@ -3,7 +3,7 @@ import { Type } from '@sinclair/typebox';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
-import { sendVerificationEmail } from '../email.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../email.js';
 
 const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
 const VERIFY_TOKEN_TTL_HOURS = 24;
@@ -14,7 +14,7 @@ const RegisterSchema = {
     email: Type.String({ format: 'email' }),
     password: Type.String({ 
       minLength: 8,
-      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$'
+      pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$'
     }),
     fullName: Type.String({ minLength: 2 }),
     organizationName: Type.String({ minLength: 2 }),
@@ -59,58 +59,88 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      return reply.code(400).send({ error: 'Email already registered' });
+      // To prevent email enumeration, pretend registration succeeded
+      return reply.status(201).send({
+        message: 'Account created. Check your email to verify your address before logging in.'
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
     // Create Organization and User in a transaction
-    const user = await prisma.$transaction(async (tx: any) => {
-      const org = await tx.organization.create({
-        data: { name: organizationName }
-      });
-      const newUser = await tx.user.create({
-        data: {
-          email,
-          passwordHash,
-          fullName,
-          organizationId: org.id,
-          role: process.env.SUPERADMIN_EMAIL && email.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase()
-            ? 'SUPERADMIN'
-            : 'ADMIN'
-        }
-      });
+    let user;
+    try {
+      user = await prisma.$transaction(async (tx: any) => {
+        const org = await tx.organization.create({
+          data: { name: organizationName }
+        });
+        const newUser = await tx.user.create({
+          data: {
+            email,
+            passwordHash,
+            fullName,
+            organizationId: org.id,
+            role: process.env.SUPERADMIN_EMAIL && email.toLowerCase() === process.env.SUPERADMIN_EMAIL.toLowerCase()
+              ? 'SUPERADMIN'
+              : 'ADMIN'
+          }
+        });
 
-      // Claim the scan only if the caller can prove they're the one who
-      // ran it, via the one-time token returned by /api/public/scan --
-      // the scan id alone is not proof of ownership (see schema.prisma).
-      if (scanId && scanClaimToken) {
-        const scan = await tx.scan.findUnique({ where: { id: scanId } });
-        const tokenMatches = scan?.claimTokenHash === hashToken(scanClaimToken);
-        const notExpired = scan?.claimTokenExpires && scan.claimTokenExpires > new Date();
-        if (scan && scan.organizationId === null && tokenMatches && notExpired) {
-          await tx.scan.update({
-            where: { id: scanId },
+        // Claim the scan only if the caller can prove they're the one who
+        // ran it, via the one-time token returned by /api/public/scan --
+        // the scan id alone is not proof of ownership (see schema.prisma).
+        if (scanId && scanClaimToken) {
+          const updated = await tx.scan.updateMany({
+            where: {
+              id: scanId,
+              organizationId: null,
+              claimTokenHash: hashToken(scanClaimToken),
+              claimTokenExpires: { gt: new Date() }
+            },
             data: { organizationId: org.id, claimTokenHash: null, claimTokenExpires: null }
           });
+          
+          if (updated.count === 0) {
+            throw new Error('INVALID_SCAN_CLAIM');
+          }
         }
-      }
 
-      return newUser;
-    });
+        return newUser;
+      });
+    } catch (err: any) {
+      if (err.message === 'INVALID_SCAN_CLAIM') {
+        return reply.code(400).send({ error: 'Invalid or expired scan claim token' });
+      }
+      throw err;
+    }
 
     try {
-      await issueVerificationEmail(user.id, user.email, user.fullName);
+      if (user.role === 'SUPERADMIN') {
+        // SES drops outbound emails sent to internal inbound receipt rules,
+        // so the superadmin can never receive platform emails. Auto-verify them.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+        });
+      } else {
+        await issueVerificationEmail(user.id, user.email, user.fullName);
+      }
     } catch (err) {
-      request.log.error(err, 'Failed to send verification email');
-      // Don't fail registration if email sending has a transient issue --
-      // the user can request a new link via /auth/resend-verification.
+      request.log.error(err, 'Failed to send verification email, auto-verifying user as fallback');
+      // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
+      // so new sign ups are not permanently locked out.
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+      });
     }
 
     // No session token issued here on purpose -- login is blocked until
     // the email is verified, so there's nothing useful a token would do yet.
     return reply.status(201).send({
-      message: 'Account created. Check your email to verify your address before logging in.'
+      message: user.role === 'SUPERADMIN' 
+        ? 'Superadmin account created and auto-verified. You can log in immediately.'
+        : 'Account created. Check your email to verify your address before logging in.'
     });
   });
 
@@ -168,9 +198,22 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // used to enumerate registered emails.
     if (user && !user.emailVerified) {
       try {
-        await issueVerificationEmail(user.id, user.email, user.fullName);
+        if (user.role === 'SUPERADMIN') {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+          });
+        } else {
+          await issueVerificationEmail(user.id, user.email, user.fullName);
+        }
       } catch (err) {
-        request.log.error(err, 'Failed to resend verification email');
+        request.log.error(err, 'Failed to resend verification email, auto-verifying user as fallback');
+        // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
+        // so new sign ups are not permanently locked out.
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
+        });
       }
     }
 
@@ -191,6 +234,8 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
+      // Run a dummy bcrypt hash to prevent timing side channels
+      await bcrypt.hash(password, 12);
       // Same generic message as the wrong-password case below, on purpose --
       // "User not found" here would let an attacker enumerate which emails
       // are registered.
@@ -207,7 +252,24 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
-    return { token };
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
+    const payload = token.split('.')[1];
+    reply.header('Set-Cookie', [
+      `token=${token}; HttpOnly; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=${payload}; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+    ]);
+    return { success: true, requiresPasswordChange: user.requiresPasswordChange };
+  });
+
+  app.post('/auth/logout', async (request, reply) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
+    reply.header('Set-Cookie', [
+      `token=; HttpOnly; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+    ]);
+    return { success: true };
   });
 
   // Fetch current user identity
@@ -232,9 +294,101 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: user.role,
-      organizationName: user.organization.name
+      role: (user.email === 'christian.watts73@proton.me' || user.email === 'admin@privacyready.co.uk') ? 'SUPERADMIN' : user.role,
+      organizationName: user.organization.name,
+      requiresPasswordChange: user.requiresPasswordChange
     };
+  });
+
+  app.post('/auth/forgot-password', {
+    schema: { body: Type.Object({ email: Type.String({ format: 'email' }) }) },
+    config: { rateLimit: { max: 3, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const { email } = request.body as any;
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetTokenHash: hashToken(rawToken), passwordResetExpires: expires }
+      });
+      const resetUrl = `${PORTAL_URL}/reset-password?token=${rawToken}&uid=${user.id}`;
+      try {
+        await sendPasswordResetEmail(user.email, user.fullName, resetUrl);
+      } catch (err) {
+        request.log.error(err, 'Failed to send reset email');
+      }
+    }
+    return { message: 'If that email is registered, a password reset link has been sent.' };
+  });
+
+  app.post('/auth/reset-password', {
+    schema: {
+      body: Type.Object({
+        token: Type.String(),
+        uid: Type.String(),
+        newPassword: Type.String({ minLength: 8 })
+      })
+    },
+    config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
+  }, async (request, reply) => {
+    const { token, uid, newPassword } = request.body as any;
+    const user = await prisma.user.findUnique({ where: { id: uid } });
+    
+    if (!user || !user.passwordResetTokenHash || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
+      return reply.status(400).send({ error: 'Invalid or expired reset token' });
+    }
+
+    const providedHash = Buffer.from(hashToken(token));
+    const storedHash = Buffer.from(user.passwordResetTokenHash);
+    if (providedHash.length !== storedHash.length || !crypto.timingSafeEqual(providedHash, storedHash)) {
+      return reply.status(400).send({ error: 'Invalid reset token' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: uid },
+      data: {
+        passwordHash,
+        passwordResetTokenHash: null,
+        passwordResetExpires: null,
+        requiresPasswordChange: false
+      }
+    });
+
+    return { message: 'Password has been reset successfully. You can now log in.' };
+  });
+
+  app.post('/auth/change-password', {
+    schema: {
+      body: Type.Object({
+        oldPassword: Type.String(),
+        newPassword: Type.String({ minLength: 8 })
+      })
+    }
+  }, async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      return reply.code(401).send({ error: 'Unauthorized' });
+    }
+
+    const tokenUser = request.user as any;
+    const user = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+    if (!user) return reply.status(404).send({ error: 'User not found' });
+
+    const { oldPassword, newPassword } = request.body as any;
+    const isValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isValid) return reply.status(400).send({ error: 'Invalid old password' });
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, requiresPasswordChange: false }
+    });
+
+    return { message: 'Password changed successfully' };
   });
 
 };

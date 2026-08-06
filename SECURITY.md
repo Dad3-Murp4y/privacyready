@@ -41,7 +41,7 @@ Our scanning microservices (Facebook, LINE, TikTok) use Python's native API requ
 *   **Encrypted Web Traffic:** All traffic is encrypted in transit using TLS 1.2/1.3 via AWS Certificate Manager (ACM) and CloudFront edge termination.
 *   **DNS Security (DNSSEC):** Route53 is configured with DNSSEC signing, providing cryptographic proof of origin and preventing DNS spoofing or cache poisoning.
 *   **Origin IP Obfuscation:** The Application Load Balancer (ALB) Security Groups are strictly bound to the AWS Managed Prefix List for CloudFront (`com.amazonaws.global.cloudfront.origin-facing`). Direct internet access to backend instances is completely blocked.
-*   **DDoS & Bot Mitigation:** AWS WAFv2 is attached to the ALB, implementing Rate Limiting, Geo-Blocking (restricting non-authorized countries), and AWS Managed Bot Control to drop malicious scrapers.
+*   **DDoS & Bot Mitigation:** AWS WAFv2 is attached to the ALB, implementing Rate Limiting and AWS Managed Bot Control to drop malicious scrapers.
 *   **Secret Management:** No API keys are hardcoded in Terraform or Application Code. Secrets are injected at runtime via Environment Variables and CI/CD variables.
 
 ---

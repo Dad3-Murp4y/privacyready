@@ -1,0 +1,71 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Active Paid Subscriptions (Founder £15/mo vs Growth £39/mo)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "stripe_subscriptions_active{plan=\"starter\"}",
+          "legendFormat": "Founder Plan (£15/mo)"
+        },
+        {
+          "expr": "stripe_subscriptions_active{plan=\"growth\"}",
+          "legendFormat": "Growth Plan (£39/mo)"
+        }
+      ]
+    },
+    {
+      "title": "Monthly Recurring Revenue (MRR Est. £)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "(stripe_subscriptions_active{plan=\"starter\"} * 15) + (stripe_subscriptions_active{plan=\"growth\"} * 39)",
+          "legendFormat": "MRR (£)"
+        }
+      ]
+    },
+    {
+      "title": "Paywall Upgrade Conversion Click-Throughs",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum(rate(paywall_upgrade_clicks_total[5m])) by (plan)",
+          "legendFormat": "{{plan}} Clicks/min"
+        }
+      ]
+    },
+    {
+      "title": "Statutory Subject Access Requests (DSR) & Breach Queue",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "dsr_requests_active_total",
+          "legendFormat": "Pending DSRs (30-day Limit)"
+        },
+        {
+          "expr": "article33_breach_notifications_active",
+          "legendFormat": "Article 33 Breaches (72-hour Limit)"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["privacyready", "saas", "paywall", "mrr"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "PrivacyReady - SaaS Revenue & Paywall Metrics",
+  "uid": "privacyready-saas-business-paywall"
+}

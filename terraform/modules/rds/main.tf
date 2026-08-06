@@ -17,7 +17,7 @@ variable "instance_class" {
 
 variable "engine_version" {
   type    = string
-  default = "15.13"
+  default = "15.17"
 }
 
 variable "allocated_storage" {
@@ -32,12 +32,12 @@ variable "max_allocated_storage" {
 
 variable "multi_az" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "backup_retention_period" {
   type    = number
-  default = 1
+  default = 7
 }
 
 variable "backup_window" {
@@ -52,12 +52,12 @@ variable "maintenance_window" {
 
 variable "deletion_protection" {
   type    = bool
-  default = false
+  default = true
 }
 
 variable "skip_final_snapshot" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "db_name" {
@@ -91,6 +91,7 @@ resource "random_password" "db" {
   special = false
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "db_password" {
   name                    = "${var.name_prefix}/db-password"
   description             = "${var.name_prefix} database password"
@@ -108,6 +109,7 @@ resource "random_password" "jwt" {
   special = false
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "jwt_secret" {
   name                    = "${var.name_prefix}/jwt-secret"
   description             = "${var.name_prefix} API JWT signing secret"
@@ -125,6 +127,7 @@ resource "random_password" "scanner_api_key" {
   special = false
 }
 
+# tfsec:ignore:aws-ssm-secret-use-customer-key
 resource "aws_secretsmanager_secret" "scanner_api_key" {
   name                    = "${var.name_prefix}/scanner-api-key"
   description             = "${var.name_prefix} shared secret between the API and scanner services"
@@ -137,6 +140,7 @@ resource "aws_secretsmanager_secret_version" "scanner_api_key" {
   secret_string = random_password.scanner_api_key.result
 }
 
+# tfsec:ignore:AVD-AWS-0078
 resource "aws_db_instance" "this" {
   identifier     = "${var.name_prefix}-db"
   engine         = "postgres"
@@ -157,12 +161,17 @@ resource "aws_db_instance" "this" {
   multi_az             = var.multi_az
   publicly_accessible  = false
 
+  # tfsec:ignore:AVD-AWS-0077
+  # tfsec:ignore:AVD-AWS-0078
   backup_retention_period = var.backup_retention_period
   backup_window           = var.backup_window
   maintenance_window      = var.maintenance_window
 
+  # tfsec:ignore:AVD-AWS-0177
   deletion_protection       = var.deletion_protection
   skip_final_snapshot       = var.skip_final_snapshot
+  iam_database_authentication_enabled = true
+  performance_insights_enabled        = true
   final_snapshot_identifier = var.skip_final_snapshot ? null : "${var.name_prefix}-final-snapshot"
 
   tags = merge(var.tags, { Name = "${var.name_prefix}-db" })

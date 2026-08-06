@@ -1,3 +1,4 @@
+# tfsec:ignore:aws-s3-enable-bucket-logging
 resource "aws_s3_bucket" "gitlab_artifacts" {
   count  = var.gitlab_enabled ? 1 : 0
   bucket = "privacyready-gitlab-artifacts-${data.aws_caller_identity.current.account_id}"

@@ -30,7 +30,7 @@ TF_PERSISTENT_DIR := terraform/persistent
 AWS_REGION := eu-west-2
 ACCOUNT_ID := $(shell aws sts get-caller-identity --query Account --output text)
 ECR_REGISTRY := $(ACCOUNT_ID).dkr.ecr.$(AWS_REGION).amazonaws.com
-SERVICES := api scanner dsr
+SERVICES := api scanner
 
 # ECS cluster/service names differ by environment (see
 # environments/test/ecs.tf's -test suffixing, done specifically so
@@ -42,7 +42,7 @@ ECS_SERVICE_PREFIX := $(if $(filter production,$(ENV)),privacyready,privacyready
         persistent-init persistent-plan persistent-apply persistent-destroy persistent-outputs \
         init plan apply destroy create fmt validate \
         docker-build docker-push docker-push-all deploy roll \
-        teardown-testing startup-testing wipe-buckets outputs
+        environment-shutdown environment-startup wipe-buckets outputs
 
 help:
 	@echo "PrivacyReady infrastructure Makefile"
@@ -54,7 +54,7 @@ help:
 	@echo "  make plan ENV=test|production"
 	@echo "  make apply ENV=test|production"
 	@echo "  make deploy SERVICE=api ENV=production -- build, push, and force a new ECS deployment for one service"
-	@echo "  make teardown-testing / startup-testing -- cost-saving stop/start (scripts/*.sh)"
+	@echo "  make environment-shutdown / environment-startup ENV=<test|production>"
 	@echo "  make wipe-buckets CONFIRM=yes          -- DESTRUCTIVE: empty all privacyready-* S3 buckets"
 	@echo ""
 	@echo "Current: ENV=$(ENV) AWS_REGION=$(AWS_REGION)"
@@ -106,7 +106,7 @@ plan: init
 	cd $(TF_ENV_DIR) && terraform plan
 
 apply: init
-	cd $(TF_ENV_DIR) && terraform apply
+	cd $(TF_ENV_DIR) && terraform apply -auto-approve
 
 # Requires CONFIRM=yes so this can never fire from a stray `make
 # destroy` with no arguments -- same pattern as scripts/wipe_bucket.py.
@@ -151,14 +151,20 @@ deploy-frontend: check-env
 	@rm -rf /tmp/frontend-deploy
 	@cp -r frontend /tmp/frontend-deploy
 	@rm -rf /tmp/frontend-deploy/portal /tmp/frontend-deploy/node_modules
-	@if [ "$(ENV)" = "test" ]; then \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://portal.privacyready.co.uk|https://test-portal.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://api.privacyready.co.uk|https://test-api.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.html" -exec sed -i 's|https://privacyready.co.uk|https://test.privacyready.co.uk|g' {} +; \
-		find /tmp/frontend-deploy -type f -name "*.js" -exec sed -i 's|\.privacyready\.co\.uk|.test.privacyready.co.uk|g' {} +; \
-	fi
+	@for f in about contact cookies faq privacy-policy terms coming-soon; do \
+		if [ -f "/tmp/frontend-deploy/$$f.html" ]; then \
+			mkdir -p "/tmp/frontend-deploy/$$f"; \
+			cp "/tmp/frontend-deploy/$$f.html" "/tmp/frontend-deploy/$$f/index.html"; \
+			cp "/tmp/frontend-deploy/$$f.html" "/tmp/frontend-deploy/$$f-clean"; \
+		fi; \
+	done
 	@export BUCKET=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_bucket_id); \
-	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --delete
+	 aws s3 sync /tmp/frontend-deploy/ s3://$$BUCKET/ --exclude "*-clean" --delete; \
+	 for f in about contact cookies faq privacy-policy terms coming-soon; do \
+		if [ -f "/tmp/frontend-deploy/$$f-clean" ]; then \
+			aws s3 cp "/tmp/frontend-deploy/$$f-clean" "s3://$$BUCKET/$$f" --content-type "text/html"; \
+		fi; \
+	 done
 	@export CF_ID=$$(cd $(TF_ENV_DIR) && terraform output -raw frontend_cloudfront_id); \
 	 aws cloudfront create-invalidation --distribution-id $$CF_ID --paths "/*"
 
@@ -186,11 +192,13 @@ create: docker-push-all apply
 outputs:
 	cd $(TF_ENV_DIR) && terraform output
 
-teardown-testing:
-	./scripts/teardown-testing.sh
+environment-shutdown:
+	@if [ -z "$(ENV)" ]; then echo "usage: make environment-shutdown ENV=test|production"; exit 1; fi
+	@ENV=$(ENV) ./scripts/environment-shutdown.sh
 
-startup-testing:
-	./scripts/startup-testing.sh
+environment-startup:
+	@if [ -z "$(ENV)" ]; then echo "usage: make environment-startup ENV=test|production"; exit 1; fi
+	@ENV=$(ENV) ./scripts/environment-startup.sh
 
 wipe-buckets:
 	@if [ "$(CONFIRM)" != "yes" ]; then \

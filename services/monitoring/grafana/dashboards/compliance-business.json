@@ -1,0 +1,68 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Compliance Scan Execution Volume (Websites & Social Assets)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(compliance_scans_total[5m])) by (scan_type)",
+          "legendFormat": "{{scan_type}}"
+        }
+      ]
+    },
+    {
+      "title": "Compliance Scan Success vs Failure Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(compliance_scans_total{status='COMPLETED'}[5m]) / rate(compliance_scans_total[5m]) * 100",
+          "legendFormat": "Success Rate (%)"
+        },
+        {
+          "expr": "rate(compliance_scans_total{status='FAILED'}[5m]) / rate(compliance_scans_total[5m]) * 100",
+          "legendFormat": "Failure Rate (%)"
+        }
+      ]
+    },
+    {
+      "title": "Active Data Subject Rights (DSR) Statutory Deadline Queue",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "dsr_requests_active_total",
+          "legendFormat": "Pending / In Progress DSRs"
+        }
+      ]
+    },
+    {
+      "title": "Stripe Subscriptions (Pro / Active vs Canceled)",
+      "type": "stat",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "stripe_subscriptions_active_total",
+          "legendFormat": "Pro Subscribers"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["privacyready", "compliance", "business"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "PrivacyReady - Compliance & SaaS Business Metrics",
+  "uid": "privacyready-compliance-business"
+}
