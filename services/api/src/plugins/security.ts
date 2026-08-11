@@ -14,13 +14,16 @@ export async function registerSecurity(app: FastifyInstance) {
         return;
       }
       try {
-        if (allowed.has(origin)) {
-          cb(null, true);
-        } else {
-          cb(new Error('Not allowed by CORS'), false);
-        }
-      } catch (_) {
-        cb(new Error('Invalid Origin'), false);
+      if (allowed.has(origin)) {
+        cb(null, true);
+      } else {
+        // Do not throw here: @fastify/cors converts callback errors into a
+        // 500 response before the origin/CSRF hook can issue its fail-closed
+        // 403 response for unsafe requests.
+        cb(null, false);
+      }
+    } catch (_) {
+      cb(null, false);
       }
     },
     credentials: true,
