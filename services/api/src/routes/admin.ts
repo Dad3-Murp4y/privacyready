@@ -18,7 +18,7 @@ export const adminRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const tokenUser = request.user as any;
-    if (tokenUser.role !== 'SUPERADMIN' && tokenUser.email !== 'admin@privacyready.co.uk' && tokenUser.email !== 'christian.watts73@proton.me') {
+    if (tokenUser.role !== 'SUPERADMIN') {
       return reply.code(403).send({ error: 'Forbidden: Requires SUPERADMIN role' });
     }
   });

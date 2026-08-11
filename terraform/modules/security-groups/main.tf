@@ -9,7 +9,6 @@ resource "aws_security_group" "alb" {
   description            = "HTTPS ingress and API-only egress"
   vpc_id                 = var.vpc_id
   revoke_rules_on_delete = true
-  egress                 = []
 
   tags = merge(local.common_tags, {
     Name = "${var.name}-alb"
@@ -21,7 +20,6 @@ resource "aws_security_group" "api" {
   description            = "API service traffic"
   vpc_id                 = var.vpc_id
   revoke_rules_on_delete = true
-  egress                 = []
 
   tags = merge(local.common_tags, {
     Name = "${var.name}-api"
@@ -33,7 +31,6 @@ resource "aws_security_group" "scanner" {
   description            = "Scanner service traffic"
   vpc_id                 = var.vpc_id
   revoke_rules_on_delete = true
-  egress                 = []
 
   tags = merge(local.common_tags, {
     Name = "${var.name}-scanner"
@@ -45,7 +42,6 @@ resource "aws_security_group" "rds" {
   description            = "PostgreSQL from API only"
   vpc_id                 = var.vpc_id
   revoke_rules_on_delete = true
-  egress                 = []
 
   tags = merge(local.common_tags, {
     Name = "${var.name}-rds"
@@ -59,6 +55,15 @@ resource "aws_vpc_security_group_ingress_rule" "alb_https" {
   to_port           = 443
   cidr_ipv4         = "0.0.0.0/0"
   description       = "HTTPS from the internet"
+}
+
+resource "aws_vpc_security_group_ingress_rule" "alb_http_redirect" {
+  security_group_id = aws_security_group.alb.id
+  ip_protocol       = "tcp"
+  from_port         = 80
+  to_port           = 80
+  cidr_ipv4         = "0.0.0.0/0"
+  description       = "HTTP redirect to HTTPS"
 }
 
 resource "aws_vpc_security_group_egress_rule" "alb_to_api" {

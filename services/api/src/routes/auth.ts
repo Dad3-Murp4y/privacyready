@@ -115,32 +115,15 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     try {
-      if (user.role === 'SUPERADMIN') {
-        // SES drops outbound emails sent to internal inbound receipt rules,
-        // so the superadmin can never receive platform emails. Auto-verify them.
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
-        });
-      } else {
-        await issueVerificationEmail(user.id, user.email, user.fullName);
-      }
+      await issueVerificationEmail(user.id, user.email, user.fullName);
     } catch (err) {
-      request.log.error(err, 'Failed to send verification email, auto-verifying user as fallback');
-      // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
-      // so new sign ups are not permanently locked out.
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
-      });
+      request.log.error(err, 'Failed to send verification email');
     }
 
     // No session token issued here on purpose -- login is blocked until
     // the email is verified, so there's nothing useful a token would do yet.
     return reply.status(201).send({
-      message: user.role === 'SUPERADMIN' 
-        ? 'Superadmin account created and auto-verified. You can log in immediately.'
-        : 'Account created. Check your email to verify your address before logging in.'
+      message: 'Account created. Check your email to verify your address before logging in.'
     });
   });
 
@@ -198,22 +181,9 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // used to enumerate registered emails.
     if (user && !user.emailVerified) {
       try {
-        if (user.role === 'SUPERADMIN') {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
-          });
-        } else {
-          await issueVerificationEmail(user.id, user.email, user.fullName);
-        }
+        await issueVerificationEmail(user.id, user.email, user.fullName);
       } catch (err) {
-        request.log.error(err, 'Failed to resend verification email, auto-verifying user as fallback');
-        // Auto-verify if email sending fails (e.g. due to AWS SES Sandbox mode)
-        // so new sign ups are not permanently locked out.
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
-        });
+        request.log.error(err, 'Failed to resend verification email');
       }
     }
 
@@ -253,21 +223,19 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
 
     const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
     const isProd = process.env.NODE_ENV === 'production';
-    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
     const payload = token.split('.')[1];
     reply.header('Set-Cookie', [
-      `token=${token}; HttpOnly; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
-      `auth_payload=${payload}; Path=/; Max-Age=3600; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+      `__Host-token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=${payload}; Path=/; Max-Age=3600; SameSite=Lax${isProd ? '; Secure' : ''}`
     ]);
     return { success: true, requiresPasswordChange: user.requiresPasswordChange };
   });
 
   app.post('/auth/logout', async (request, reply) => {
     const isProd = process.env.NODE_ENV === 'production';
-    const cookieDomain = isProd ? 'Domain=.privacyready.co.uk; ' : '';
     reply.header('Set-Cookie', [
-      `token=; HttpOnly; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`,
-      `auth_payload=; Path=/; Max-Age=0; ${cookieDomain}SameSite=Lax${isProd ? '; Secure' : ''}`
+      `__Host-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${isProd ? '; Secure' : ''}`,
+      `auth_payload=; Path=/; Max-Age=0; SameSite=Lax${isProd ? '; Secure' : ''}`
     ]);
     return { success: true };
   });
@@ -294,7 +262,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      role: (user.email === 'christian.watts73@proton.me' || user.email === 'admin@privacyready.co.uk') ? 'SUPERADMIN' : user.role,
+      role: user.role,
       organizationName: user.organization.name,
       requiresPasswordChange: user.requiresPasswordChange
     };
@@ -328,7 +296,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       body: Type.Object({
         token: Type.String(),
         uid: Type.String(),
-        newPassword: Type.String({ minLength: 8 })
+        newPassword: Type.String({ minLength: 8, pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$' })
       })
     },
     config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
@@ -364,7 +332,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     schema: {
       body: Type.Object({
         oldPassword: Type.String(),
-        newPassword: Type.String({ minLength: 8 })
+        newPassword: Type.String({ minLength: 8, pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$' })
       })
     }
   }, async (request, reply) => {

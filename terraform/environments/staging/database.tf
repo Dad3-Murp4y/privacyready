@@ -13,7 +13,7 @@ module "database" {
   skip_final_snapshot         = true
   database_name               = var.database_name
   database_username           = var.database_username
-  engine_version              = "16.4"
+  engine_version              = var.database_engine_version
   parameter_group_family      = "postgres16"
   manage_master_user_password = true
   tags                        = var.common_tags

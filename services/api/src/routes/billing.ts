@@ -1,8 +1,56 @@
 import { FastifyInstance } from 'fastify';
+import { createHmac, timingSafeEqual } from 'node:crypto';
+import { Readable } from 'node:stream';
 import { prisma } from '../db.js';
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
+
+function requireStripeConfiguration() {
+  if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+    throw new Error('Stripe billing is not configured');
+  }
+}
+
+function isAllowedReturnUrl(value: string) {
+  try {
+    const returnUrl = new URL(value);
+    const portalUrl = new URL(process.env.PORTAL_URL || 'https://portal.privacyready.co.uk');
+    return returnUrl.origin === portalUrl.origin;
+  } catch {
+    return false;
+  }
+}
+
+export function verifyStripeWebhookSignature(
+  rawPayload: Buffer,
+  signatureHeader: string,
+  webhookSecret: string,
+  nowSeconds = Math.floor(Date.now() / 1000),
+) {
+  const fields = signatureHeader.split(',').map((field) => field.trim());
+  const timestampField = fields.find((field) => field.startsWith('t='));
+  const signatureFields = fields
+    .filter((field) => field.startsWith('v1='))
+    .map((field) => field.slice(3));
+
+  if (!timestampField || signatureFields.length === 0) return false;
+
+  const timestamp = Number(timestampField.slice(2));
+  if (!Number.isSafeInteger(timestamp) || Math.abs(nowSeconds - timestamp) > 300) return false;
+
+  const expected = createHmac('sha256', webhookSecret)
+    .update(Buffer.concat([Buffer.from(`${timestamp}.`, 'utf8'), rawPayload]))
+    .digest();
+
+  return signatureFields.some((signature) => {
+    if (!/^[a-fA-F0-9]{64}$/.test(signature)) return false;
+
+    const candidate = Buffer.from(signature, 'hex');
+    return candidate.length === expected.length && timingSafeEqual(candidate, expected);
+  });
+}
 
 export async function registerBillingRoutes(app: FastifyInstance) {
   // Authentication hook for protected billing routes
@@ -50,8 +98,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     const user = request.user as any;
     const { returnUrl, plan = 'starter' } = (request.body || {}) as { returnUrl?: string; plan?: 'starter' | 'growth' };
     
-    if (!returnUrl) {
-      return reply.code(400).send({ error: 'Missing returnUrl' });
+    if (!returnUrl || !isAllowedReturnUrl(returnUrl)) {
+      return reply.code(400).send({ error: 'Invalid returnUrl' });
     }
 
     let orgId = user?.org || user?.organizationId;
@@ -74,18 +122,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       orgId = org.id;
     }
 
-    const stripeKey = process.env.STRIPE_SECRET_KEY || STRIPE_SECRET_KEY;
-    if (!stripeKey) {
-      app.log.info('STRIPE_SECRET_KEY not set - falling back to instant activation for test environment');
-      await prisma.organization.update({
-        where: { id: orgId },
-        data: { subscriptionStatus: 'active' }
-      });
-      return {
-        url: `${returnUrl}?session_id=cs_test_fallback_${Date.now()}&payment=success`,
-        sessionId: `cs_test_fallback_${Date.now()}`
-      };
-    }
+    requireStripeConfiguration();
+    const stripeKey = STRIPE_SECRET_KEY;
 
     const isGrowth = plan === 'growth';
     const planName = isGrowth ? 'Growth' : 'Founder';
@@ -157,15 +195,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'Missing sessionId' });
     }
 
-    const stripeKey = process.env.STRIPE_SECRET_KEY || STRIPE_SECRET_KEY;
-    if (!stripeKey) {
-      // Fallback: If in test mode without secret key, allow verification for testing
-      await prisma.organization.update({
-        where: { id: user.org },
-        data: { subscriptionStatus: 'active' }
-      });
-      return { success: true, subscriptionStatus: 'active' };
-    }
+    requireStripeConfiguration();
+    const stripeKey = STRIPE_SECRET_KEY;
 
     try {
       const response = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
@@ -174,7 +205,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
 
       const session = await response.json();
 
-      if (response.ok && (session.payment_status === 'paid' || session.status === 'complete')) {
+      if (response.ok && (session.payment_status === 'paid' || session.status === 'complete') && session.client_reference_id === user.org) {
         await prisma.organization.update({
           where: { id: user.org },
           data: {
@@ -196,8 +227,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     const user = request.user as any;
     const { returnUrl } = (request.body as any) || {};
 
-    if (!returnUrl) {
-      return reply.code(400).send({ error: 'Missing returnUrl' });
+    if (!returnUrl || !isAllowedReturnUrl(returnUrl)) {
+      return reply.code(400).send({ error: 'Invalid returnUrl' });
     }
 
     const org = await prisma.organization.findUnique({ where: { id: user.org } });
@@ -205,10 +236,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       return reply.code(400).send({ error: 'No active subscription or customer ID found' });
     }
 
-    const stripeKey = process.env.STRIPE_SECRET_KEY || STRIPE_SECRET_KEY;
-    if (!stripeKey) {
-      return reply.code(400).send({ error: 'Billing is not configured in this environment.' });
-    }
+    requireStripeConfiguration();
+    const stripeKey = STRIPE_SECRET_KEY;
 
     const params = new URLSearchParams();
     params.append('customer', org.stripeCustomerId);
@@ -238,15 +267,32 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     }
   });
 
-  // Public webhook endpoint for Stripe event handling
-  // SECURITY: Ensure you configure Stripe to send webhooks to /api/billing/webhook?secret=YOUR_SECRET
-  app.post('/webhook', async (request, reply) => {
-    const event = request.body as any;
-    const { secret } = request.query as { secret?: string };
+  app.post('/webhook', {
+    preParsing: async (request, _reply, payload) => {
+      const chunks: Buffer[] = [];
+      for await (const chunk of payload) {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+      }
 
-    const expectedSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    if (expectedSecret && secret !== expectedSecret) {
-      return reply.code(401).send({ error: 'Unauthorized webhook' });
+      const rawBody = Buffer.concat(chunks);
+      (request as typeof request & { rawBody?: Buffer }).rawBody = rawBody;
+
+      const replacementPayload = Readable.from(rawBody);
+      (replacementPayload as typeof replacementPayload & { receivedEncodedLength?: number }).receivedEncodedLength = rawBody.length;
+      return replacementPayload;
+    },
+  }, async (request, reply) => {
+    const event = request.body as any;
+    const rawBody = (request as typeof request & { rawBody?: Buffer }).rawBody;
+    const signature = request.headers['stripe-signature'];
+
+    if (
+      !STRIPE_WEBHOOK_SECRET
+      || !rawBody
+      || typeof signature !== 'string'
+      || !verifyStripeWebhookSignature(rawBody, signature, STRIPE_WEBHOOK_SECRET)
+    ) {
+      return reply.code(400).send({ error: 'Invalid Stripe signature' });
     }
 
     if (!event || !event.type) {

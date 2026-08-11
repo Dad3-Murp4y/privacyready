@@ -40,6 +40,16 @@ variable "ses_domain" {
 }
 variable "database_name" { type = string }
 variable "database_username" { type = string }
+variable "database_engine_version" {
+  type        = string
+  default     = "16.14"
+  description = "Verified PostgreSQL 16 minor version for the staging RDS instance."
+
+  validation {
+    condition     = can(regex("^16\\.", var.database_engine_version))
+    error_message = "database_engine_version must be a PostgreSQL 16 minor version."
+  }
+}
 variable "api_cpu" { type = number }
 variable "api_memory" { type = number }
 variable "scanner_cpu" { type = number }

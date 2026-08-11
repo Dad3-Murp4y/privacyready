@@ -8,6 +8,7 @@ route53_zone_id = "ZREPLACEWITHBOOTSTRAPOUTPUT"
 ses_domain = "staging.privacyready.co.uk"
 database_name = "privacyready"
 database_username = "privacyready"
+database_engine_version = "16.14"
 api_cpu = 256
 api_memory = 512
 api_desired_count = 1
