@@ -97,7 +97,7 @@ module "api" {
   task_role_arn      = aws_iam_role.api_task.arn
   aws_region         = var.aws_region
   target_group_arn   = module.alb.api_target_group_arn
-  environment        = { DB_HOST = module.database.db_endpoint, DB_NAME = module.database.db_name, DB_USER = var.database_username, SES_FROM_EMAIL = var.ses_from_email }
+  environment        = { DB_HOST = module.database.db_endpoint, DB_NAME = module.database.db_name, DB_USER = var.database_username, SES_FROM_EMAIL = var.ses_from_email, PORTAL_URL = "https://${var.frontend_hostname}", MARKETING_URL = "https://${var.frontend_hostname}" }
   secrets            = { DB_PASSWORD = "${module.database.master_user_secret_arn}:password::", JWT_SECRET = module.secrets.secret_arns["jwt-secret"], SCANNER_API_KEY = module.secrets.secret_arns["scanner-api-key"], STRIPE_SECRET_KEY = module.secrets.secret_arns["stripe-secret-key"], STRIPE_WEBHOOK_SECRET = module.secrets.secret_arns["stripe-webhook-secret"] }
   tags               = var.common_tags
 }

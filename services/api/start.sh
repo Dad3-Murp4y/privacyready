@@ -9,15 +9,9 @@ set -e
 # Construct DATABASE_URL dynamically from ECS environment variables
 export DATABASE_URL="postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}"
 
-# Resolve the baseline migration so Prisma knows it was already applied
-# via the old 'db push' method. This prevents errors about tables already existing.
-./node_modules/.bin/prisma migrate resolve --applied 0_init || true
-
-# Deploy any new migrations
+# Apply the committed migration history. This works for both an empty database
+# and an already-migrated deployment without mutating migration history.
 ./node_modules/.bin/prisma migrate deploy
-
-
-
 
 echo "Starting Fastify server..."
 exec node dist/main.js

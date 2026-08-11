@@ -33,6 +33,11 @@ variable "staging_hostname" {
   type    = string
   default = "staging.privacyready.co.uk"
 }
+variable "frontend_hostname" {
+  type        = string
+  default     = "app-staging.privacyready.co.uk"
+  description = "CloudFront hostname for the staging browser application."
+}
 variable "route53_zone_id" { type = string }
 variable "ses_domain" {
   type    = string
