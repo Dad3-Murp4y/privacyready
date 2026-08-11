@@ -95,6 +95,13 @@ variable "target_group_arn" {
   nullable = true
 }
 
+variable "service_discovery_service_arn" {
+  type        = string
+  default     = null
+  nullable    = true
+  description = "Optional AWS Cloud Map service ARN for private ECS service discovery."
+}
+
 variable "health_check_grace_period_seconds" {
   type    = number
   default = 60

@@ -10,6 +10,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import PublicDsr from './pages/PublicDsr';
+import PublicScanner from './pages/PublicScanner';
 import CookieConsent from './components/CookieConsent';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -81,7 +82,7 @@ function App() {
     <AuthProvider>
       <MaintenanceBanner />
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<PublicScanner />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />

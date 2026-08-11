@@ -15,6 +15,6 @@ api_memory = 512
 api_desired_count = 1
 scanner_cpu = 256
 scanner_memory = 512
-scanner_desired_count = 0
+scanner_desired_count = 1
 ses_from_email = "no-reply@staging.example.com"
 common_tags = { Owner = "platform" }

@@ -62,7 +62,7 @@ variable "scanner_memory" { type = number }
 variable "api_desired_count" { type = number }
 variable "scanner_desired_count" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "ses_from_email" {

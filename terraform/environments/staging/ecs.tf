@@ -97,26 +97,36 @@ module "api" {
   task_role_arn      = aws_iam_role.api_task.arn
   aws_region         = var.aws_region
   target_group_arn   = module.alb.api_target_group_arn
-  environment        = { DB_HOST = module.database.db_endpoint, DB_NAME = module.database.db_name, DB_USER = var.database_username, SES_FROM_EMAIL = var.ses_from_email, PORTAL_URL = "https://${var.frontend_hostname}", MARKETING_URL = "https://${var.frontend_hostname}" }
+  environment        = { DB_HOST = module.database.db_endpoint, DB_NAME = module.database.db_name, DB_USER = var.database_username, SCANNER_URL = "http://${module.scanner_discovery.hostname}:8080", SES_FROM_EMAIL = var.ses_from_email, PORTAL_URL = "https://${var.frontend_hostname}", MARKETING_URL = "https://${var.frontend_hostname}" }
   secrets            = { DB_PASSWORD = "${module.database.master_user_secret_arn}:password::", JWT_SECRET = module.secrets.secret_arns["jwt-secret"], SCANNER_API_KEY = module.secrets.secret_arns["scanner-api-key"], STRIPE_SECRET_KEY = module.secrets.secret_arns["stripe-secret-key"], STRIPE_WEBHOOK_SECRET = module.secrets.secret_arns["stripe-webhook-secret"] }
   tags               = var.common_tags
 }
 
+module "scanner_discovery" {
+  source         = "../../modules/service-discovery"
+  name           = "${local.name}-scanner"
+  vpc_id         = module.vpc.vpc_id
+  namespace_name = "privacyready.local"
+  service_name   = "scanner"
+  tags           = var.common_tags
+}
+
 module "scanner" {
-  source             = "../../modules/ecs-service"
-  name               = "${local.name}-scanner"
-  cluster_arn        = module.cluster.cluster_arn
-  image              = var.scanner_image
-  container_port     = 8080
-  cpu                = var.scanner_cpu
-  memory             = var.scanner_memory
-  desired_count      = var.scanner_desired_count
-  subnet_ids         = module.vpc.private_app_subnet_ids
-  security_group_ids = [module.security_groups.scanner_security_group_id]
-  execution_role_arn = aws_iam_role.scanner_execution.arn
-  task_role_arn      = aws_iam_role.scanner_task.arn
-  aws_region         = var.aws_region
-  secrets            = { SCANNER_API_KEY = module.secrets.secret_arns["scanner-api-key"] }
-  health_check       = { command = ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()\""] }
-  tags               = var.common_tags
+  source                        = "../../modules/ecs-service"
+  name                          = "${local.name}-scanner"
+  cluster_arn                   = module.cluster.cluster_arn
+  image                         = var.scanner_image
+  container_port                = 8080
+  cpu                           = var.scanner_cpu
+  memory                        = var.scanner_memory
+  desired_count                 = var.scanner_desired_count
+  subnet_ids                    = module.vpc.private_app_subnet_ids
+  security_group_ids            = [module.security_groups.scanner_security_group_id]
+  execution_role_arn            = aws_iam_role.scanner_execution.arn
+  task_role_arn                 = aws_iam_role.scanner_task.arn
+  aws_region                    = var.aws_region
+  service_discovery_service_arn = module.scanner_discovery.service_arn
+  secrets                       = { SCANNER_API_KEY = module.secrets.secret_arns["scanner-api-key"] }
+  health_check                  = { command = ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health').read()\""] }
+  tags                          = var.common_tags
 }

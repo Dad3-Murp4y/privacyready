@@ -35,10 +35,10 @@ export default function Register() {
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
-    const scanUrlRaw = queryParams.get('url');
-    const scanScoreRaw = queryParams.get('score');
-    const scanIdRaw = queryParams.get('scanId');
-    const scanClaimTokenRaw = queryParams.get('scanClaimToken');
+    const scanUrlRaw = sessionStorage.getItem('freeScanUrl') || queryParams.get('url');
+    const scanScoreRaw = sessionStorage.getItem('freeScanScore') || queryParams.get('score');
+    const scanIdRaw = sessionStorage.getItem('freeScanId') || queryParams.get('scanId');
+    const scanClaimTokenRaw = sessionStorage.getItem('freeScanClaimToken') || queryParams.get('scanClaimToken');
 
     // Validate before storing -- these come straight from the URL, which
     // is attacker-controllable (a crafted link), so each value is checked
@@ -103,6 +103,10 @@ export default function Register() {
       
       localStorage.removeItem('freeScanId');
       localStorage.removeItem('freeScanClaimToken');
+      sessionStorage.removeItem('freeScanId');
+      sessionStorage.removeItem('freeScanClaimToken');
+      sessionStorage.removeItem('freeScanUrl');
+      sessionStorage.removeItem('freeScanScore');
       setRegistered(true);
     } catch (err: any) {
       if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
