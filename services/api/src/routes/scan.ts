@@ -186,10 +186,19 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return { 
-        ...updated, 
+      return {
+        id: updated.id,
+        scanType: updated.scanType,
+        targetIdentifier: updated.targetIdentifier,
+        status: updated.status,
+        score: updated.score,
+        riskLevel: updated.riskLevel,
         findingsJson: redactFindings(updated.findingsJson),
-        claimToken: rawClaimToken 
+        createdAt: updated.createdAt,
+        completedAt: updated.completedAt,
+        // The raw value is intentionally returned once for a possible
+        // account-claim flow. Its stored hash and expiry never leave the API.
+        claimToken: rawClaimToken
       };
     } catch (err: any) {
       await prisma.scan.update({
