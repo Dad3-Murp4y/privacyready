@@ -1,0 +1,18 @@
+aws_region = "eu-west-2"
+api_image = "123456789012.dkr.ecr.eu-west-2.amazonaws.com/privacyready-staging-api:release-REPLACE_WITH_COMMIT_SHA"
+scanner_image = "123456789012.dkr.ecr.eu-west-2.amazonaws.com/privacyready-staging-scanner:release-REPLACE_WITH_COMMIT_SHA"
+domain_name = "privacyready.co.uk"
+staging_hostname = "staging.privacyready.co.uk"
+# Use terraform/bootstrap/route53 output "hosted_zone_id" after bootstrap apply.
+route53_zone_id = "ZREPLACEWITHBOOTSTRAPOUTPUT"
+ses_domain = "staging.privacyready.co.uk"
+database_name = "privacyready"
+database_username = "privacyready"
+api_cpu = 256
+api_memory = 512
+api_desired_count = 1
+scanner_cpu = 256
+scanner_memory = 512
+scanner_desired_count = 0
+ses_from_email = "no-reply@staging.example.com"
+common_tags = { Owner = "platform" }

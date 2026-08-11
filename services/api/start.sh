@@ -11,10 +11,10 @@ export DATABASE_URL="postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@
 
 # Resolve the baseline migration so Prisma knows it was already applied
 # via the old 'db push' method. This prevents errors about tables already existing.
-npx prisma migrate resolve --applied 0_init || true
+./node_modules/.bin/prisma migrate resolve --applied 0_init || true
 
 # Deploy any new migrations
-npx prisma migrate deploy
+./node_modules/.bin/prisma migrate deploy
 
 
 
