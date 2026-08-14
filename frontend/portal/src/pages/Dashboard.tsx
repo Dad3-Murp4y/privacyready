@@ -282,7 +282,7 @@ export default function Dashboard() {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
             const mappedAudits: Audit[] = data.map((item: any) => ({
-              id: item.id || `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
+              id: item.id,
               target: item.targetUrl || item.targetIdentifier || item.target || 'privacyready.co.uk',
               type: item.scanType || item.type || 'Website',
               date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
