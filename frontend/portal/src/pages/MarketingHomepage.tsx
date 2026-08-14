@@ -22,7 +22,8 @@ type MarketingWindow = Window & {
   resetCookieConsent?: () => void;
   updateFineCalc?: () => void;
   startScan?: (event: Event) => void;
-  switchScanTab?: () => void;
+  startSocialScan?: (event: Event) => void;
+  switchScanTab?: (tab: 'website' | 'social') => void;
   toggleMobileMenu?: () => void;
 };
 
@@ -60,17 +61,9 @@ export default function MarketingHomepage() {
     const scoreElement = document.getElementById('scan-score-badge');
     const findingsElement = document.getElementById('scan-checks-list');
     const note = document.getElementById('scan-note-en');
-    const nudge = document.getElementById('scan-blur-nudge');
-    const socialTab = document.getElementById('tab-social');
-    const socialForm = document.getElementById('scan-form-social');
-
-    // Anonymous social/app input was part of the old landing page. The safe
-    // public API intentionally supports website scans only, so remove that
-    // entry point instead of creating a misleading or less-protected path.
-    socialTab?.remove();
-    socialForm?.remove();
-    nudge?.remove();
+    const socialForm = document.getElementById('scan-form-social') as HTMLFormElement | null;
     form?.removeAttribute('onsubmit');
+    socialForm?.removeAttribute('onsubmit');
     note?.replaceChildren(document.createTextNode('Free instant website preview · Full findings and remediation guidance are available after sign-up'));
 
     const updateButton = (scanning: boolean) => {
@@ -162,6 +155,46 @@ export default function MarketingHomepage() {
       }
     };
 
+    const startSocialScan = (event: Event) => {
+      event.preventDefault();
+      // Commit 8463c11 exposed this form publicly, but its implementation
+      // called a retired public endpoint and inferred results in the browser.
+      // The current API deliberately limits anonymous scanning to public
+      // websites. Preserve the historical UI without inventing results or
+      // sending social account identifiers down an unsupported public path.
+      if (!panel || !findingsElement || !scoreElement || !targetElement) return;
+      panel.classList.add('visible');
+      scoreElement.textContent = '';
+      targetElement.textContent = 'Social & Apps Audit';
+      findingsElement.replaceChildren();
+      const message = document.createElement('li');
+      message.className = 'scan-check warn';
+      message.textContent = 'Social & Apps Audit is available from the authenticated PrivacyReady dashboard.';
+      const cta = document.createElement('li');
+      cta.className = 'scan-check pending';
+      const register = document.createElement('a');
+      register.className = 'scan-blur-btn';
+      register.href = '/register';
+      register.textContent = 'Create free account →';
+      cta.appendChild(register);
+      findingsElement.append(message, cta);
+    };
+
+    const switchScanTab = (tab: 'website' | 'social') => {
+      document.querySelectorAll<HTMLButtonElement>('.scan-tab').forEach((tabButton) => {
+        tabButton.classList.toggle('active', tabButton.id === `tab-${tab}`);
+      });
+      if (form) form.style.display = tab === 'website' ? 'flex' : 'none';
+      if (socialForm) socialForm.style.display = tab === 'social' ? 'flex' : 'none';
+      panel?.classList.remove('visible');
+      findingsElement?.replaceChildren();
+      if (note) {
+        note.textContent = tab === 'website'
+          ? 'Free instant website preview · Full findings and remediation guidance are available after sign-up'
+          : 'Social & Apps Audit is available from the authenticated dashboard';
+      }
+    };
+
     const handleScroll = () => document.getElementById('navbar')?.classList.toggle('scrolled', window.scrollY > 50);
     const toggleMobileMenu = () => {
       const links = document.querySelector<HTMLElement>('.nav-links');
@@ -178,7 +211,8 @@ export default function MarketingHomepage() {
     };
     const appWindow = window as MarketingWindow;
     appWindow.startScan = startScan;
-    appWindow.switchScanTab = () => undefined;
+    appWindow.startSocialScan = startSocialScan;
+    appWindow.switchScanTab = switchScanTab;
     appWindow.toggleMobileMenu = toggleMobileMenu;
     appWindow.acceptCookies = () => setConsent('accepted');
     appWindow.declineCookies = () => setConsent('declined');
@@ -196,6 +230,7 @@ export default function MarketingHomepage() {
     if (localStorage.getItem('gdpr_cookie_consent')) document.getElementById('cookieBanner')?.classList.remove('show');
     else document.getElementById('cookieBanner')?.classList.add('show');
     form?.addEventListener('submit', startScan);
+    socialForm?.addEventListener('submit', startSocialScan);
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
 
@@ -208,11 +243,13 @@ export default function MarketingHomepage() {
 
     return () => {
       form?.removeEventListener('submit', startScan);
+      socialForm?.removeEventListener('submit', startSocialScan);
       window.removeEventListener('scroll', handleScroll);
       stylesheet.remove();
       if (previousLang) body.setAttribute('lang', previousLang);
       else body.removeAttribute('lang');
       delete appWindow.startScan;
+      delete appWindow.startSocialScan;
       delete appWindow.switchScanTab;
       delete appWindow.toggleMobileMenu;
       delete appWindow.acceptCookies;
