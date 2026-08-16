@@ -9,8 +9,14 @@ async function main() {
     throw new Error('Refusing demo bootstrap: NODE_ENV=staging and STAGING_DEMO_BOOTSTRAP=true are both required.');
   }
   const password = process.env.DEMO_ACCOUNT_PASSWORD;
-  if (!password) throw new Error('DEMO_ACCOUNT_PASSWORD is required and is never logged.');
-  const passwordHash = await bcrypt.hash(password, 12);
+  const suppliedHash = process.env.DEMO_ACCOUNT_PASSWORD_HASH;
+  if ((!password && !suppliedHash) || (password && suppliedHash)) {
+    throw new Error('Set exactly one of DEMO_ACCOUNT_PASSWORD or DEMO_ACCOUNT_PASSWORD_HASH; neither is ever logged.');
+  }
+  if (suppliedHash && !/^\$2[aby]\$12\$[./A-Za-z0-9]{53}$/.test(suppliedHash)) {
+    throw new Error('DEMO_ACCOUNT_PASSWORD_HASH must be a bcrypt cost-12 hash.');
+  }
+  const passwordHash = suppliedHash ?? await bcrypt.hash(password!, 12);
   let org = await prisma.organization.findFirst({ where: { name: orgName }, orderBy: { createdAt: 'asc' } });
   if (!org) org = await prisma.organization.create({ data: { name: orgName } });
   await prisma.user.upsert({
