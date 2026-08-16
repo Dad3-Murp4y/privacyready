@@ -1,57 +1,68 @@
-# PrivacyReady
+# Privacy Ready
 
-A UK GDPR compliance platform for small and mid-sized businesses. Automated website compliance scanning, consent management, and data subject rights (DSR) workflows -- without needing a full-time Data Protection Officer.
+Privacy Ready is a UK GDPR compliance platform for small and mid-sized businesses. It provides website compliance scanning, consent-management support, data-subject-request workflows, team administration, and staging billing integration.
 
-> This platform is UK-only, deployed entirely in AWS `eu-west-2` (London) for UK data residency. A separate product (DataWai) covers Thailand PDPA compliance with its own AWS account and infrastructure -- the two are not related and should not be merged.
+## Repository layout
 
-## Repo layout
-
-```
-frontend/           Static marketing site (privacyready.co.uk) -- plain HTML/CSS/JS, no build step
-frontend/portal/    React dashboard app (portal.privacyready.co.uk)
-services/api/       Node.js/Fastify core API -- auth, scans, DSRs, team/admin management
-services/scanner/   Python/FastAPI website + social compliance scanners
-services/dsr/       Python/FastAPI DSR service (currently a stateless scaffold -- see PR_SUMMARY.md)
-services/consent/   Reserved for a future standalone consent service (consent logic currently lives in services/api)
-services/builder/   Reserved for future use
-terraform/          All AWS infrastructure (see below)
-scripts/            Operational scripts (teardown/startup, GitLab runner, bucket cleanup)
-docs/               Architecture docs, audits, bootstrap guide
-Makefile            Wraps the full Terraform + Docker/ECR lifecycle -- `make help`
-.gitlab-ci.yml       CI/CD pipeline (GitLab is this project's CI system)
+```text
+frontend/portal/                    React/Vite browser application and public homepage
+services/api/                       Fastify API, Prisma schema/migrations, and demo bootstrap
+services/scanner/cmd/scanner/       Private website scanner service
+terraform/bootstrap/backend/       New-account Terraform state backend
+terraform/bootstrap/route53/       Public hosted-zone bootstrap
+terraform/environments/staging/    Current deployable AWS staging environment
+terraform/modules/                 Reusable modules used by staging
+rebuild-aws.sh                      Guarded staging rebuild and operations workflow
+docs/DEPLOYMENT.md                  Clean-account deployment procedure
+docs/ARCHITECTURE.md                Current AWS/application/security architecture
+docs/RUNBOOK.md                     Operations, troubleshooting, recovery, and shutdown
 ```
 
-## Getting started
+Only the current staging environment is deployable. Retired production, test, persistent GitLab/management, Transit Gateway, Redis, and n8n Terraform configurations are intentionally absent from the active repository tree.
 
-**Backend (API)**
+## Local development
+
+API:
+
 ```bash
 cd services/api
-npm install
+npm ci
 npx prisma generate
 npm run dev
 ```
 
-**Frontend (portal)**
+Frontend:
+
 ```bash
 cd frontend/portal
-npm install
+npm ci
 npm run dev
 ```
 
-**Marketing site**: `frontend/index.html` and friends are plain static files -- open directly or serve with any static file server.
+Scanner tests:
 
-## Infrastructure
+```bash
+python3 -m unittest discover -s services/scanner/cmd/scanner/tests -v
+```
 
-Everything runs on AWS, managed by Terraform. Three independent state files: `terraform/persistent` (GitLab, DNS, SES, ACM, ECR -- stood up once, essentially never destroyed), and `terraform/environments/{test,production}` (VPC, RDS, ECS, ALB, CloudFront -- fully disposable, each destroy/recreate has no way to reach the other environment or the persistent layer). See `terraform/README.md` for the full layout and `terraform/modules/` for the shared vpc/rds/elasticache modules. See:
+## AWS staging workflow
 
-- **`docs/BOOTSTRAP.md`** -- standing up infrastructure in a fresh AWS account
-- **`docs/production_system_architecture.md`** -- architecture diagrams and specifications
-- **`Makefile`** -- `make create ENV=production` / `make destroy ENV=production CONFIRM=yes` and everything in between; the GitLab pipeline calls these same targets, so local and CI never diverge
+AWS work is controlled by [`rebuild-aws.sh`](rebuild-aws.sh). It rejects retired AWS account `700951986348`, requires reviewed saved Terraform plans, prohibits mutable release images, and never modifies Names.co.uk.
 
-## Admin access
+```bash
+export AWS_PROFILE=<new-account-profile>
+export PRIVACYREADY_AWS_ACCOUNT_ID=<new-account-id>
 
-There's no hardcoded admin account. Set `TF_VAR_superadmin_email` before running Terraform, then register a normal account with that exact email -- it gets `SUPERADMIN` automatically. See `docs/BOOTSTRAP.md`.
+./rebuild-aws.sh check
+./rebuild-aws.sh all
+```
 
-## Current status / known gaps
+The first complete run pauses when the new Route53 nameservers must be entered manually at Names.co.uk. See [the deployment guide](docs/DEPLOYMENT.md) before running any mutating command.
 
-`PR_SUMMARY.md` at the repo root tracks what's been fixed recently and what's still open -- worth checking before assuming something is or isn't implemented.
+## Operations documentation
+
+- [Deployment guide](docs/DEPLOYMENT.md)
+- [AWS architecture](docs/ARCHITECTURE.md)
+- [Operations runbook](docs/RUNBOOK.md)
+
+The root Makefile is a thin convenience wrapper around `rebuild-aws.sh` and local validation commands. It does not provide an alternative deployment implementation.

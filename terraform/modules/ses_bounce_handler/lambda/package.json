@@ -1,9 +1,0 @@
-{
-  "name": "ses-bounce-handler",
-  "version": "1.0.0",
-  "description": "Handles SES bounce and complaint SNS notifications",
-  "main": "index.js",
-  "dependencies": {
-    "pg": "^8.11.3"
-  }
-}
