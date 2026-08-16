@@ -128,6 +128,16 @@ export default function MarketingHomepage() {
         sessionStorage.setItem('freeScanScore', String(result.score ?? 0));
       });
       cta.appendChild(register);
+      const login = document.createElement('a');
+      login.className = 'scan-blur-btn';
+      login.href = '/login';
+      login.textContent = 'Already have an account? Log in';
+      login.style.marginLeft = '10px';
+      login.addEventListener('click', () => {
+        sessionStorage.setItem('freeScanId', result.id);
+        sessionStorage.setItem('freeScanClaimToken', result.claimToken);
+      });
+      cta.appendChild(login);
       findingsElement.appendChild(cta);
     };
 

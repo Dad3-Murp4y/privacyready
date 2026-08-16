@@ -305,6 +305,29 @@ export async function registerScanRoutes(app: FastifyInstance) {
     }
   });
 
+  const ClaimScanSchema = { body: Type.Object({ claimToken: Type.String({ minLength: 64, maxLength: 64 }) }) };
+
+  // A logged-in visitor may claim only an anonymous scan for which they still
+  // possess the one-time browser token. The conditional update is atomic: a
+  // competing request, expired token, or already-claimed scan matches zero
+  // rows and cannot attach anything to an organisation.
+  app.post('/api/scan/claim', { schema: ClaimScanSchema, config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
+    const user = request.user as any;
+    const { claimToken } = request.body as { claimToken: string };
+    const claimed = await prisma.scan.updateMany({
+      where: {
+        organizationId: null,
+        claimTokenHash: hashToken(claimToken),
+        claimTokenExpires: { gt: new Date() }
+      },
+      data: { organizationId: user.org, claimTokenHash: null, claimTokenExpires: null }
+    });
+    if (claimed.count !== 1) return reply.code(400).send({ error: 'This free scan can no longer be claimed. Run a new scan from your dashboard.' });
+
+    const scan = await prisma.scan.findFirst({ where: { organizationId: user.org }, orderBy: { createdAt: 'desc' } });
+    return { id: scan?.id, status: scan?.status };
+  });
+
   // Delete a scan from the caller's own org. Previously the dashboard's
   // delete button only filtered client-side React state -- the row came
   // back on reload because nothing was ever deleted server-side.
