@@ -3,6 +3,12 @@ import { Type } from '@sinclair/typebox';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
 
+type ScanPrisma = Pick<typeof prisma, 'scan' | 'user' | 'organization'>;
+
+interface ScanRouteDependencies {
+  prismaClient?: ScanPrisma;
+}
+
 const CLAIM_TOKEN_TTL_HOURS = 24;
 const ANONYMOUS_SCAN_WINDOW_MS = 60_000;
 const ANONYMOUS_SCAN_LIMIT = 3;
@@ -10,6 +16,41 @@ const anonymousScanAttempts = new Map<string, number[]>();
 
 function hashToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+export async function claimAnonymousScan(
+  prismaClient: ScanPrisma,
+  organizationId: string,
+  claimToken: string,
+  now = new Date(),
+) {
+  const claimTokenHash = hashToken(claimToken);
+  const candidate = await prismaClient.scan.findFirst({
+    where: {
+      organizationId: null,
+      claimTokenHash,
+      claimTokenExpires: { gt: now },
+    },
+    select: { id: true, status: true },
+  });
+  if (!candidate) return null;
+
+  // Keep the ownership, token and expiry predicates in the write itself. If
+  // two requests race, only one can clear the hash and attach the scan.
+  const claimed = await prismaClient.scan.updateMany({
+    where: {
+      id: candidate.id,
+      organizationId: null,
+      claimTokenHash,
+      claimTokenExpires: { gt: now },
+    },
+    data: {
+      organizationId,
+      claimTokenHash: null,
+      claimTokenExpires: null,
+    },
+  });
+  return claimed.count === 1 ? candidate : null;
 }
 
 // Shared secret with the scanner service -- see main.py's require_api_key.
@@ -86,7 +127,8 @@ function redactFindings(findings: any) {
   }));
 }
 
-export async function registerScanRoutes(app: FastifyInstance) {
+export async function registerScanRoutes(app: FastifyInstance, dependencies: ScanRouteDependencies = {}) {
+  const prismaClient = dependencies.prismaClient ?? prisma;
   app.addHook('onRequest', async (request, reply) => {
     // Only protect /api/scan (but not /api/public)
     if (!request.url.startsWith('/api/scan') || request.url.startsWith('/api/public')) {
@@ -96,7 +138,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
     try {
       await request.jwtVerify();
       const tokenUser = request.user as any;
-      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      const realUser = await prismaClient.user.findUnique({ where: { id: tokenUser.sub } });
       if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
       request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
@@ -157,7 +199,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
     const rawClaimToken = crypto.randomBytes(32).toString('hex');
     const claimTokenExpires = new Date(Date.now() + CLAIM_TOKEN_TTL_HOURS * 60 * 60 * 1000);
 
-    const scan = await prisma.scan.create({
+    const scan = await prismaClient.scan.create({
       data: {
         scanType,
         targetIdentifier,
@@ -176,7 +218,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
         throw new Error(result.findings[0].description);
       }
 
-      const updated = await prisma.scan.update({
+      const updated = await prismaClient.scan.update({
         where: { id: scan.id },
         data: {
           status: 'COMPLETED',
@@ -201,7 +243,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
         claimToken: rawClaimToken
       };
     } catch (err: any) {
-      await prisma.scan.update({
+      await prismaClient.scan.update({
         where: { id: scan.id },
         data: {
           status: 'FAILED',
@@ -217,12 +259,12 @@ export async function registerScanRoutes(app: FastifyInstance) {
 
   app.get('/api/scan', async (request, reply) => {
     const user = request.user as any;
-    const scans = await prisma.scan.findMany({
+    const scans = await prismaClient.scan.findMany({
       where: { organizationId: user.org },
       orderBy: { createdAt: 'desc' }
     });
 
-    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+    const org = await prismaClient.organization.findUnique({ where: { id: user.org } });
     const isPremium = org?.subscriptionStatus === 'active';
 
     if (!isPremium) {
@@ -239,7 +281,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
     const { scanType } = request.body as any;
     const targetIdentifier = (request.body as any).targetIdentifier.trim();
 
-    const scan = await prisma.scan.create({
+    const scan = await prismaClient.scan.create({
       data: {
         scanType,
         targetIdentifier,
@@ -269,7 +311,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
     try {
       const result = await callScanner(scannerEndpoint(isWebsite), payload);
 
-      const updated = await prisma.scan.update({
+      const updated = await prismaClient.scan.update({
         where: { id: scan.id },
         data: {
           status: 'COMPLETED',
@@ -282,7 +324,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
       
       // Redact for response if not premium
       let responseFindings = result.findings;
-      const org = await prisma.organization.findUnique({ where: { id: user.org } });
+      const org = await prismaClient.organization.findUnique({ where: { id: user.org } });
       if (org?.subscriptionStatus !== 'active') {
         responseFindings = redactFindings(responseFindings);
       }
@@ -292,7 +334,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
         findingsJson: responseFindings
       };
     } catch (err) {
-      const failed = await prisma.scan.update({
+      const failed = await prismaClient.scan.update({
         where: { id: scan.id },
         data: {
           status: 'FAILED',
@@ -314,18 +356,9 @@ export async function registerScanRoutes(app: FastifyInstance) {
   app.post('/api/scan/claim', { schema: ClaimScanSchema, config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
     const user = request.user as any;
     const { claimToken } = request.body as { claimToken: string };
-    const claimed = await prisma.scan.updateMany({
-      where: {
-        organizationId: null,
-        claimTokenHash: hashToken(claimToken),
-        claimTokenExpires: { gt: new Date() }
-      },
-      data: { organizationId: user.org, claimTokenHash: null, claimTokenExpires: null }
-    });
-    if (claimed.count !== 1) return reply.code(400).send({ error: 'This free scan can no longer be claimed. Run a new scan from your dashboard.' });
-
-    const scan = await prisma.scan.findFirst({ where: { organizationId: user.org }, orderBy: { createdAt: 'desc' } });
-    return { id: scan?.id, status: scan?.status };
+    const scan = await claimAnonymousScan(prismaClient, user.org, claimToken);
+    if (!scan) return reply.code(400).send({ error: 'This free scan can no longer be claimed. Run a new scan from your dashboard.' });
+    return scan;
   });
 
   // Delete a scan from the caller's own org. Previously the dashboard's
@@ -335,14 +368,14 @@ export async function registerScanRoutes(app: FastifyInstance) {
     const user = request.user as any;
     const { id } = request.params as { id: string };
 
-    const existing = await prisma.scan.findFirst({
+    const existing = await prismaClient.scan.findFirst({
       where: { id, organizationId: user.org }
     });
     if (!existing) {
       return reply.status(404).send({ error: 'Scan not found in your organization' });
     }
 
-    await prisma.scan.delete({ where: { id } });
+    await prismaClient.scan.delete({ where: { id } });
     return reply.status(204).send();
   });
 }

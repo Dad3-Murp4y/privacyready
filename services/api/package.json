@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
+    "test": "tsx --test src/**/*.test.ts",
     "bootstrap:staging-demo": "node dist/scripts/bootstrap-staging-demo.js",
     "lint": "eslint src/",
     "start": "export DATABASE_URL=\"postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}\" && node dist/src/main.js"

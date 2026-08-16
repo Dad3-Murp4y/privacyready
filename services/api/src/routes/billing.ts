@@ -7,20 +7,28 @@ const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || '';
 
-function requireStripeConfiguration() {
-  if (!STRIPE_SECRET_KEY || !STRIPE_WEBHOOK_SECRET) {
+export function requireStripeConfiguration(
+  secretKey = STRIPE_SECRET_KEY,
+  webhookSecret = STRIPE_WEBHOOK_SECRET,
+) {
+  if (!secretKey || !webhookSecret) {
     throw new Error('Stripe billing is not configured');
   }
 }
 
-function isAllowedReturnUrl(value: string) {
+export function isAllowedReturnUrl(value: string, configuredPortalUrl = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk') {
   try {
     const returnUrl = new URL(value);
-    const portalUrl = new URL(process.env.PORTAL_URL || 'https://portal.privacyready.co.uk');
+    const portalUrl = new URL(configuredPortalUrl);
     return returnUrl.origin === portalUrl.origin;
   } catch {
     return false;
   }
+}
+
+export function isCheckoutSessionForOrganization(session: any, organizationId: string) {
+  return (session.payment_status === 'paid' || session.status === 'complete')
+    && session.client_reference_id === organizationId;
 }
 
 export function verifyStripeWebhookSignature(
@@ -205,7 +213,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
 
       const session = await response.json();
 
-      if (response.ok && (session.payment_status === 'paid' || session.status === 'complete') && session.client_reference_id === user.org) {
+      if (response.ok && isCheckoutSessionForOrganization(session, user.org)) {
         await prisma.organization.update({
           where: { id: user.org },
           data: {

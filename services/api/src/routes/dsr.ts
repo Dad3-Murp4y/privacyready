@@ -2,11 +2,18 @@ import { FastifyInstance } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import { prisma } from '../db.js';
 
+type DsrPrisma = Pick<typeof prisma, 'dsrRequest' | 'organization' | 'user'>;
+
+interface DsrRouteDependencies {
+  prismaClient?: DsrPrisma;
+}
+
 const VALID_REQUEST_TYPES = ['ACCESS', 'ERASURE', 'RECTIFICATION', 'PORTABILITY', 'RESTRICTION'];
 const VALID_STATUSES = ['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'COMPLETED'];
 const DSR_DEADLINE_DAYS = 30; // GDPR Art. 12(3) — one month, extendable in complex cases
 
-export async function registerDsrRoutes(app: FastifyInstance) {
+export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrRouteDependencies = {}) {
+  const prismaClient = dependencies.prismaClient ?? prisma;
   app.addHook('onRequest', async (request, reply) => {
     if (!request.url.startsWith('/api/dsr')) {
       return;
@@ -14,7 +21,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     try {
       await request.jwtVerify();
       const tokenUser = request.user as any;
-      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      const realUser = await prismaClient.user.findUnique({ where: { id: tokenUser.sub } });
       if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
       request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
@@ -34,7 +41,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
   // List all DSR requests for the caller's organization.
   app.get('/api/dsr', async (request) => {
     const user = request.user as any;
-    return prisma.dsrRequest.findMany({
+    return prismaClient.dsrRequest.findMany({
       where: { organizationId: user.org },
       orderBy: { createdAt: 'desc' }
     });
@@ -57,7 +64,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + DSR_DEADLINE_DAYS);
 
-    const dsr = await prisma.dsrRequest.create({
+    const dsr = await prismaClient.dsrRequest.create({
       data: {
         organizationId: user.org,
         subjectEmail,
@@ -92,14 +99,14 @@ export async function registerDsrRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: `status must be one of ${VALID_STATUSES.join(', ')}` });
     }
 
-    const existing = await prisma.dsrRequest.findFirst({
+    const existing = await prismaClient.dsrRequest.findFirst({
       where: { id, organizationId: user.org }
     });
     if (!existing) {
       return reply.status(404).send({ error: 'DSR request not found' });
     }
 
-    const updated = await prisma.dsrRequest.update({
+    const updated = await prismaClient.dsrRequest.update({
       where: { id },
       data: {
         status: normalizedStatus,
@@ -128,7 +135,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: `requestType must be one of ${VALID_REQUEST_TYPES.join(', ')}` });
     }
 
-    const org = await prisma.organization.findFirst({
+    const org = await prismaClient.organization.findFirst({
       where: { name: organizationName }
     });
 
@@ -139,7 +146,7 @@ export async function registerDsrRoutes(app: FastifyInstance) {
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + DSR_DEADLINE_DAYS);
 
-    const dsr = await prisma.dsrRequest.create({
+    const dsr = await prismaClient.dsrRequest.create({
       data: {
         organizationId: org.id,
         subjectEmail,
