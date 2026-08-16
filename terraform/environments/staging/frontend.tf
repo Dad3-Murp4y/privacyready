@@ -15,6 +15,7 @@ module "frontend" {
 
   name            = "${local.name}-frontend"
   bucket_name     = "${local.name}-frontend-${data.aws_caller_identity.current.account_id}"
+  force_destroy   = true
   domain_name     = var.frontend_hostname
   certificate_arn = module.frontend_certificate.certificate_arn
   tags            = var.common_tags

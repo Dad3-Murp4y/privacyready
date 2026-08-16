@@ -4,7 +4,7 @@ module "database" {
   vpc_id                      = module.vpc.vpc_id
   subnet_ids                  = module.vpc.private_db_subnet_ids
   security_group_ids          = [module.security_groups.rds_security_group_id]
-  instance_class              = "db.t4g.micro"
+  instance_class              = var.database_instance_class
   allocated_storage           = 20
   max_allocated_storage       = 0
   multi_az                    = false

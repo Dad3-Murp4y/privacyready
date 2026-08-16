@@ -41,3 +41,9 @@ variable "release_tag_prefix" {
     error_message = "release_tag_prefix must not be empty."
   }
 }
+
+variable "force_delete" {
+  type        = bool
+  default     = false
+  description = "Allow Terraform destroy to remove repository images. Enable only for disposable environments."
+}

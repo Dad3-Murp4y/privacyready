@@ -42,3 +42,24 @@ class WebsiteScannerTargetTests(unittest.TestCase):
             # rejected before any socket is opened.
             with self.assertRaises(scanner.UnsafeTargetError):
                 scanner.fetch_public_url("https://example.org")
+
+    def test_oversized_response_is_rejected_before_body_read(self):
+        class OversizedResponse:
+            def getheader(self, name):
+                if name == "Content-Length":
+                    return str(scanner.MAX_RESPONSE_BYTES + 1)
+                return None
+
+        class FakeConnection:
+            def request(self, *args, **kwargs):
+                return None
+
+            def getresponse(self):
+                return OversizedResponse()
+
+            def close(self):
+                return None
+
+        with patch.object(scanner, "_resolve_public_host", return_value=["93.184.216.34"]), patch.object(scanner.http.client, "HTTPConnection", return_value=FakeConnection()):
+            with self.assertRaisesRegex(ValueError, "Response exceeded"):
+                scanner._request_once("http://example.org")

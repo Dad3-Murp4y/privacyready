@@ -38,6 +38,7 @@ locals {
 resource "aws_ecr_repository" "api" {
   name                 = "${var.name}-api"
   image_tag_mutability = "IMMUTABLE"
+  force_delete         = var.force_delete
 
   encryption_configuration {
     encryption_type = "AES256"
@@ -55,6 +56,7 @@ resource "aws_ecr_repository" "api" {
 resource "aws_ecr_repository" "scanner" {
   name                 = "${var.name}-scanner"
   image_tag_mutability = "IMMUTABLE"
+  force_delete         = var.force_delete
 
   encryption_configuration {
     encryption_type = "AES256"

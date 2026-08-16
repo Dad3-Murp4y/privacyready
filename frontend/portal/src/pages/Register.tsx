@@ -45,7 +45,9 @@ export default function Register() {
     const scanUrlRaw = sessionStorage.getItem('freeScanUrl') || queryParams.get('url');
     const scanScoreRaw = sessionStorage.getItem('freeScanScore') || queryParams.get('score');
     const scanIdRaw = sessionStorage.getItem('freeScanId') || queryParams.get('scanId');
-    const scanClaimTokenRaw = sessionStorage.getItem('freeScanClaimToken') || queryParams.get('scanClaimToken');
+    // Claim tokens are bearer credentials and must never be accepted from a
+    // URL. The public scanner stores the token in same-tab sessionStorage.
+    const scanClaimTokenRaw = sessionStorage.getItem('freeScanClaimToken');
 
     // Validate before storing -- these come straight from the URL, which
     // is attacker-controllable (a crafted link), so each value is checked

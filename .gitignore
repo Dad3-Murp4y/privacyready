@@ -13,4 +13,6 @@ tfplan
 *.tfplan
 coverage/
 *.log
+.rebuild-logs/
+terraform/state-backups/
 terraform.tfvars

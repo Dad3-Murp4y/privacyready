@@ -55,6 +55,11 @@ variable "database_engine_version" {
     error_message = "database_engine_version must be a PostgreSQL 16 minor version."
   }
 }
+variable "database_instance_class" {
+  type        = string
+  default     = "db.t4g.micro"
+  description = "Explicit staging RDS instance class checked for orderability before deployment."
+}
 variable "api_cpu" { type = number }
 variable "api_memory" { type = number }
 variable "scanner_cpu" { type = number }
