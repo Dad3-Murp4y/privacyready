@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Home } from 'lucide-react';
 
+const passwordMeetsRegistrationPolicy = (value: string) =>
+  value.length >= 8 &&
+  /[a-z]/.test(value) &&
+  /[A-Z]/.test(value) &&
+  /\d/.test(value) &&
+  /[^a-zA-Z\d]/.test(value);
+
 export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,10 +42,12 @@ export default function Register() {
   useEffect(() => {
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
-    const scanUrlRaw = queryParams.get('url');
-    const scanScoreRaw = queryParams.get('score');
-    const scanIdRaw = queryParams.get('scanId');
-    const scanClaimTokenRaw = queryParams.get('scanClaimToken');
+    const scanUrlRaw = sessionStorage.getItem('freeScanUrl') || queryParams.get('url');
+    const scanScoreRaw = sessionStorage.getItem('freeScanScore') || queryParams.get('score');
+    const scanIdRaw = sessionStorage.getItem('freeScanId') || queryParams.get('scanId');
+    // Claim tokens are bearer credentials and must never be accepted from a
+    // URL. The public scanner stores the token in same-tab sessionStorage.
+    const scanClaimTokenRaw = sessionStorage.getItem('freeScanClaimToken');
 
     // Validate before storing -- these come straight from the URL, which
     // is attacker-controllable (a crafted link), so each value is checked
@@ -80,6 +89,14 @@ export default function Register() {
       setError('You must agree to the Terms of Service and Privacy Policy to create an account.');
       return;
     }
+
+    // Match the server-side registration schema before sending credentials.
+    // The server remains authoritative; this avoids an opaque Fastify 400 for
+    // legitimate users while preserving the existing complexity policy.
+    if (!passwordMeetsRegistrationPolicy(password)) {
+      setError('Password must be at least 8 characters and include uppercase and lowercase letters, a number, and a symbol.');
+      return;
+    }
     
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
@@ -96,13 +113,20 @@ export default function Register() {
         })
       });
       
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        if (response.status === 400 && typeof data.message === 'string' && data.message.includes('password')) {
+          throw new Error('Password must be at least 8 characters and include uppercase and lowercase letters, a number, and a symbol.');
+        }
+        throw new Error(data.message || data.error || 'Registration failed');
       }
       
       localStorage.removeItem('freeScanId');
       localStorage.removeItem('freeScanClaimToken');
+      sessionStorage.removeItem('freeScanId');
+      sessionStorage.removeItem('freeScanClaimToken');
+      sessionStorage.removeItem('freeScanUrl');
+      sessionStorage.removeItem('freeScanScore');
       setRegistered(true);
     } catch (err: any) {
       if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
@@ -206,6 +230,9 @@ export default function Register() {
               autoComplete="new-password"
               required 
             />
+            <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1.4 }}>
+              Use 8 or more characters with uppercase and lowercase letters, a number, and a symbol.
+            </p>
             {password && (
               <div style={{ height: '4px', background: 'var(--glass-border)', marginTop: '8px', borderRadius: '2px', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${Math.max(10, strength)}%`, background: strengthColor, transition: 'all 0.3s ease' }} />

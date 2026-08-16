@@ -54,8 +54,16 @@ export default function Login() {
           }
         } catch(e) {}
         
-        navigate('/dashboard');
-        
+        const claimToken = sessionStorage.getItem('freeScanClaimToken');
+        if (claimToken) {
+          const claim = await fetch(`${import.meta.env.VITE_API_URL}/api/scan/claim`, {
+            method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ claimToken })
+          });
+          sessionStorage.removeItem('freeScanClaimToken');
+          sessionStorage.removeItem('freeScanId');
+          if (!claim.ok) sessionStorage.setItem('scanClaimError', 'Your free scan could not be claimed. Run a new scan from the dashboard.');
+        }
         navigate('/dashboard');
       } else {
         const errData = await res.json();

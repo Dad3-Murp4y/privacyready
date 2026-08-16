@@ -1,0 +1,20 @@
+module "database" {
+  source                      = "../../modules/rds-postgres"
+  name                        = local.name
+  vpc_id                      = module.vpc.vpc_id
+  subnet_ids                  = module.vpc.private_db_subnet_ids
+  security_group_ids          = [module.security_groups.rds_security_group_id]
+  instance_class              = var.database_instance_class
+  allocated_storage           = 20
+  max_allocated_storage       = 0
+  multi_az                    = false
+  backup_retention_period     = 3
+  deletion_protection         = false
+  skip_final_snapshot         = true
+  database_name               = var.database_name
+  database_username           = var.database_username
+  engine_version              = var.database_engine_version
+  parameter_group_family      = "postgres16"
+  manage_master_user_password = true
+  tags                        = var.common_tags
+}

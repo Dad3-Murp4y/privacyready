@@ -282,7 +282,7 @@ export default function Dashboard() {
           const data = await res.json();
           if (Array.isArray(data) && data.length > 0) {
             const mappedAudits: Audit[] = data.map((item: any) => ({
-              id: item.id || `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
+              id: item.id,
               target: item.targetUrl || item.targetIdentifier || item.target || 'privacyready.co.uk',
               type: item.scanType || item.type || 'Website',
               date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
@@ -297,14 +297,14 @@ export default function Dashboard() {
             }));
             setAudits(mappedAudits);
           } else {
-            setAudits(getInitialMockAudits());
+            setAudits([]);
           }
         } else {
-          setAudits(getInitialMockAudits());
+          setAudits([]);
         }
       } catch (err) {
         console.error('Failed to fetch scans', err);
-        setAudits(getInitialMockAudits());
+        setAudits([]);
       } finally {
         setIsLoading(false);
       }
@@ -358,77 +358,27 @@ export default function Dashboard() {
     }
   }, [audits, hasSubscription]);
 
-  const getInitialMockAudits = (): Audit[] => [
-    { 
-      id: 'AUD-9021', 
-      target: 'privacyready.co.uk', 
-      type: 'Website', 
-      date: '27 Jul 2026', 
-      timestamp: Date.now() - 86400000, 
-      score: 92, 
-      status: 'Passed',
-      checks: [
-        { name: 'SSL / TLS Encryption', passed: true, details: 'TLS 1.3 active with A+ SSL Certificate rating.' },
-        { name: 'Cookie Consent Banner', passed: true, details: 'Prior-consent banner detected before trackers load.' },
-        { name: 'UK GDPR Privacy Policy Link', passed: true, details: 'Accessible privacy policy found in footer.' },
-        { name: 'Third-Party Tracker Disclosure', passed: false, details: 'Unclassified Google Analytics cookie found.' }
-      ]
-    },
-    { 
-      id: 'AUD-8842', 
-      target: 'facebook.com/privacyready', 
-      type: 'Facebook', 
-      date: '20 Jul 2026', 
-      timestamp: Date.now() - 7 * 86400000, 
-      score: 78, 
-      status: 'Warning',
-      checks: [
-        { name: 'Page Lead Form Notice', passed: true, details: 'Lead capture forms present privacy policy link.' },
-        { name: 'Data Processing Disclosure', passed: false, details: 'Missing explicit Article 13 disclosure on lead form.' }
-      ]
-    }
-  ];
-
-  const handleStartScan = (e: React.FormEvent) => {
+  const handleStartScan = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!target) return;
     setIsScanning(true);
-    setScanLogs(['Initializing scanner daemon...', `Target acquired: ${target} [Type: ${scanType}]`]);
-
-    setTimeout(() => {
-      setScanLogs((prev) => [...prev, 'Auditing SSL/TLS certificate chain & HSTS headers...']);
-    }, 800);
-
-    setTimeout(() => {
-      setScanLogs((prev) => [...prev, 'Analyzing client-side cookies & tracking scripts...']);
-    }, 1600);
-
-    setTimeout(() => {
-      setScanLogs((prev) => [...prev, 'Checking UK GDPR / DPA 2018 Policy & DSR linkage...']);
-    }, 2400);
-
-    setTimeout(() => {
-      const generatedScore = Math.floor(Math.random() * 25) + 75;
-      const newScan: Audit = {
-        id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
-        target,
-        type: scanType,
-        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-        timestamp: Date.now(),
-        score: generatedScore,
-        status: generatedScore >= 80 ? 'Passed' : 'Warning',
-        checks: [
-          { name: 'SSL / TLS Security', passed: true, details: 'Enforced encryption verified.' },
-          { name: 'Privacy Notice Compliance', passed: generatedScore > 80, details: 'UK GDPR standard metadata verified.' },
-          { name: 'Cookie Tracking Classification', passed: generatedScore > 85, details: 'Script consent gating validated.' }
-        ]
-      };
-
-      setAudits([newScan, ...audits]);
-      setIsScanning(false);
+    setScanLogs(['Submitting the scan to Privacy Ready…']);
+    const scanTypeMap: Record<typeof scanType, string> = { Website: 'website', Facebook: 'facebook', Instagram: 'instagram', LinkedIn: 'linkedin', TikTok: 'tiktok', WhatsApp: 'whatsapp', Mailchimp: 'mailchimp', 'Google Analytics 4': 'google_analytics' };
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/scan`, { credentials: 'include', method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetIdentifier: target, scanType: scanTypeMap[scanType] }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Scan could not be completed.');
+      const newScan: Audit = { id: data.id, target: data.targetIdentifier, type: scanType, date: new Date(data.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), timestamp: new Date(data.createdAt).getTime(), score: data.score ?? 0, status: (data.score ?? 0) >= 80 ? 'Passed' : 'Warning', checks: (data.findingsJson || []).map((finding: any) => ({ name: finding.finding_type || 'Finding', passed: false, details: finding.description || 'Finding recorded' })) };
+      setAudits((existing) => [newScan, ...existing]);
+      setScanLogs(['Scan completed with results from the protected scanner service.']);
       setTarget('');
-      showToast(`Scan complete for ${target}! Compliance Score: ${generatedScore}%`, 'success');
-    }, 3200);
+      showToast(`Scan complete for ${newScan.target}.`, 'success');
+    } catch (err: any) {
+      setScanLogs(['The scan could not be completed.']);
+      showToast(err.message || 'Scan could not be completed.', 'error');
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   const handleToggleTask = (taskId: string) => {
@@ -437,7 +387,7 @@ export default function Dashboard() {
   };
 
   const calculateOverallScore = () => {
-    if (audits.length === 0) return 92;
+    if (audits.length === 0) return 0;
     const total = audits.reduce((sum, a) => sum + a.score, 0);
     return Math.round(total / audits.length);
   };

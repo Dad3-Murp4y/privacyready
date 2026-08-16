@@ -27,13 +27,15 @@ if (!process.env.JWT_SECRET) {
 const JWT_SECRET = process.env.JWT_SECRET;
 
 async function buildServer() {
-  const app = Fastify({ logger: true }).withTypeProvider<TypeBoxTypeProvider>();
+  // API tasks are reachable only through the ALB. Trust the immediate proxy so
+  // rate limiting keys on the real client address rather than the ALB address.
+  const app = Fastify({ logger: true, trustProxy: 1 }).withTypeProvider<TypeBoxTypeProvider>();
   
   // Extract token from HttpOnly cookie and place in Authorization header
   app.addHook('onRequest', async (request, reply) => {
     const cookie = request.headers.cookie;
     if (cookie && !request.headers.authorization) {
-      const match = cookie.match(/(?:^|;\s*)token=([^;]+)/);
+      const match = cookie.match(/(?:^|;\s*)__Host-token=([^;]+)/);
       if (match) {
         request.headers.authorization = `Bearer ${match[1]}`;
       }

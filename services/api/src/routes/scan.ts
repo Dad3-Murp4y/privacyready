@@ -4,6 +4,9 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 
 const CLAIM_TOKEN_TTL_HOURS = 24;
+const ANONYMOUS_SCAN_WINDOW_MS = 60_000;
+const ANONYMOUS_SCAN_LIMIT = 3;
+const anonymousScanAttempts = new Map<string, number[]>();
 
 function hashToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -26,6 +29,51 @@ const SCANNER_HEADERS = {
 function scannerEndpoint(isWebsite: boolean): string {
   const baseUrl = process.env.SCANNER_URL || 'http://scanner.privacyready.local:8080';
   return isWebsite ? `${baseUrl}/v1/scan/website` : `${baseUrl}/v1/scan/social`;
+}
+
+function publicWebsiteTarget(value: string): { target: string; hostname: string } {
+  const target = value.trim();
+  const candidate = target.includes('://') ? target : `https://${target}`;
+  let parsed: URL;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error('Enter a valid public HTTP or HTTPS website URL.');
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname || parsed.username || parsed.password) {
+    throw new Error('Enter a valid public HTTP or HTTPS website URL.');
+  }
+  return { target, hostname: parsed.hostname.toLowerCase() };
+}
+
+function isAnonymousScanRateLimited(sourceIp: string, hostname: string): boolean {
+  const now = Date.now();
+  const key = `${sourceIp}:${hostname}`;
+  const recent = (anonymousScanAttempts.get(key) ?? []).filter((time) => now - time < ANONYMOUS_SCAN_WINDOW_MS);
+  if (recent.length >= ANONYMOUS_SCAN_LIMIT) {
+    anonymousScanAttempts.set(key, recent);
+    return true;
+  }
+  recent.push(now);
+  anonymousScanAttempts.set(key, recent);
+  return false;
+}
+
+async function callScanner(endpoint: string, payload: object) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: SCANNER_HEADERS,
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    if (!response.ok) throw new Error(`Scanner returned HTTP ${response.status}`);
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function redactFindings(findings: any) {
@@ -73,16 +121,32 @@ export async function registerScanRoutes(app: FastifyInstance) {
     })
   };
 
+  const PublicWebsiteScanSchema = {
+    body: Type.Object({
+      targetIdentifier: Type.String({ minLength: 1, maxLength: 512 }),
+      scanType: Type.Literal('website')
+    })
+  };
+
   // Unauthenticated endpoint for landing page. Kept deliberately open (it's
   // the free-scan lead magnet), but rate-limited on top of the app-wide
   // limiter since it fans out to the scanner service and has no other
   // abuse protection.
   app.post('/api/public/scan', {
-    schema: CreateScanSchema,
+    schema: PublicWebsiteScanSchema,
     config: { rateLimit: { max: 10, timeWindow: '1 minute' } }
   }, async (request, reply) => {
     const { scanType } = request.body as any;
-    const targetIdentifier = (request.body as any).targetIdentifier.trim();
+    let targetIdentifier: string;
+    let hostname: string;
+    try {
+      ({ target: targetIdentifier, hostname } = publicWebsiteTarget((request.body as any).targetIdentifier));
+    } catch (err: any) {
+      return reply.code(400).send({ error: err.message });
+    }
+    if (isAnonymousScanRateLimited(request.ip, hostname)) {
+      return reply.code(429).send({ error: 'Too many scans for this website. Please try again shortly.' });
+    }
 
     // A raw, single-use claim token is generated alongside the scan and
     // only its hash is stored -- the same pattern used for email
@@ -104,36 +168,8 @@ export async function registerScanRoutes(app: FastifyInstance) {
       }
     });
 
-    const isWebsite = scanType === 'website';
-    let payload: any = { customer_id: 'guest' };
-    if (isWebsite) {
-      payload.url = targetIdentifier;
-    } else {
-      const typeMap: Record<string, string> = {
-        'tiktok': 'tiktok_username',
-        'facebook': 'facebook_page_id',
-        'instagram': 'ig_account_id',
-        'twitter': 'twitter_username',
-        'google_analytics': 'ga_property_id',
-        'whatsapp': 'whatsapp_phone',
-        'linkedin': 'linkedin_company_id',
-        'mailchimp': 'mailchimp_api_key'
-      };
-      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
-    }
-
     try {
-      const response = await fetch(scannerEndpoint(isWebsite), {
-        method: 'POST',
-        headers: SCANNER_HEADERS,
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Scanner returned HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await callScanner(scannerEndpoint(true), { customer_id: 'guest', url: targetIdentifier });
 
       const hasOnlyErrors = result.findings.length > 0 && result.findings.every((f: any) => ['scan_error', 'scan_blocked', 'scan_failed'].includes(f.finding_type));
       if (hasOnlyErrors) {
@@ -150,21 +186,31 @@ export async function registerScanRoutes(app: FastifyInstance) {
           completedAt: new Date()
         }
       });
-      return { 
-        ...updated, 
+      return {
+        id: updated.id,
+        scanType: updated.scanType,
+        targetIdentifier: updated.targetIdentifier,
+        status: updated.status,
+        score: updated.score,
+        riskLevel: updated.riskLevel,
         findingsJson: redactFindings(updated.findingsJson),
-        claimToken: rawClaimToken 
+        createdAt: updated.createdAt,
+        completedAt: updated.completedAt,
+        // The raw value is intentionally returned once for a possible
+        // account-claim flow. Its stored hash and expiry never leave the API.
+        claimToken: rawClaimToken
       };
     } catch (err: any) {
-      const failed = await prisma.scan.update({
+      await prisma.scan.update({
         where: { id: scan.id },
         data: {
           status: 'FAILED',
-          findingsJson: [{ description: err.message || String(err) }],
+          findingsJson: [{ description: 'Scan could not be completed.' }],
           completedAt: new Date()
         }
       });
-      return reply.code(400).send({ error: err.message || 'Scan failed. Please check the URL or ID.' });
+      request.log.warn({ err }, 'Public website scan failed');
+      return reply.code(400).send({ error: 'Scan could not be completed. Check that the target is a public website and try again.' });
     }
   });
 
@@ -221,17 +267,7 @@ export async function registerScanRoutes(app: FastifyInstance) {
     }
 
     try {
-      const response = await fetch(scannerEndpoint(isWebsite), {
-        method: 'POST',
-        headers: SCANNER_HEADERS,
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Scanner returned HTTP ${response.status}`);
-      }
-
-      const result = await response.json();
+      const result = await callScanner(scannerEndpoint(isWebsite), payload);
 
       const updated = await prisma.scan.update({
         where: { id: scan.id },
@@ -260,12 +296,36 @@ export async function registerScanRoutes(app: FastifyInstance) {
         where: { id: scan.id },
         data: {
           status: 'FAILED',
-          findingsJson: [{ description: `Scanner failed: ${String(err)}` }],
+          findingsJson: [{ description: 'Scan could not be completed.' }],
           completedAt: new Date()
         }
       });
-      return failed;
+      request.log.warn({ err }, 'Authenticated scan failed');
+      return reply.code(502).send({ ...failed, error: 'Scan could not be completed. Please try again.' });
     }
+  });
+
+  const ClaimScanSchema = { body: Type.Object({ claimToken: Type.String({ minLength: 64, maxLength: 64 }) }) };
+
+  // A logged-in visitor may claim only an anonymous scan for which they still
+  // possess the one-time browser token. The conditional update is atomic: a
+  // competing request, expired token, or already-claimed scan matches zero
+  // rows and cannot attach anything to an organisation.
+  app.post('/api/scan/claim', { schema: ClaimScanSchema, config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (request, reply) => {
+    const user = request.user as any;
+    const { claimToken } = request.body as { claimToken: string };
+    const claimed = await prisma.scan.updateMany({
+      where: {
+        organizationId: null,
+        claimTokenHash: hashToken(claimToken),
+        claimTokenExpires: { gt: new Date() }
+      },
+      data: { organizationId: user.org, claimTokenHash: null, claimTokenExpires: null }
+    });
+    if (claimed.count !== 1) return reply.code(400).send({ error: 'This free scan can no longer be claimed. Run a new scan from your dashboard.' });
+
+    const scan = await prisma.scan.findFirst({ where: { organizationId: user.org }, orderBy: { createdAt: 'desc' } });
+    return { id: scan?.id, status: scan?.status };
   });
 
   // Delete a scan from the caller's own org. Previously the dashboard's
