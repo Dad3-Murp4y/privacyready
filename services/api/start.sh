@@ -14,4 +14,4 @@ export DATABASE_URL="postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@
 ./node_modules/.bin/prisma migrate deploy
 
 echo "Starting Fastify server..."
-exec node dist/main.js
+exec node dist/src/main.js

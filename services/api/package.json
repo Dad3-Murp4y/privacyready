@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc",
+    "bootstrap:staging-demo": "node dist/scripts/bootstrap-staging-demo.js",
     "lint": "eslint src/",
-    "start": "export DATABASE_URL=\"postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}\" && node dist/main.js"
+    "start": "export DATABASE_URL=\"postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}\" && node dist/src/main.js"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1091.0",
