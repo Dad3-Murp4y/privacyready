@@ -5,6 +5,13 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { sendTeamInviteEmail } from '../email.js';
 
+type TeamPrisma = Pick<typeof prisma, 'user' | 'organization'>;
+
+interface TeamRouteOptions {
+  prismaClient?: TeamPrisma;
+  sendInvite?: typeof sendTeamInviteEmail;
+}
+
 const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
 const VERIFY_TOKEN_TTL_HOURS = 24;
 
@@ -17,13 +24,15 @@ function hashToken(token: string) {
 // org's own ADMIN manage the people inside their own organization,
 // the same way most SaaS products let a workspace owner invite or
 // remove teammates without needing platform-level access.
-export const teamRoutes: FastifyPluginAsync = async (app) => {
+export const teamRoutes: FastifyPluginAsync<TeamRouteOptions> = async (app, options) => {
+  const prismaClient = options.prismaClient ?? prisma;
+  const sendInvite = options.sendInvite ?? sendTeamInviteEmail;
 
   app.addHook('onRequest', async (request, reply) => {
     try {
       await request.jwtVerify();
       const tokenUser = request.user as any;
-      const realUser = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+      const realUser = await prismaClient.user.findUnique({ where: { id: tokenUser.sub } });
       if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
       request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
@@ -39,7 +48,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
   // List everyone in the caller's own organization.
   app.get('/api/team', async (request) => {
     const user = request.user as any;
-    const teammates = await prisma.user.findMany({
+    const teammates = await prismaClient.user.findMany({
       where: { organizationId: user.org },
       orderBy: { createdAt: 'desc' }
     });
@@ -71,7 +80,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: "role must be MEMBER or ADMIN (use the platform admin panel to grant SUPERADMIN)" });
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prismaClient.user.findUnique({ where: { email } });
     if (existing) {
       return reply.status(400).send({ error: 'Email already registered' });
     }
@@ -79,9 +88,9 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     const tempPassword = crypto.randomBytes(9).toString('base64url'); // 12-char random temp password
     const passwordHash = await bcrypt.hash(tempPassword, 12);
 
-    const org = await prisma.organization.findUnique({ where: { id: user.org } });
+    const org = await prismaClient.organization.findUnique({ where: { id: user.org } });
 
-    const teammate = await prisma.user.create({
+    const teammate = await prismaClient.user.create({
       data: {
         email,
         fullName,
@@ -97,7 +106,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     // email address, so the invitee still has to confirm it themselves.
     const rawToken = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 60 * 60 * 1000);
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: teammate.id },
       data: { emailVerifyTokenHash: hashToken(rawToken), emailVerifyExpires: expires }
     });
@@ -105,7 +114,8 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     const verifyUrl = `${PORTAL_URL}/verify-email?token=${rawToken}&uid=${teammate.id}`;
     let emailFailed = false;
     try {
-      await sendTeamInviteEmail(email, fullName, org?.name || 'your organization', tempPassword, verifyUrl);
+      const delivery = await sendInvite(email, fullName, org?.name || 'your organization', tempPassword, verifyUrl);
+      if (delivery === null) throw new Error('Team invitation email was not delivered');
     } catch (err) {
       request.log.error(err, 'Failed to send team invite email');
       emailFailed = true;
@@ -138,7 +148,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: "You can't remove your own account from your team this way." });
     }
 
-    const target = await prisma.user.findFirst({ where: { id, organizationId: user.org } });
+    const target = await prismaClient.user.findFirst({ where: { id, organizationId: user.org } });
     if (!target) {
       return reply.status(404).send({ error: 'Teammate not found in your organization' });
     }
@@ -148,7 +158,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
     }
 
     if (target.role === 'ADMIN' || target.role === 'SUPERADMIN') {
-      const remainingAdmins = await prisma.user.count({
+      const remainingAdmins = await prismaClient.user.count({
         where: { organizationId: user.org, role: { in: ['ADMIN', 'SUPERADMIN'] }, id: { not: id } }
       });
       if (remainingAdmins === 0) {
@@ -156,7 +166,7 @@ export const teamRoutes: FastifyPluginAsync = async (app) => {
       }
     }
 
-    await prisma.user.delete({ where: { id } });
+    await prismaClient.user.delete({ where: { id } });
     return reply.status(204).send();
   });
 

@@ -5,6 +5,14 @@ import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../email.js';
 
+type AuthPrisma = Pick<typeof prisma, 'user' | 'organization' | 'scan' | '$transaction'>;
+
+interface AuthRouteOptions {
+  prismaClient?: AuthPrisma;
+  sendVerification?: typeof sendVerificationEmail;
+  sendPasswordReset?: typeof sendPasswordResetEmail;
+}
+
 const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
 const VERIFY_TOKEN_TTL_HOURS = 24;
 
@@ -36,20 +44,30 @@ function hashToken(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-async function issueVerificationEmail(userId: string, email: string, fullName: string) {
+async function issueVerificationEmail(
+  prismaClient: AuthPrisma,
+  sendVerification: typeof sendVerificationEmail,
+  userId: string,
+  email: string,
+  fullName: string,
+) {
   const rawToken = crypto.randomBytes(32).toString('hex');
   const expires = new Date(Date.now() + VERIFY_TOKEN_TTL_HOURS * 60 * 60 * 1000);
 
-  await prisma.user.update({
+  await prismaClient.user.update({
     where: { id: userId },
     data: { emailVerifyTokenHash: hashToken(rawToken), emailVerifyExpires: expires }
   });
 
   const verifyUrl = `${PORTAL_URL}/verify-email?token=${rawToken}&uid=${userId}`;
-  await sendVerificationEmail(email, fullName, verifyUrl);
+  const delivery = await sendVerification(email, fullName, verifyUrl);
+  if (delivery === null) throw new Error('Verification email was not delivered');
 }
 
-export const authRoutes: FastifyPluginAsync = async (app) => {
+export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, options) => {
+  const prismaClient = options.prismaClient ?? prisma;
+  const sendVerification = options.sendVerification ?? sendVerificationEmail;
+  const sendPasswordReset = options.sendPasswordReset ?? sendPasswordResetEmail;
   
   app.post('/auth/register', {
     schema: RegisterSchema,
@@ -57,7 +75,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   }, async (request, reply) => {
     const { email, password, fullName, organizationName, scanId, scanClaimToken } = request.body as any;
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prismaClient.user.findUnique({ where: { email } });
     if (existingUser) {
       // To prevent email enumeration, pretend registration succeeded
       return reply.status(201).send({
@@ -70,7 +88,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     // Create Organization and User in a transaction
     let user;
     try {
-      user = await prisma.$transaction(async (tx: any) => {
+      user = await prismaClient.$transaction(async (tx: any) => {
         const org = await tx.organization.create({
           data: { name: organizationName }
         });
@@ -115,7 +133,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     try {
-      await issueVerificationEmail(user.id, user.email, user.fullName);
+      await issueVerificationEmail(prismaClient, sendVerification, user.id, user.email, user.fullName);
     } catch (err) {
       request.log.error(err, 'Failed to send verification email');
     }
@@ -143,7 +161,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   app.post('/auth/verify-email', { schema: VerifyEmailSchema }, async (request, reply) => {
     const { token, uid } = request.body as { token: string; uid: string };
 
-    const user = await prisma.user.findUnique({ where: { id: uid } });
+    const user = await prismaClient.user.findUnique({ where: { id: uid } });
     if (!user || !user.emailVerifyTokenHash || !user.emailVerifyExpires) {
       return reply.status(400).send({ error: 'Invalid or already-used verification link' });
     }
@@ -160,7 +178,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
       return reply.status(400).send({ error: 'Invalid verification link' });
     }
 
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: uid },
       data: { emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null }
     });
@@ -175,13 +193,13 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
   }, async (request, reply) => {
     const { email } = request.body as any;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prismaClient.user.findUnique({ where: { email } });
 
     // Same response whether or not the account exists, so this can't be
     // used to enumerate registered emails.
     if (user && !user.emailVerified) {
       try {
-        await issueVerificationEmail(user.id, user.email, user.fullName);
+        await issueVerificationEmail(prismaClient, sendVerification, user.id, user.email, user.fullName);
       } catch (err) {
         request.log.error(err, 'Failed to resend verification email');
       }
@@ -202,7 +220,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
   }, async (request, reply) => {
     const { email, password } = request.body as any;
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prismaClient.user.findUnique({ where: { email } });
     if (!user) {
       // Run a dummy bcrypt hash to prevent timing side channels
       await bcrypt.hash(password, 12);
@@ -249,7 +267,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const tokenUser = request.user as any;
-    const user = await prisma.user.findUnique({
+    const user = await prismaClient.user.findUnique({
       where: { id: tokenUser.sub },
       include: { organization: true }
     });
@@ -273,19 +291,26 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     config: { rateLimit: { max: 3, timeWindow: '1 minute' } }
   }, async (request, reply) => {
     const { email } = request.body as any;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prismaClient.user.findUnique({ where: { email } });
     if (user) {
       const rawToken = crypto.randomBytes(32).toString('hex');
       const expires = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
-      await prisma.user.update({
+      await prismaClient.user.update({
         where: { id: user.id },
         data: { passwordResetTokenHash: hashToken(rawToken), passwordResetExpires: expires }
       });
       const resetUrl = `${PORTAL_URL}/reset-password?token=${rawToken}&uid=${user.id}`;
       try {
-        await sendPasswordResetEmail(user.email, user.fullName, resetUrl);
+        const delivery = await sendPasswordReset(user.email, user.fullName, resetUrl);
+        if (delivery === null) throw new Error('Password reset email was not delivered');
       } catch (err) {
         request.log.error(err, 'Failed to send reset email');
+        // A token the user never received must not remain usable. Keep the
+        // public response generic while invalidating the failed reset state.
+        await prismaClient.user.update({
+          where: { id: user.id },
+          data: { passwordResetTokenHash: null, passwordResetExpires: null }
+        });
       }
     }
     return { message: 'If that email is registered, a password reset link has been sent.' };
@@ -302,7 +327,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     config: { rateLimit: { max: 5, timeWindow: '1 minute' } }
   }, async (request, reply) => {
     const { token, uid, newPassword } = request.body as any;
-    const user = await prisma.user.findUnique({ where: { id: uid } });
+    const user = await prismaClient.user.findUnique({ where: { id: uid } });
     
     if (!user || !user.passwordResetTokenHash || !user.passwordResetExpires || user.passwordResetExpires < new Date()) {
       return reply.status(400).send({ error: 'Invalid or expired reset token' });
@@ -315,7 +340,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: uid },
       data: {
         passwordHash,
@@ -343,7 +368,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const tokenUser = request.user as any;
-    const user = await prisma.user.findUnique({ where: { id: tokenUser.sub } });
+    const user = await prismaClient.user.findUnique({ where: { id: tokenUser.sub } });
     if (!user) return reply.status(404).send({ error: 'User not found' });
 
     const { oldPassword, newPassword } = request.body as any;
@@ -351,7 +376,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     if (!isValid) return reply.status(400).send({ error: 'Invalid old password' });
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
-    await prisma.user.update({
+    await prismaClient.user.update({
       where: { id: user.id },
       data: { passwordHash, requiresPasswordChange: false }
     });
