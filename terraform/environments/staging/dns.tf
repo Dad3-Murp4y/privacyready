@@ -20,5 +20,6 @@ module "ses_identity" {
   source          = "../../modules/ses-domain-identity"
   domain_name     = var.ses_domain
   route53_zone_id = var.route53_zone_id
+  aws_region      = var.aws_region
   tags            = var.common_tags
 }

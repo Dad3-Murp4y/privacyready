@@ -15,7 +15,7 @@ flowchart TB
     ALB -->|TCP 8080| API[Private API ECS/Fargate]
     API -->|TCP 5432| RDS[(Private RDS PostgreSQL)]
     API -->|Cloud Map + API key<br/>TCP 8080| SCAN[Private scanner ECS/Fargate]
-    API --> SES[Amazon SES]
+    API --> SES[Amazon SES<br/>notify subdomain]
     SCAN --> NAT[NAT Gateway]
     NAT --> WEB[Public websites]
 ```
@@ -59,11 +59,19 @@ RDS is encrypted, single-AZ for staging, placed only in database subnets, and no
 
 ### Email Flow
 
-```text
-API task role -> SES SendEmail/SendRawEmail -> verified staging domain identity
+Human and application mail deliberately use different systems:
+
+```mermaid
+flowchart LR
+    IN[Internet mail] --> MX[privacyready.co.uk MX]
+    MX --> NM[Names.co.uk mail hosting]
+    NM --> HM[support / demo / staff mailboxes]
+    API[Privacy Ready API] --> SES[Amazon SES]
+    SES --> TX[no-reply@notify.privacyready.co.uk]
+    TX --> C[Customer mailbox]
 ```
 
-IAM also constrains the `ses:FromAddress` value to the configured staging sender.
+Names.co.uk hosts two-way human mail. SES sends verification, password-reset, team-invitation, and transactional application messages. The API role has only `SendEmail`/`SendRawEmail` on the verified transactional identity and a `ses:FromAddress` condition. No explicit Reply-To header is currently configured.
 
 ### Public Anonymous Scan Claim Flow
 
@@ -207,7 +215,7 @@ Names.co.uk remains the registrar. Its domain delegation identifies Route53 as a
 Names.co.uk registrar -> four new Route53 nameservers -> hosted-zone records
 ```
 
-The Route53 bootstrap root owns the public hosted zone. The staging root adds alias records for `staging.privacyready.co.uk` to the ALB and `app-staging.privacyready.co.uk` to CloudFront, plus ACM validation and SES/DKIM records. Registrar delegation and zone records are different layers; changing one does not repair the other.
+The Route53 bootstrap root owns the public hosted zone. The staging root adds application aliases, ACM validation, and transactional SES records. Operator-supplied apex MX/SPF/DKIM records continue to direct human mail to Names.co.uk. SES Easy DKIM is under `notify.privacyready.co.uk`; its custom MAIL FROM/SPF boundary is `mail.notify.privacyready.co.uk`, so it cannot overwrite apex human-mail SPF. Transactional DMARC begins at `p=none`. Registrar delegation and zone records are different layers; changing one does not repair the other.
 
 ## Environments
 

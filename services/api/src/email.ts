@@ -2,7 +2,8 @@ import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { prisma } from './db.js';
 
 const REGION = process.env.AWS_REGION || 'eu-west-2';
-const FROM_EMAIL = process.env.SES_FROM_EMAIL || 'noreply@privacyready.co.uk';
+export const DEFAULT_SES_FROM_EMAIL = 'no-reply@notify.privacyready.co.uk';
+const FROM_EMAIL = process.env.SES_FROM_EMAIL || DEFAULT_SES_FROM_EMAIL;
 
 const ses = new SESClient({ region: REGION });
 

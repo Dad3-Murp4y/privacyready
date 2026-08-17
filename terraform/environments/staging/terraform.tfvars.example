@@ -6,7 +6,7 @@ staging_hostname = "staging.privacyready.co.uk"
 frontend_hostname = "app-staging.privacyready.co.uk"
 # Use terraform/bootstrap/route53 output "hosted_zone_id" after bootstrap apply.
 route53_zone_id = "ZREPLACEWITHBOOTSTRAPOUTPUT"
-ses_domain = "staging.privacyready.co.uk"
+ses_domain = "notify.privacyready.co.uk"
 database_name = "privacyready"
 database_username = "privacyready"
 database_engine_version = "16.14"
@@ -16,5 +16,5 @@ api_desired_count = 1
 scanner_cpu = 256
 scanner_memory = 512
 scanner_desired_count = 1
-ses_from_email = "no-reply@staging.example.com"
+ses_from_email = "no-reply@notify.privacyready.co.uk"
 common_tags = { Owner = "platform" }

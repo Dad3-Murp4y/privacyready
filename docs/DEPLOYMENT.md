@@ -101,6 +101,14 @@ dig +short NS privacyready.co.uk @8.8.8.8
 
 Deployment pauses successfully until both sorted resolver results match the new Route53 delegation. Once updated, rerun the previous command or `./rebuild-aws.sh all`.
 
+### Preserve Names.co.uk human mail
+
+Names.co.uk remains the mailbox provider for `support@privacyready.co.uk`, `demo@privacyready.co.uk`, and staff addresses. Before changing delegation, obtain the current mail-hosting DNS records from Names.co.uk and copy them into the new Route53 zone. Preserve the exact apex MX records plus any Names.co.uk SPF, DKIM, verification, or other mail records. These values are not stored in this repository and must never be guessed.
+
+Set `PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED=true` only after reviewing the copied records. The rebuild then requires apex MX answers from both public resolvers. This presence check does not replace the operator's comparison with the source records.
+
+SES uses the separate `notify.privacyready.co.uk` identity and sender `no-reply@notify.privacyready.co.uk`. Terraform creates Easy DKIM and uses `mail.notify.privacyready.co.uk` as a custom MAIL FROM domain with its own single SES SPF record. It does not modify the apex Names.co.uk SPF. `_dmarc.notify.privacyready.co.uk` starts at monitoring-only `p=none`; review reports before deliberately moving to quarantine or reject.
+
 ## Deployment Sequence
 
 `./rebuild-aws.sh all` implements this resumable order:
@@ -108,7 +116,7 @@ Deployment pauses successfully until both sorted resolver results match the new 
 1. Validate tools, repository layout, static security contracts, Git SHA, AWS identity, and region.
 2. Confirm the costs of NAT Gateway, ALB, RDS, Fargate, WAF, and CloudFront.
 3. Bootstrap the account-specific S3 backend.
-4. Bootstrap the Route53 zone and stop for manual Names.co.uk delegation when required.
+4. Bootstrap the Route53 zone, preserve operator-provided Names.co.uk human-mail records, and stop for manual delegation when required.
 5. Apply a narrowly targeted, saved Terraform foundation plan for ECR repositories and empty secret containers.
 6. Populate new JWT/scanner values and any supplied Stripe TEST values before ECS can start.
 7. Build API and scanner images from a detached worktree at the committed SHA, push them, and verify their ECR digests.
@@ -150,11 +158,23 @@ prisma migrate deploy
 
 Do not use `prisma db push` or `prisma migrate reset` against deployed staging. An empty new database must be built entirely from committed migrations; no automatic migration baseline resolver is used.
 
+Before deployment, validate the same migrations against disposable PostgreSQL 16 without AWS:
+
+```bash
+cd services/api
+npm ci
+npm run test:integration
+```
+
+The runner selects a healthy Docker engine or falls back to Podman, assigns a random local port and password, runs `prisma migrate deploy` on an empty database, executes real-Prisma integration tests, and removes the container on exit. No database data survives by default.
+
 ## API Deployment
 
 The API runs as one Fargate task by default in private application subnets with public IP assignment disabled. The public ALB terminates HTTPS and forwards HTTP on port 8080 to the API target group. HTTP port 80 redirects to HTTPS. Regional WAF protects the ALB.
 
-The API receives `JWT_SECRET`, `SCANNER_API_KEY`, both Stripe secrets, and the JSON `password` field of the RDS-managed master secret through ECS secret injection. It connects privately to PostgreSQL on 5432 and the scanner on 8080. Its task role can send only `ses:SendEmail` and `ses:SendRawEmail` through the Terraform-created staging domain identity, restricted to the configured sender address.
+The API receives `JWT_SECRET`, `SCANNER_API_KEY`, both Stripe secrets, and the JSON `password` field of the RDS-managed master secret through ECS secret injection. It connects privately to PostgreSQL on 5432 and the scanner on 8080. Its task role can send only `ses:SendEmail` and `ses:SendRawEmail` through the Terraform-created `notify.privacyready.co.uk` identity, restricted to `no-reply@notify.privacyready.co.uk`. Human mailbox identities are not SES identities.
+
+New AWS accounts begin with restricted SES sending. `verify` checks `ProductionAccessEnabled` and refuses to declare customer email operational while the account remains in the sandbox. Request production access manually in `eu-west-2`; the script does not submit that request. Automated email currently has no explicit Reply-To header. Decide and test whether replies should go to `support@privacyready.co.uk` before adding that behavior.
 
 ## Scanner Deployment
 
@@ -206,6 +226,7 @@ export AWS_PROFILE=<new-profile>
 export PRIVACYREADY_AWS_ACCOUNT_ID=<new-account-id>
 export STRIPE_SECRET_KEY=<Stripe-test-secret-key>
 export STRIPE_WEBHOOK_SECRET=<Stripe-test-webhook-signing-secret>
+export PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED=true # only after copying and checking Names.co.uk mail DNS
 
 ./rebuild-aws.sh check
 ./rebuild-aws.sh all

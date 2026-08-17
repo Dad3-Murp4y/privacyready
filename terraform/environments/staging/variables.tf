@@ -41,7 +41,12 @@ variable "frontend_hostname" {
 variable "route53_zone_id" { type = string }
 variable "ses_domain" {
   type    = string
-  default = "staging.privacyready.co.uk"
+  default = "notify.privacyready.co.uk"
+
+  validation {
+    condition     = var.ses_domain == "notify.${var.domain_name}"
+    error_message = "Staging transactional email must use notify.<domain_name>, separate from human mail at the apex."
+  }
 }
 variable "database_name" { type = string }
 variable "database_username" { type = string }
@@ -72,6 +77,12 @@ variable "scanner_desired_count" {
 
 variable "ses_from_email" {
   type        = string
-  description = "Verified staging SES sender identity email address."
+  default     = "no-reply@notify.privacyready.co.uk"
+  description = "Non-secret transactional sender under the verified SES subdomain."
+
+  validation {
+    condition     = var.ses_from_email == "no-reply@${var.ses_domain}"
+    error_message = "ses_from_email must be no-reply@<ses_domain>."
+  }
 }
 variable "common_tags" { type = map(string) }

@@ -6,6 +6,8 @@ readonly EXPECTED_REGION="eu-west-2"
 readonly DOMAIN_NAME="privacyready.co.uk"
 readonly API_HOSTNAME="staging.privacyready.co.uk"
 readonly FRONTEND_HOSTNAME="app-staging.privacyready.co.uk"
+readonly SES_DOMAIN="notify.privacyready.co.uk"
+readonly SES_FROM_EMAIL="no-reply@notify.privacyready.co.uk"
 readonly STACK_NAME="privacyready-staging"
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
@@ -108,6 +110,9 @@ Environment:
   STRIPE_SECRET_KEY                Stripe TEST secret key (must start sk_test_)
   STRIPE_WEBHOOK_SECRET            Stripe TEST webhook signing secret (must start whsec_)
   DEMO_ACCOUNT_PASSWORD            Optional guarded staging demo account password
+  PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED
+                                    Set true only after copying the current Names.co.uk
+                                    human-mail MX/TXT records into the new Route53 zone
 
 Secret values are never printed or written to logs. Every account in the retired
 account deny list is unconditionally rejected. Names.co.uk is never modified.
@@ -166,6 +171,8 @@ verify_configuration_contracts() {
   rg -q 'Action[[:space:]]*=[[:space:]]*\["ses:SendEmail", "ses:SendRawEmail"\]' "$STAGING_DIR/ecs.tf" || die "SES send permissions do not match the approved minimal actions."
   rg -q 'identity/\$\{var.ses_domain\}' "$STAGING_DIR/ecs.tf" || die "SES IAM is not scoped to the Terraform-created domain identity."
   rg -q '"ses:FromAddress"[[:space:]]*=[[:space:]]*var.ses_from_email' "$STAGING_DIR/ecs.tf" || die "SES IAM lacks the sender-address restriction."
+  rg -q 'default[[:space:]]*=[[:space:]]*"notify\.privacyready\.co\.uk"' "$STAGING_DIR/variables.tf" || die "SES transactional subdomain contract is missing."
+  rg -q 'default[[:space:]]*=[[:space:]]*"no-reply@notify\.privacyready\.co\.uk"' "$STAGING_DIR/variables.tf" || die "SES transactional sender contract is missing."
   if rg -n 'ses:\*' "$STAGING_DIR"; then die "Wildcard SES permissions are forbidden."; fi
   for required_secret in DB_PASSWORD JWT_SECRET SCANNER_API_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET; do
     rg -q "${required_secret}[[:space:]]*=" "$STAGING_DIR/ecs.tf" || die "API ECS is missing ${required_secret}."
@@ -431,6 +438,7 @@ bootstrap_dns() {
   terraform -chdir="$DNS_DIR" apply -input=false "$plan_file"
   HOSTED_ZONE_ID="$(terraform -chdir="$DNS_DIR" output -raw hosted_zone_id)"
   show_nameservers
+  require_human_mail_records_in_zone
 }
 
 load_dns_outputs() {
@@ -447,6 +455,27 @@ show_nameservers() {
   info "New Route53 hosted zone: ${HOSTED_ZONE_ID}"
   info "Authoritative nameservers:"
   new_nameservers | sed 's/^/  /'
+}
+
+require_human_mail_records_in_zone() {
+  if [[ "${PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED:-}" != true ]]; then
+    cat <<EOF
+
+ACTION REQUIRED BEFORE NAMES.CO.UK DELEGATION
+Obtain the CURRENT human-mail DNS records from Names.co.uk and add them to the
+new Route53 zone ${HOSTED_ZONE_ID}. Preserve the exact apex MX records and all
+Names.co.uk mail SPF, DKIM, verification, and related records. Do not guess.
+
+After comparing the Route53 values with Names.co.uk, export:
+  PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED=true
+and rerun ./rebuild-aws.sh dns. Only then should the registrar delegation be
+changed to the new nameservers printed above.
+EOF
+    exit 0
+  fi
+  local mx_count
+  mx_count="$(aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID" --query "length(ResourceRecordSets[?Name == '${DOMAIN_NAME}.' && Type == 'MX'])" --output text)"
+  [[ "$mx_count" == 1 ]] || die "The new Route53 zone does not contain exactly one apex MX record set. Preserve the Names.co.uk human-mail MX values before delegation."
 }
 
 check_dns_delegation() {
@@ -479,6 +508,30 @@ EOF
   info "Names.co.uk delegation matches the new Route53 zone through 1.1.1.1 and 8.8.8.8."
 }
 
+check_human_mail_dns() {
+  phase DNS "Protecting Names.co.uk human-mail DNS during delegation"
+  if [[ "${PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED:-}" != true ]]; then
+    cat <<'EOF'
+
+ACTION REQUIRED: PRESERVE HUMAN MAIL DNS
+Obtain the CURRENT mail-hosting DNS records for privacyready.co.uk from
+Names.co.uk and add them to the NEW Route53 hosted zone before continuing.
+At minimum, preserve the exact apex MX records and any Names.co.uk SPF, DKIM,
+verification, or other mail TXT/CNAME records. Do not guess these values.
+
+The SES transactional records under notify.privacyready.co.uk are separate and
+must not replace the apex human-mail records. After verifying the copied values,
+set PRIVACYREADY_HUMAN_MAIL_DNS_CONFIRMED=true and rerun this command.
+EOF
+    exit 0
+  fi
+  local cloudflare_mx google_mx
+  cloudflare_mx="$(dig +short MX "$DOMAIN_NAME" @1.1.1.1 2>/dev/null || true)"
+  google_mx="$(dig +short MX "$DOMAIN_NAME" @8.8.8.8 2>/dev/null || true)"
+  [[ -n "$cloudflare_mx" && -n "$google_mx" ]] || die "No public apex MX records found. Recheck the operator-provided Names.co.uk records in Route53."
+  info "Apex human-mail MX records are visible through both public resolvers; values were not guessed by the script."
+}
+
 write_staging_tfvars() {
   [[ -n "$HOSTED_ZONE_ID" ]] || load_dns_outputs
   [[ -n "$GIT_SHA" ]] || check_git
@@ -486,7 +539,8 @@ write_staging_tfvars() {
   jq -n \
     --arg region "$AWS_REGION" --arg api "$API_IMAGE_URI" --arg scanner "$SCANNER_IMAGE_URI" \
     --arg zone "$HOSTED_ZONE_ID" \
-    '{aws_region:$region,api_image:$api,scanner_image:$scanner,domain_name:"privacyready.co.uk",staging_hostname:"staging.privacyready.co.uk",frontend_hostname:"app-staging.privacyready.co.uk",route53_zone_id:$zone,ses_domain:"staging.privacyready.co.uk",database_name:"privacyready",database_username:"privacyready",api_cpu:256,api_memory:512,api_desired_count:1,scanner_cpu:256,scanner_memory:512,scanner_desired_count:1,ses_from_email:"no-reply@staging.privacyready.co.uk",common_tags:{Owner:"platform"}}' > "$tfvars"
+    --arg ses_domain "$SES_DOMAIN" --arg ses_from "$SES_FROM_EMAIL" \
+    '{aws_region:$region,api_image:$api,scanner_image:$scanner,domain_name:"privacyready.co.uk",staging_hostname:"staging.privacyready.co.uk",frontend_hostname:"app-staging.privacyready.co.uk",route53_zone_id:$zone,ses_domain:$ses_domain,database_name:"privacyready",database_username:"privacyready",api_cpu:256,api_memory:512,api_desired_count:1,scanner_cpu:256,scanner_memory:512,scanner_desired_count:1,ses_from_email:$ses_from,common_tags:{Owner:"platform"}}' > "$tfvars"
   printf '%s\n' "$tfvars"
 }
 
@@ -530,6 +584,7 @@ terraform_plan() {
   authorize_mutation
   require_no_interrupted_apply
   check_dns_delegation || return $?
+  check_human_mail_dns
   terraform_init
   local tfvars plan_file json_file
   tfvars="$(write_staging_tfvars)"
@@ -646,6 +701,7 @@ images_command() {
   authorize_mutation
   confirm_costs
   check_dns_delegation || return $?
+  check_human_mail_dns
   foundation_apply
   populate_generated_secrets
   build_images
@@ -762,14 +818,23 @@ wait_for_acm_issued() {
 }
 
 wait_for_ses_verified() {
-  local identity="$1" attempt status
+  local identity="$1" attempt identity_status dkim_status
   for attempt in $(seq 1 30); do
-    status="$(aws sesv2 get-email-identity --email-identity "$identity" --query 'VerifiedForSendingStatus' --output text)"
-    [[ "$status" == True ]] && return 0
-    info "SES identity verification status ${status}; bounded wait ${attempt}/30."
+    read -r identity_status dkim_status < <(aws sesv2 get-email-identity --email-identity "$identity" --query '[VerifiedForSendingStatus,DkimAttributes.Status]' --output text)
+    [[ "$identity_status" == True && "$dkim_status" == SUCCESS ]] && return 0
+    info "SES identity ${identity_status}; DKIM ${dkim_status}; bounded wait ${attempt}/30."
     sleep 10
   done
-  die "SES identity was not verified after five minutes. Rerun verify after DNS propagation."
+  die "SES identity and DKIM were not ready after five minutes. Rerun verify after DNS propagation."
+}
+
+check_ses_production_access() {
+  local enabled
+  enabled="$(aws sesv2 get-account --query 'ProductionAccessEnabled' --output text)"
+  if [[ "$enabled" != True ]]; then
+    die "SES remains in sandbox/restricted mode. Request production access in eu-west-2 and rerun verify before declaring customer email operational."
+  fi
+  info "SES production access is enabled for ${AWS_REGION}."
 }
 
 wait_for_cloudfront_deployed() {
@@ -810,16 +875,21 @@ verify_infrastructure() {
   wait_for_cloudfront_deployed "$distribution"
   aws wafv2 get-web-acl-for-resource --resource-arn "$(aws elbv2 describe-load-balancers --names "${STACK_NAME}-alb" --query 'LoadBalancers[0].LoadBalancerArn' --output text)" --query 'WebACL.ARN' --output text | grep -Fqx "$web_acl"
   wait_for_ses_verified "$ses_identity"
+  check_ses_production_access
   info "AWS infrastructure checks passed."
 }
 
 verify_dns() {
   phase VERIFY "Verifying DNS"
   check_dns_delegation
+  check_human_mail_dns
   local records
   records="$(aws route53 list-resource-record-sets --hosted-zone-id "$HOSTED_ZONE_ID")"
   [[ "$(jq --arg name "${API_HOSTNAME}." '[.ResourceRecordSets[] | select(.Name==$name and .Type=="A")]|length' <<<"$records")" -eq 1 ]] || die "Route53 API alias record is missing."
   [[ "$(jq --arg name "${FRONTEND_HOSTNAME}." '[.ResourceRecordSets[] | select(.Name==$name and .Type=="A")]|length' <<<"$records")" -eq 1 ]] || die "Route53 frontend alias record is missing."
+  [[ "$(jq --arg name "mail.${SES_DOMAIN}." '[.ResourceRecordSets[] | select(.Name==$name and .Type=="MX")]|length' <<<"$records")" -eq 1 ]] || die "SES custom MAIL FROM MX record is missing."
+  [[ "$(jq --arg name "mail.${SES_DOMAIN}." '[.ResourceRecordSets[] | select(.Name==$name and .Type=="TXT")]|length' <<<"$records")" -eq 1 ]] || die "SES custom MAIL FROM SPF record is missing or duplicated."
+  [[ "$(jq --arg name "_dmarc.${SES_DOMAIN}." '[.ResourceRecordSets[] | select(.Name==$name and .Type=="TXT")]|length' <<<"$records")" -eq 1 ]] || die "Transactional DMARC monitoring record is missing."
   dig +short A "$API_HOSTNAME" @1.1.1.1 | grep -q .
   dig +short A "$FRONTEND_HOSTNAME" @1.1.1.1 | grep -q .
 }
@@ -1080,7 +1150,7 @@ main() {
     bootstrap) preflight; bootstrap_backend ;;
     dns) preflight; bootstrap_dns; check_dns_delegation || return $? ;;
     plan) preflight; load_dns_outputs; terraform_plan ;;
-    deploy) preflight; load_dns_outputs; check_dns_delegation || return $?; terraform_init; deploy_application ;;
+    deploy) preflight; load_dns_outputs; check_dns_delegation || return $?; check_human_mail_dns; terraform_init; deploy_application ;;
     images) preflight; load_dns_outputs; images_command ;;
     frontend) preflight; deploy_frontend ;;
     verify) preflight; verify_all ;;

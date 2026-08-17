@@ -119,6 +119,15 @@ Use `aws secretsmanager describe-secret` and `list-secret-version-ids` to inspec
 
 ## RDS Failure
 
+Reproduce migration and Prisma behavior locally before diagnosing RDS-specific causes:
+
+```bash
+cd services/api
+npm run test:integration
+```
+
+This creates a disposable PostgreSQL 16 container, migrates a genuinely empty database, runs persistence/claim/tenant/constraint coverage, and deletes it. Docker is preferred and Podman is the fallback. An unavailable container engine is reported as an unrun suite, never a pass.
+
 Check:
 
 ```bash
@@ -184,9 +193,11 @@ Inspect `Status`, `DomainValidationOptions`, and the DNS validation record with 
 
 ## SES Failure
 
-Inspect the `staging.privacyready.co.uk` identity and DKIM status with SES v2. Confirm DKIM records exist in the active Route53 zone, delegation has propagated, the configured sender is `no-reply@staging.privacyready.co.uk`, and the API task role allows only `ses:SendEmail`/`ses:SendRawEmail` on that domain identity with the matching `ses:FromAddress` condition.
+Inspect the `notify.privacyready.co.uk` identity and DKIM status with SES v2. Confirm the three generated DKIM CNAMEs resolve, `mail.notify.privacyready.co.uk` has the SES feedback MX and exactly one SES SPF TXT record, delegation has propagated, and the sender is `no-reply@notify.privacyready.co.uk`. The API task role must allow only `ses:SendEmail`/`ses:SendRawEmail` on that identity with the matching `ses:FromAddress` condition.
 
-Also check the account's SES sandbox/sending status and recipient verification requirements. Do not broaden the role to `ses:*` to bypass an identity, sandbox, or DKIM problem.
+Check `aws sesv2 get-account` for production access. In sandbox, only verified recipients can receive mail; request production access manually rather than claiming email is operational or broadening IAM. Review bounce/suppression data before retrying. Automated messages currently have no explicit Reply-To; replies are not silently redirected to support.
+
+If human mail stops after Route53 migration, inspect `dig MX privacyready.co.uk` through `1.1.1.1` and `8.8.8.8`, then compare the answers and all mail TXT/CNAME records with the current Names.co.uk mail-hosting values. Never substitute SES MX records at the apex. Multiple SPF TXT records at one hostname are invalid: keep the Names.co.uk policy at the apex and the SES policy at `mail.notify`. Names.co.uk and SES DKIM selectors are also separate. For DMARC failures, keep `p=none` while validating alignment and reports; move to quarantine/reject only through a reviewed policy change.
 
 ## Frontend Failure
 
