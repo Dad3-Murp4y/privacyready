@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Breaches() { return <OperationalWorkspace eyebrow="Incident response" title="Breach register" description="Record and manage real personal-data incidents without fabricated alerts." emptyTitle="Breach register coming soon" emptyDescription="Persistent incident storage and the 72-hour workflow are not implemented yet. No incidents have been fabricated." />; }

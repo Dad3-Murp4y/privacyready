@@ -23,6 +23,13 @@ export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrR
       const tokenUser = request.user as any;
       const realUser = await prismaClient.user.findUnique({ where: { id: tokenUser.sub } });
       if (!realUser) return reply.code(401).send({ error: 'Unauthorized' });
+      const organization = await prismaClient.organization.findUnique({
+        where: { id: realUser.organizationId },
+        select: { subscriptionStatus: true }
+      });
+      if (organization?.subscriptionStatus !== 'active') {
+        return reply.code(403).send({ error: 'Premium subscription required' });
+      }
       request.user = { ...tokenUser, role: realUser.role, org: realUser.organizationId };
     } catch (err) {
       return reply.send(err);

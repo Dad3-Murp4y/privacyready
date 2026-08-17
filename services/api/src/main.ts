@@ -12,6 +12,7 @@ import { registerDsrRoutes } from './routes/dsr.js';
 import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
 import { registerBillingRoutes } from './routes/billing.js';
+import { registerPolicyRoutes } from './routes/policies.js';
 
 import { Redis } from 'ioredis';
 
@@ -69,6 +70,7 @@ async function buildServer() {
   await app.register(teamRoutes);
   await app.register(adminRoutes, { prefix: '/api' });
   await app.register(registerBillingRoutes, { prefix: '/api/billing' });
+  await registerPolicyRoutes(app);
 
 
   return app;

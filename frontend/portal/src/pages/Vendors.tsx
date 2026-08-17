@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Vendors() { return <OperationalWorkspace eyebrow="Processors" title="Vendor register" description="Maintain the organisations that process personal data on your behalf." emptyTitle="No processor register is available yet" emptyDescription="Persistent vendor records are not implemented in the current application. No example vendors are shown." />; }
