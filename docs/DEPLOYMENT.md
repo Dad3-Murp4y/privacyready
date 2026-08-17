@@ -4,6 +4,8 @@
 
 Privacy Ready staging is rebuilt from the repository with [`rebuild-aws.sh`](../rebuild-aws.sh). The workflow creates only the current staging architecture; it does not create production, legacy test infrastructure, GitLab, management networking, Transit Gateway, Redis, or n8n.
 
+GitHub is the source repository. GitLab CI/CD is retired, and GitHub Actions is not currently used for deployment. AWS staging releases are operator-run through `rebuild-aws.sh`, with Terraform defining the AWS infrastructure; there is currently no automated CD pipeline. A future GitHub Actions deployment pipeline may use AWS OIDC and protected environments, but it is not part of the current operational model.
+
 The user-facing endpoints are:
 
 - `https://privacyready.co.uk`: public homepage and anonymous website scanner journey. The rebuild creates the authoritative Route53 zone, but the staging Terraform root does not create a separate apex hosting stack.
