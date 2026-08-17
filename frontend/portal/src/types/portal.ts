@@ -9,6 +9,7 @@ export type ScanFinding = {
   detail?: string;
   evidence?: string;
   remediation?: string;
+  gdpr_article?: string;
 };
 
 export type ScanRecord = {

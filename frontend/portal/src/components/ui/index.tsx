@@ -31,8 +31,8 @@ export function ProgressBar({ value, label }: { value: number; label?: string })
   return <div className="progress"><div className="progress__meta"><span>{label}</span><strong>{safeValue}%</strong></div><div className="progress__track"><span style={{ width: `${safeValue}%` }} /></div></div>;
 }
 
-export function FindingCard({ title, description, severity = 'warning', badgeLabel }: { title: string; description: string; severity?: 'danger' | 'warning' | 'info'; badgeLabel?: string }) {
-  return <div className="finding-card"><StatusBadge tone={severity}>{badgeLabel || (severity === 'danger' ? 'Critical' : severity === 'warning' ? 'Review' : 'Info')}</StatusBadge><div><h3>{title}</h3><p>{description}</p></div></div>;
+export function FindingCard({ title, description, severity = 'warning', badgeLabel, evidence, remediation, legalReference }: { title: string; description: string; severity?: 'danger' | 'warning' | 'info'; badgeLabel?: string; evidence?: string; remediation?: string; legalReference?: string }) {
+  return <article className="finding-card"><StatusBadge tone={severity}>{badgeLabel || (severity === 'danger' ? 'Critical' : severity === 'warning' ? 'Review' : 'Info')}</StatusBadge><div><h3>{title}</h3><p>{description}</p>{evidence && <div className="finding-card__detail"><strong>Evidence</strong><p>{evidence}</p></div>}{remediation && <div className="finding-card__detail"><strong>Recommended action</strong><p>{remediation}</p></div>}{legalReference && <p className="finding-card__reference">Reference: {legalReference}</p>}</div></article>;
 }
 
 export function PriorityAction({ title, description, complete, onToggle }: { title: string; description: string; complete?: boolean; onToggle?: () => void }) {

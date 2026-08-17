@@ -40,6 +40,10 @@ export default function Register() {
   }
 
   useEffect(() => {
+    // Earlier builds copied this bearer credential into persistent storage.
+    // Remove any legacy copy; current claims remain scoped to this browser tab.
+    localStorage.removeItem('freeScanClaimToken');
+    localStorage.removeItem('freeScanId');
     const queryParams = new URLSearchParams(window.location.search);
     const source = queryParams.get('source');
     const scanUrlRaw = sessionStorage.getItem('freeScanUrl') || queryParams.get('url');
@@ -74,8 +78,8 @@ export default function Register() {
     if (source === 'free-scan' && isValidHttpUrl(scanUrlRaw)) {
       localStorage.setItem('freeScanUrl', scanUrlRaw);
       localStorage.setItem('freeScanScore', isValidScore(scanScoreRaw) ? scanScoreRaw! : '75');
-      if (isValidUuid(scanIdRaw)) localStorage.setItem('freeScanId', scanIdRaw);
-      if (isValidClaimToken(scanClaimTokenRaw)) localStorage.setItem('freeScanClaimToken', scanClaimTokenRaw);
+      if (!isValidUuid(scanIdRaw)) sessionStorage.removeItem('freeScanId');
+      if (!isValidClaimToken(scanClaimTokenRaw)) sessionStorage.removeItem('freeScanClaimToken');
     }
 
     
@@ -108,8 +112,8 @@ export default function Register() {
           password,
           fullName,
           organizationName: orgName,
-          scanId: localStorage.getItem('freeScanId') || undefined,
-          scanClaimToken: localStorage.getItem('freeScanClaimToken') || undefined
+          scanId: sessionStorage.getItem('freeScanId') || undefined,
+          scanClaimToken: sessionStorage.getItem('freeScanClaimToken') || undefined
         })
       });
       
@@ -184,8 +188,9 @@ export default function Register() {
 
         <form className="auth-form" onSubmit={handleRegister} autoComplete="off">
           <div className="form-group">
-            <label className="form-label">Full Name</label>
+            <label className="form-label" htmlFor="register-full-name">Full Name</label>
             <input 
+              id="register-full-name"
               type="text" 
               className="form-input" 
               placeholder="John Doe" 
@@ -195,8 +200,9 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Organisation Name</label>
+            <label className="form-label" htmlFor="register-organisation">Organisation Name</label>
             <input 
+              id="register-organisation"
               type="text" 
               className="form-input" 
               placeholder="Acme Corp" 
@@ -206,8 +212,9 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label" htmlFor="register-email">Email Address</label>
             <input 
+              id="register-email"
               type="email" 
               className="form-input" 
               placeholder="you@company.com" 
@@ -217,11 +224,12 @@ export default function Register() {
             />
           </div>
           <div className="form-group" style={{ marginBottom: '24px' }}>
-            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <label className="form-label" htmlFor="register-password" style={{ display: 'flex', justifyContent: 'space-between' }}>
               Password
               {password && <span style={{ fontSize: '11px', fontWeight: 600, color: strengthColor }}>{strengthLabel}</span>}
             </label>
             <input 
+              id="register-password"
               type="password" 
               className="form-input" 
               placeholder="Min. 8 characters" 

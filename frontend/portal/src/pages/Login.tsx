@@ -149,8 +149,9 @@ export default function Login() {
 
             <form className="auth-form" onSubmit={handleResetPassword}>
               <div className="form-group">
-                <label className="form-label">Email Address</label>
+                <label className="form-label" htmlFor="reset-email">Email Address</label>
                 <input 
+                  id="reset-email"
                   type="email" 
                   className="form-input" 
                   placeholder="you@company.com" 
@@ -201,8 +202,9 @@ export default function Login() {
 
             <form className="auth-form" onSubmit={handleLogin} autoComplete="off">
               <div className="form-group">
-                <label className="form-label">Email Address</label>
+                <label className="form-label" htmlFor="login-email">Email Address</label>
                 <input 
+                  id="login-email"
                   type="email" 
                   className="form-input" 
                   placeholder="you@company.com" 
@@ -212,11 +214,12 @@ export default function Login() {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <label className="form-label" htmlFor="login-password" style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Password</span>
                   <a href="#" onClick={(e) => { e.preventDefault(); setIsForgot(true); }} style={{ fontSize: '12px', textTransform: 'none' }}>Forgot password?</a>
                 </label>
                 <input 
+                  id="login-password"
                   type="password" 
                   className="form-input" 
                   placeholder="••••••••" 
