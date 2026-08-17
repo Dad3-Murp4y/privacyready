@@ -11,6 +11,19 @@ import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import PublicDsr from './pages/PublicDsr';
 import MarketingHomepage from './pages/MarketingHomepage';
+import PortalLayout from './components/layout/PortalLayout';
+import Scans from './pages/Scans';
+import ScanDetail from './pages/ScanDetail';
+import Findings from './pages/Findings';
+import DataRequests from './pages/DataRequests';
+import Policies from './pages/Policies';
+import Vendors from './pages/Vendors';
+import Breaches from './pages/Breaches';
+import Consent from './pages/Consent';
+import Training from './pages/Training';
+import Integrations from './pages/Integrations';
+import Certificate from './pages/Certificate';
+import NotFound from './pages/NotFound';
 import CookieConsent from './components/CookieConsent';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -63,7 +76,7 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useAuth();
   const location = useLocation();
 
-  if (isLoading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (isLoading) return <div className="route-loading" role="status">Loading customer workspace…</div>;
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
 
   return children;
@@ -72,10 +85,16 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 function RequireSuperAdmin({ children }: { children: ReactNode }) {
   const { isLoading, isSuperAdmin } = useAuth();
 
-  if (isLoading) return <div style={{ padding: '20px', color: 'white' }}>Loading...</div>;
+  if (isLoading) return <div className="route-loading" role="status">Loading administration…</div>;
   if (!isSuperAdmin) return <Navigate to="/dashboard" replace />;
 
   return children;
+}
+
+function UnknownRoute() {
+  const { isLoading, isAuthenticated } = useAuth();
+  if (isLoading) return <div className="route-loading" role="status">Loading page…</div>;
+  return isAuthenticated ? <PortalLayout><NotFound /></PortalLayout> : <NotFound publicPage />;
 }
 
 function App() {
@@ -90,14 +109,22 @@ function App() {
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="/public/dsr" element={<PublicDsr />} />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
+        <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/scans" element={<Scans />} />
+          <Route path="/scans/:id" element={<ScanDetail />} />
+          <Route path="/findings" element={<Findings />} />
+          <Route path="/data-requests" element={<DataRequests />} />
+          <Route path="/policies" element={<Policies />} />
+          <Route path="/vendors" element={<Vendors />} />
+          <Route path="/breaches" element={<Breaches />} />
+          <Route path="/consent" element={<Consent />} />
+          <Route path="/training" element={<Training />} />
+          <Route path="/integrations" element={<Integrations />} />
+          <Route path="/certificate" element={<Certificate />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
         <Route 
           path="/admin" 
           element={
@@ -106,22 +133,7 @@ function App() {
             </RequireSuperAdmin>
           } 
         />
-        <Route 
-          path="/team" 
-          element={
-            <ProtectedRoute>
-              <Team />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } 
-        />
+        <Route path="*" element={<UnknownRoute />} />
       </Routes>
       <CookieConsent />
     </AuthProvider>

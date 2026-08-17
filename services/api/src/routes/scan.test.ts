@@ -33,7 +33,7 @@ function digest(token: string) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
-function fakePrisma(initial: ScanRow[] = []) {
+function fakePrisma(initial: ScanRow[] = [], subscriptionStatuses: Record<string, string> = {}) {
   const scans = structuredClone(initial);
   let sequence = scans.length;
 
@@ -95,7 +95,7 @@ function fakePrisma(initial: ScanRow[] = []) {
       findUnique: async ({ where }: any) => (users as any)[where.id] ?? null,
     },
     organization: {
-      findUnique: async ({ where }: any) => ({ id: where.id, subscriptionStatus: 'active' }),
+      findUnique: async ({ where }: any) => ({ id: where.id, subscriptionStatus: subscriptionStatuses[where.id] ?? 'active' }),
     },
   };
 
@@ -247,6 +247,83 @@ test('scan history and deletion remain scoped to the authenticated tenant', asyn
   const ownDelete = await app.inject({ method: 'DELETE', url: '/api/scan/a-scan', headers: bearer(app, 'user-a') });
   assert.equal(ownDelete.statusCode, 204);
   assert.equal(store.scans.some((scan) => scan.id === 'a-scan'), false);
+});
+
+test('free scan history exposes only the exact allowlisted finding summary', async (t) => {
+  const freeFinding = {
+    finding_type: 'tracking_scripts',
+    title: 'Tracking scripts found',
+    description: 'Diagnostic description',
+    severity: 'HIGH',
+    status: 'NEEDS_ACTION',
+    evidence: 'Sensitive evidence',
+    remediation: 'Premium remediation',
+    gdpr_article: 'Article 7',
+    affected_selector: '#tracking-script',
+    unexpected_future_scanner_property: 'must never leak',
+  };
+  const store = fakePrisma([{
+    ...anonymousScan('free-scan', '4'.repeat(64), new Date(), 'org-a'),
+    score: 64,
+    findingsJson: [freeFinding, { severity: 'low', status: 'PASS', description: 'Passed diagnostic' }],
+  }], { 'org-a': 'free' });
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+
+  const response = await app.inject({ method: 'GET', url: '/api/scan', headers: bearer(app, 'user-a') });
+  assert.equal(response.statusCode, 200);
+  const [scan] = response.json();
+  assert.equal(scan.score, 64);
+  assert.deepEqual(scan.findingsJson, [{ severity: 'high' }]);
+  assert.deepEqual(Object.keys(scan.findingsJson[0]), ['severity']);
+  for (const forbidden of ['description', 'evidence', 'remediation', 'gdpr_article', 'affected_selector', 'unexpected_future_scanner_property']) {
+    assert.equal(forbidden in scan.findingsJson[0], false);
+  }
+});
+
+test('paid scan history retains the complete finding response', async (t) => {
+  const fullFinding = {
+    finding_type: 'privacy_policy_missing',
+    title: 'Privacy policy missing',
+    description: 'No privacy policy link was found.',
+    severity: 'high',
+    evidence: 'No matching link',
+    remediation: 'Add a policy link',
+    gdpr_article: 'Article 13',
+    scanner_metadata: { source: 'synthetic-test' },
+  };
+  const store = fakePrisma([{
+    ...anonymousScan('paid-scan', '5'.repeat(64), new Date(), 'org-a'),
+    score: 72,
+    findingsJson: [fullFinding],
+  }], { 'org-a': 'active' });
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+
+  const response = await app.inject({ method: 'GET', url: '/api/scan', headers: bearer(app, 'user-a') });
+  assert.equal(response.statusCode, 200);
+  const [scan] = response.json();
+  assert.equal(scan.score, 72);
+  assert.deepEqual(scan.findingsJson, [fullFinding]);
+});
+
+test('new free scans return score and count without diagnostic fields', async (t) => {
+  const store = fakePrisma([], { 'org-a': 'free' });
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    gdpr_compliance_percentage: 58,
+    risk_level: 'HIGH',
+    findings: [{ severity: 'critical', description: 'secret diagnostic', evidence: 'secret evidence', future: 'secret future field' }, { severity: 'medium', remediation: 'secret remediation' }],
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
+  t.after(() => { globalThis.fetch = originalFetch; });
+
+  const response = await app.inject({ method: 'POST', url: '/api/scan', headers: bearer(app, 'user-a'), payload: { targetIdentifier: 'free.example.test', scanType: 'website' } });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.json().score, 58);
+  assert.deepEqual(response.json().findingsJson, [{ severity: 'critical' }, { severity: 'medium' }]);
+  assert.equal(response.json().findingsJson.length, 2);
 });
 
 test('authenticated scan creation derives ownership from each authenticated tenant', async (t) => {

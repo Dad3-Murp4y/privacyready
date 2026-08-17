@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Integrations() { return <OperationalWorkspace eyebrow="Connections" title="Integrations" description="Connect supported services when account-backed integration state becomes available." emptyTitle="No live integrations available" emptyDescription="OAuth and persistent connection state are not implemented. Nothing is marked connected without server evidence." />; }

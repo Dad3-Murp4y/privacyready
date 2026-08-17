@@ -117,14 +117,25 @@ async function callScanner(endpoint: string, payload: object) {
   }
 }
 
-function redactFindings(findings: any) {
-  if (!Array.isArray(findings)) return findings;
-  return findings.map((f: any) => ({
-    ...f,
-    evidence: 'Redacted (Premium only)',
-    gdpr_article: 'REDACTED',
-    remediation: 'Redacted (Premium only)'
-  }));
+const FREE_FINDING_SEVERITIES = new Set(['critical', 'high', 'medium', 'low']);
+
+/**
+ * The complete free finding contract. Keep this allowlist deliberately small:
+ * free users may see issue counts and risk distribution, but no diagnostic
+ * fields that explain what was found or how to remediate it.
+ */
+function freeFindingSummaries(findings: unknown) {
+  if (!Array.isArray(findings)) return [];
+  return findings.filter((finding: unknown) => {
+    if (!finding || typeof finding !== 'object') return true;
+    const candidate = finding as { passed?: unknown; status?: unknown };
+    return candidate.passed !== true && String(candidate.status ?? '').toUpperCase() !== 'PASS';
+  }).map((finding: unknown) => {
+    const rawSeverity = finding && typeof finding === 'object' && 'severity' in finding
+      ? String((finding as { severity?: unknown }).severity).toLowerCase()
+      : '';
+    return { severity: FREE_FINDING_SEVERITIES.has(rawSeverity) ? rawSeverity : 'unknown' };
+  });
 }
 
 export async function registerScanRoutes(app: FastifyInstance, dependencies: ScanRouteDependencies = {}) {
@@ -235,7 +246,7 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
         status: updated.status,
         score: updated.score,
         riskLevel: updated.riskLevel,
-        findingsJson: redactFindings(updated.findingsJson),
+        findingsJson: freeFindingSummaries(updated.findingsJson),
         createdAt: updated.createdAt,
         completedAt: updated.completedAt,
         // The raw value is intentionally returned once for a possible
@@ -269,7 +280,7 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
 
     if (!isPremium) {
       scans.forEach(scan => {
-        scan.findingsJson = redactFindings(scan.findingsJson);
+        scan.findingsJson = freeFindingSummaries(scan.findingsJson);
       });
     }
 
@@ -326,7 +337,7 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
       let responseFindings = result.findings;
       const org = await prismaClient.organization.findUnique({ where: { id: user.org } });
       if (org?.subscriptionStatus !== 'active') {
-        responseFindings = redactFindings(responseFindings);
+        responseFindings = freeFindingSummaries(responseFindings);
       }
 
       return {

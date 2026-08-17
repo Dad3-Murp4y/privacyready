@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Consent() { return <OperationalWorkspace eyebrow="Consent records" title="Consent management" description="Review consent evidence when persistent consent storage becomes available." emptyTitle="Consent management is not yet available" emptyDescription="The current API is a scaffold and does not persist consent records, so this workspace does not imply otherwise." />; }

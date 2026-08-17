@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Training() { return <OperationalWorkspace eyebrow="Staff awareness" title="Training" description="Track genuine staff training evidence when this capability is implemented." emptyTitle="Training tracking coming soon" emptyDescription="No employee completion model exists yet. No completion data is fabricated." />; }

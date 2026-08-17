@@ -1,0 +1,2 @@
+import OperationalWorkspace from '../components/OperationalWorkspace';
+export default function Certificate() { return <OperationalWorkspace eyebrow="Readiness evidence" title="Privacy Readiness Certificate" description="Summarise supported readiness evidence without implying regulatory accreditation." emptyTitle="Certificate generation coming soon" emptyDescription="The current application has no accredited or persistent certificate mechanism." />; }
