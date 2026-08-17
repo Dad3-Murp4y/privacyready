@@ -1,6 +1,6 @@
 # PrivacyReady Security & Compliance Architecture
 
-This document outlines the security controls, automated scanning pipelines, and infrastructure-level protections implemented across the PrivacyReady platform to ensure GDPR compliance, data integrity, and high availability.
+This document outlines the security controls, validation practices, and infrastructure-level protections implemented across the PrivacyReady platform to ensure GDPR compliance, data integrity, and high availability.
 
 ## 1. Secure Coding Practices
 
@@ -42,19 +42,15 @@ Our scanning microservices (Facebook, LINE, TikTok) use Python's native API requ
 *   **DNS Security (DNSSEC):** Route53 is configured with DNSSEC signing, providing cryptographic proof of origin and preventing DNS spoofing or cache poisoning.
 *   **Origin IP Obfuscation:** The Application Load Balancer (ALB) Security Groups are strictly bound to the AWS Managed Prefix List for CloudFront (`com.amazonaws.global.cloudfront.origin-facing`). Direct internet access to backend instances is completely blocked.
 *   **DDoS & Bot Mitigation:** AWS WAFv2 is attached to the ALB, implementing Rate Limiting and AWS Managed Bot Control to drop malicious scrapers.
-*   **Secret Management:** No API keys are hardcoded in Terraform or Application Code. Secrets are injected at runtime via Environment Variables and CI/CD variables.
+*   **Secret Management:** No API keys are hardcoded in Terraform or application code. AWS runtime secrets are held in AWS Secrets Manager and injected into ECS tasks; operator-supplied deployment values are handled by the guarded `rebuild-aws.sh` workflow.
 
 ---
 
-## 3. Automated Security Scanning (CI/CD)
+## 3. Security Validation and Delivery
 
-Our GitLab CI/CD pipeline enforces the following automated security checks on every commit:
+GitHub is the source repository. GitLab CI/CD is retired, and GitHub Actions is not currently the deployment system. There is no automated CD pipeline. Operators deploy AWS staging through the guarded `rebuild-aws.sh` workflow, and Terraform defines the AWS infrastructure.
 
-1.  **Dependencies (npm audit / Trivy):** Checks Node.js and Docker base images for known CVEs.
-2.  **Tfsec:** Analyzes Terraform HCL files for cloud misconfigurations (e.g., publicly open S3 buckets).
-3.  **Bandit & Safety:** Scans Python source code for insecure function calls and verifies Python dependency versions.
-4.  **ShellCheck:** Analyzes Bash/Shell scripts for syntax errors and security loopholes (like missing quotes).
-5.  **ESLint Security:** Uses `eslint-plugin-security` to identify risky regex or dangerous string evaluations in TypeScript/JavaScript.
+Repository validation commands, including dependency audits, application tests, linting, Terraform validation, and shell checks, are run as part of reviewed development and operator workflows where applicable. A future GitHub Actions pipeline may use AWS OIDC and protected environments, but it must not replace the repository's deployment safety controls without an explicit operational change.
 
 ---
 
