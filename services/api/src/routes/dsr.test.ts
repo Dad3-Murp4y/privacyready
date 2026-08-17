@@ -7,6 +7,13 @@ import { registerDsrRoutes } from './dsr.js';
 const users = {
   'user-a': { id: 'user-a', role: 'ADMIN', organizationId: 'org-a' },
   'user-b': { id: 'user-b', role: 'ADMIN', organizationId: 'org-b' },
+  'user-free': { id: 'user-free', role: 'ADMIN', organizationId: 'org-free' },
+};
+
+const organizations = {
+  'org-a': { id: 'org-a', subscriptionStatus: 'active' },
+  'org-b': { id: 'org-b', subscriptionStatus: 'active' },
+  'org-free': { id: 'org-free', subscriptionStatus: 'inactive' },
 };
 
 function fakePrisma() {
@@ -18,7 +25,10 @@ function fakePrisma() {
     records,
     client: {
       user: { findUnique: async ({ where }: any) => (users as any)[where.id] ?? null },
-      organization: { findFirst: async () => null },
+      organization: {
+        findUnique: async ({ where }: any) => (organizations as any)[where.id] ?? null,
+        findFirst: async ({ where }: any) => where.name === 'Public Organisation' ? { id: 'org-a' } : null,
+      },
       dsrRequest: {
         findMany: async ({ where }: any) => records.filter((record) => record.organizationId === where.organizationId),
         findFirst: async ({ where }: any) => records.find((record) => record.id === where.id && record.organizationId === where.organizationId) ?? null,
@@ -57,6 +67,44 @@ test('DSR lists are isolated by the authenticated organisation', async (t) => {
   assert.deepEqual(responseB.json().map((record: any) => record.id), ['dsr-b']);
 });
 
+test('unauthenticated DSR access is rejected', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+
+  const response = await app.inject({ method: 'GET', url: '/api/dsr' });
+  assert.equal(response.statusCode, 401);
+});
+
+test('a free organisation cannot retrieve DSR records or probe an individual ID', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+
+  const headers = bearer(app, 'user-free');
+  const list = await app.inject({ method: 'GET', url: '/api/dsr', headers });
+  const individual = await app.inject({ method: 'GET', url: '/api/dsr/dsr-a', headers });
+
+  assert.equal(list.statusCode, 403);
+  assert.deepEqual(list.json(), { error: 'Premium subscription required' });
+  assert.equal(individual.statusCode, 403);
+  assert.deepEqual(individual.json(), { error: 'Premium subscription required' });
+});
+
+test('a free organisation cannot create or manage DSR records', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  const headers = bearer(app, 'user-free');
+
+  const create = await app.inject({ method: 'POST', url: '/api/dsr', headers, payload: { subjectEmail: 'subject@example.test', requestType: 'ACCESS' } });
+  const update = await app.inject({ method: 'PATCH', url: '/api/dsr/dsr-a', headers, payload: { status: 'COMPLETED' } });
+
+  assert.equal(create.statusCode, 403);
+  assert.equal(update.statusCode, 403);
+  assert.equal(store.records.find((record) => record.id === 'dsr-a')?.status, 'PENDING');
+});
+
 test('one tenant cannot update another tenant DSR by guessing its ID', async (t) => {
   const store = fakePrisma();
   const app = await testApp(store.client);
@@ -91,4 +139,19 @@ test('DSR creation always uses the authenticated organisation', async (t) => {
 
   assert.equal(response.statusCode, 201);
   assert.equal(response.json().organizationId, 'org-a');
+});
+
+test('public DSR submission remains available without authentication', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/public/dsr',
+    payload: { organizationName: 'Public Organisation', subjectEmail: 'subject@example.test', requestType: 'ACCESS' },
+  });
+
+  assert.equal(response.statusCode, 201);
+  assert.equal(response.json().success, true);
 });

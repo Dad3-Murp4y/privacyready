@@ -39,61 +39,18 @@ export default function CookieConsent() {
   if (!isVisible) return null;
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: '24px',
-      left: '24px',
-      right: '24px',
-      backgroundColor: '#1e293b',
-      color: '#f8fafc',
-      padding: '24px',
-      borderRadius: '12px',
-      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
-      zIndex: 9999,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '16px',
-      border: '1px solid rgba(255,255,255,0.1)'
-    }}>
+    <section className="cookie-consent" aria-labelledby="cookie-consent-title">
       <div>
-        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>Your Privacy Choices</h3>
-        <p style={{ margin: 0, fontSize: '14px', color: '#cbd5e1', lineHeight: '1.5' }}>
+        <h2 id="cookie-consent-title">Your privacy choices</h2>
+        <p>
           We use essential cookies to run this site, and optional analytics cookies to understand how it's used.
-          Choose "Decline Optional" to use only essential cookies, or "Accept All" to also allow analytics.
+          Choose essential only or allow analytics too.
         </p>
       </div>
-      <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-        <button 
-          onClick={handleDecline}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: 'transparent',
-            border: '1px solid rgba(255,255,255,0.2)',
-            color: 'white',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
-        >
-          Decline Optional
-        </button>
-        <button 
-          onClick={handleAccept}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#0ea5e9',
-            border: 'none',
-            color: 'white',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
-        >
-          Accept All
-        </button>
+      <div className="cookie-consent__actions">
+        <button type="button" onClick={handleDecline}>Essential only</button>
+        <button type="button" className="is-primary" onClick={handleAccept}>Accept analytics</button>
       </div>
-    </div>
+    </section>
   );
 }

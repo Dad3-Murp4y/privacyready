@@ -14,6 +14,7 @@ import MarketingHomepage from './pages/MarketingHomepage';
 import CookieConsent from './components/CookieConsent';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { Wrench } from 'lucide-react';
 
 function MaintenanceBanner() {
   const [isOffline, setIsOffline] = useState(false);
@@ -50,7 +51,7 @@ function MaintenanceBanner() {
 
   return (
     <div className="global-maintenance-banner">
-      <span className="maintenance-icon">🛠️</span>
+      <Wrench className="maintenance-icon" aria-hidden="true" />
       <p>
         <strong>Maintenance Mode:</strong> The portal is currently offline for scheduled maintenance. Login and data access are temporarily unavailable.
       </p>
@@ -78,8 +79,6 @@ function RequireSuperAdmin({ children }: { children: ReactNode }) {
 }
 
 function App() {
-  const location = useLocation();
-
   return (
     <AuthProvider>
       <MaintenanceBanner />
@@ -124,7 +123,7 @@ function App() {
           } 
         />
       </Routes>
-      {location.pathname !== '/' && <CookieConsent />}
+      <CookieConsent />
     </AuthProvider>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShieldCheck, 
-  LogOut, 
+  LogOut,
   Activity, 
   Plus, 
   Search,
@@ -32,6 +32,8 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import SettingsComponent from './Settings';
 import OverviewTab from '../components/tabs/OverviewTab';
+import { AppShell } from '../components/layout/AppShell';
+import { Button, PageHeader } from '../components/ui';
 
 interface AuditCheck {
   name: string;
@@ -82,20 +84,6 @@ interface RemediationTask {
   completed: boolean;
 }
 
-interface VendorRecord {
-  id: string;
-  name: string;
-  purpose: string;
-  dataShared: string;
-  dpaSigned: boolean;
-  country: string;
-  riskLevel: 'Low' | 'Medium' | 'High';
-}
-
-
-
-
-
 interface NotificationItem {
   id: string;
   title: string;
@@ -125,12 +113,7 @@ export default function Dashboard() {
   const [hasSubscription, setHasSubscription] = useState<boolean>(false);
 
   // Notifications state
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    { id: '1', title: 'DSR #DSR-102 due in 3 days', time: '10m ago', type: 'warning', read: false },
-    { id: '2', title: 'Scan score improved to 92% on example.co.uk', time: '2h ago', type: 'success', read: false },
-    { id: '3', title: 'New vendor DPA added: Stripe Inc.', time: '1d ago', type: 'info', read: true },
-    { id: '4', title: 'Article 33 72-Hour countdown active for incident BR-2026-001', time: '1d ago', type: 'warning', read: false }
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   // Audits list state
   const [audits, setAudits] = useState<Audit[]>([]);
@@ -142,19 +125,7 @@ export default function Dashboard() {
   const [selectedDsr, setSelectedDsr] = useState<DSR | null>(null);
 
   // Breach incidents state
-  const [breaches, setBreaches] = useState<BreachIncident[]>([
-    {
-      id: 'BR-2026-001',
-      title: 'Suspicious Admin Login Attempt',
-      discoveredDate: new Date(Date.now() - 36 * 3600 * 1000).toLocaleString(),
-      discoveredTimestamp: Date.now() - 36 * 3600 * 1000,
-      dataAffected: 'Server access logs (No PII compromised)',
-      riskLevel: 'Low',
-      icoNotificationRequired: false,
-      status: 'Resolved',
-      notes: 'Investigated by SecOps. IP blocked at firewalls. No data exfiltrated.'
-    }
-  ]);
+  const [breaches, setBreaches] = useState<BreachIncident[]>([]);
   const [showIcoWizard, setShowIcoWizard] = useState<boolean>(false);
   const [icoFormData, setIcoFormData] = useState({
     nature: 'Unauthorized Access Attempt',
@@ -164,8 +135,6 @@ export default function Dashboard() {
   });
 
   // Vendor Register State
-  const [vendorList] = useState<VendorRecord[]>([]);
-
   // New Scan Form State
   const [target, setTarget] = useState('');
   const [scanType, setScanType] = useState<'Website' | 'Facebook' | 'Instagram' | 'LinkedIn' | 'TikTok' | 'WhatsApp' | 'Mailchimp' | 'Google Analytics 4'>('Website');
@@ -185,8 +154,9 @@ export default function Dashboard() {
   // Interactive Remediation Task List State
   const [remediationTasks, setRemediationTasks] = useState<RemediationTask[]>([]);
 
-  // Live Date/Time
-  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+  // Used only by the temporarily retained, non-rendered legacy header during migration.
+  const [currentTime] = useState<Date>(new Date());
+  const renderLegacyChrome = false as boolean;
 
   const showToast = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
     setToast({ message, type });
@@ -218,11 +188,6 @@ export default function Dashboard() {
       showToast('Unable to connect to Stripe Checkout. Please try again later.', 'error');
     }
   };
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   // Token validation is now handled globally by AuthContext
 
@@ -287,8 +252,8 @@ export default function Dashboard() {
               type: item.scanType || item.type || 'Website',
               date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today',
               timestamp: item.createdAt ? new Date(item.createdAt).getTime() : Date.now(),
-              score: item.score || 85,
-              status: (item.score || 85) >= 80 ? 'Passed' : 'Warning',
+              score: typeof item.score === 'number' ? item.score : 0,
+              status: typeof item.score === 'number' && item.score >= 80 ? 'Passed' : 'Warning',
               checks: item.findingsJson ? item.findingsJson.map((f: any) => ({
                 name: f.finding_type || f.checkName || f.title || 'GDPR Finding',
                 passed: f.status === 'PASS' || f.passed === true,
@@ -309,31 +274,39 @@ export default function Dashboard() {
         setIsLoading(false);
       }
 
-      try {
-        const dsrRes = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, {
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' }
-        });
-        if (dsrRes.ok) {
-          const dData = await dsrRes.json();
-          const dsrsMapped = dData.map((d: any) => ({
-            id: d.id,
-            type: d.requestType,
-            email: d.subjectEmail,
-            date: new Date(d.createdAt).toLocaleDateString('en-GB'),
-            createdAtTimestamp: new Date(d.createdAt).getTime(),
-            status: d.status,
-            description: d.reasonText || 'No description provided'
-          }));
-          setDsrs(dsrsMapped);
-        }
-      } catch (err) {
-        console.error('Failed to fetch DSRs', err);
-      }
     };
 
     fetchAudits();
   }, [navigate]);
+
+  useEffect(() => {
+    if (!hasSubscription) {
+      setDsrs([]);
+      return;
+    }
+    const fetchDsrs = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/dsr`, { credentials: 'include' });
+        if (!response.ok) {
+          setDsrs([]);
+          return;
+        }
+        const data = await response.json();
+        setDsrs(data.map((dsr: any) => ({
+          id: dsr.id,
+          type: dsr.requestType,
+          email: dsr.subjectEmail,
+          date: new Date(dsr.createdAt).toLocaleDateString('en-GB'),
+          createdAtTimestamp: new Date(dsr.createdAt).getTime(),
+          status: dsr.status,
+          description: dsr.reasonText || 'No description provided'
+        })));
+      } catch {
+        setDsrs([]);
+      }
+    };
+    void fetchDsrs();
+  }, [hasSubscription]);
 
   useEffect(() => {
     if (audits.length > 0) {
@@ -394,17 +367,6 @@ export default function Dashboard() {
 
   const overallScore = calculateOverallScore();
 
-  const get8Pillars = () => [
-    { title: '1. Consent & Notice', passed: overallScore >= 80, desc: 'Explicit consent gating & Article 13 privacy notice.' },
-    { title: '2. Privacy Governance', passed: authUser?.role === 'ADMIN' || authUser?.role === 'SUPERADMIN', desc: 'Designated DPO/Compliance lead & internal privacy policy.' },
-    { title: '3. Data Subject Rights (DSR)', passed: dsrs.length === 0 || dsrs.every(d => d.status === 'Completed'), desc: 'Workflow for handling access, rectification & erasure requests.' },
-    { title: '4. Encryption & Transmission', passed: audits.every(a => a.score > 70), desc: 'Enforced TLS 1.3 & encrypted data storage at rest.' },
-    { title: '5. Third-Party Disclosures', passed: vendorList.every(v => v.dpaSigned), desc: 'Data Processing Agreements (DPAs) signed with processors.' },
-    { title: '6. Data Retention & Minimisation', passed: true, desc: 'Retention schedules defined and automated deletion in place.' },
-    { title: '7. Breach Management', passed: breaches.every(b => b.status === 'Resolved' || b.status === 'ICO Notified'), desc: 'Article 33 incident response plan & 72h notification protocol.' },
-    { title: '8. Safeguards & Staff Hygiene', passed: false, desc: 'Employee data protection training & access controls.' }
-  ];
-
   const handleCopyPolicy = () => {
     if (!hasSubscription) {
       showToast('Exporting generated policies is a Pro feature. Please upgrade to unlock.', 'error');
@@ -439,10 +401,7 @@ export default function Dashboard() {
 
   const renderPaywallWrapper = (title: string, description: string, children: React.ReactNode) => (
     <div className="paywall-blur-container">
-      <div className={!hasSubscription ? 'paywall-blurred-content' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-        {children}
-      </div>
-      {!hasSubscription && (
+      {hasSubscription ? <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>{children}</div> : (
         <div className="paywall-overlay">
           <ShieldCheck size={52} color="var(--sky)" style={{ marginBottom: '16px' }} />
           <h3 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 8px 0', color: '#fff' }}>
@@ -458,14 +417,14 @@ export default function Dashboard() {
               className="btn-primary" 
               style={{ padding: '12px 24px', fontSize: '14px', fontWeight: 700 }}
             >
-              Pro Starter (£49/mo)
+              Founder (£15/mo)
             </button>
             <button 
               onClick={() => handleStripeCheckout('growth')}
               className="btn-secondary" 
               style={{ padding: '12px 24px', fontSize: '14px', fontWeight: 700 }}
             >
-              Pro Growth (£149/mo)
+              Growth (£39/mo)
             </button>
           </div>
         </div>
@@ -474,7 +433,33 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="dashboard-layout" style={{ background: 'var(--navy-dark)', minHeight: '100vh', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column' }}>
+    <AppShell
+      navItems={[
+        { id: 'overview', label: 'Overview', icon: <LayoutGrid size={18} /> },
+        { id: 'past_audits', label: 'Scans and assets', icon: <Activity size={18} /> },
+        { id: 'dsr_manager', label: 'DSR manager', icon: <Clock size={18} />, premium: true },
+        { id: 'policy_generator', label: 'Policy workspace', icon: <FileCheck size={18} />, premium: true },
+        { id: 'consent_manager', label: 'Consent manager', icon: <Sliders size={18} />, premium: true },
+        { id: 'vendors_ropa', label: 'Vendors and ROPA', icon: <Layers size={18} />, premium: true },
+        { id: 'breach_register', label: 'Breach register', icon: <ShieldAlert size={18} />, premium: true },
+        { id: 'training', label: 'Staff training', icon: <GraduationCap size={18} />, premium: true },
+        { id: 'integrations', label: 'Integrations', icon: <Webhook size={18} />, premium: true },
+        { id: 'certificate', label: 'Compliance badge', icon: <Award size={18} />, premium: true },
+        { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
+      ]}
+      activeNav={activeTab}
+      mobileOpen={isMobileMenuOpen}
+      onMobileOpenChange={setIsMobileMenuOpen}
+      onNavigate={(id) => setActiveTab(id as typeof activeTab)}
+      onNotifications={() => setShowNotifications((open) => !open)}
+      userName={authUser?.fullName || 'Account user'}
+      organisation={authUser?.organizationName || 'Your organisation'}
+      isPremium={hasSubscription}
+      onUpgrade={() => handleStripeCheckout('starter')}
+      onLogout={() => { logout(); navigate('/login'); }}
+      actions={<Button variant="ghost" onClick={() => setShowOnboarding(true)}>Setup guide</Button>}
+    >
+    <div className="dashboard-layout dashboard-v2">
       
       {/* GLOBAL TOAST NOTIFICATION REPLACING ALERT() */}
       {toast && (
@@ -499,9 +484,15 @@ export default function Dashboard() {
           {toast.message}
         </div>
       )}
+      {showNotifications && (
+        <section className="notification-panel" aria-label="Notifications">
+          <div className="notification-panel__header"><strong>Notifications</strong><Button variant="ghost" onClick={() => setNotifications(notifications.map((notification) => ({ ...notification, read: true })))}>Mark all read</Button></div>
+          {notifications.length === 0 ? <p className="notification-panel__empty">You have no notifications.</p> : notifications.map((notification) => <div className={notification.read ? 'notification-item' : 'notification-item is-unread'} key={notification.id}><strong>{notification.title}</strong><span>{notification.time}</span></div>)}
+        </section>
+      )}
 
-      {/* TOP HEADER BAR WITH NOTIFICATIONS & RESPONSIVE TOGGLE */}
-      <header style={{
+      {/* Superseded controls are retained temporarily in source for later feature migration, but are not rendered. */}
+      {renderLegacyChrome && <><header style={{
         height: '70px',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
         background: 'rgba(10, 15, 30, 0.8)',
@@ -611,7 +602,7 @@ export default function Dashboard() {
                 boxShadow: '0 4px 12px rgba(230, 126, 34, 0.3)'
               }}
             >
-              🔒 Upgrade Plan (£15/mo)
+              Upgrade plan (£15/mo)
             </button>
           )}
 
@@ -673,10 +664,16 @@ export default function Dashboard() {
             );
           })}
         </div>
-      </nav>
+      </nav></>}
 
       {/* MAIN CONTAINER */}
       <main style={{ padding: '32px 24px', maxWidth: '1400px', margin: '0 auto', flex: 1, width: '100%' }}>
+        <PageHeader
+          eyebrow="Compliance command centre"
+          title={activeTab === 'overview' ? 'What needs your attention' : 'Privacy workspace'}
+          description={activeTab === 'overview' ? 'Prioritise material privacy risks, review progress, and move the next actions forward.' : 'Your existing workspace tools remain available while navigation is prepared for route-based sections.'}
+          actions={activeTab === 'overview' ? <Button onClick={() => setActiveTab('past_audits')}><Plus size={17} /> Run a scan</Button> : undefined}
+        />
         
         {/* ITEM 17: LOADING SKELETON */}
         {isLoading ? (
@@ -695,7 +692,7 @@ export default function Dashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 
                 {/* ITEM 25: MULTI-ASSET DASHBOARD HEADER */}
-                <div style={{ background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {renderLegacyChrome && <div style={{ background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7))', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '24px', padding: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                       <Globe size={24} color="var(--sky)" />
@@ -719,16 +716,17 @@ export default function Dashboard() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>}
 
                 {/* ALL DETAILED COMPLIANCE RESULTS (8 PILLARS, SCORE PROGRESSION, REMEDIATION TASKS) WRAPPED IN PAYWALL BLUR */}
                 <OverviewTab 
                   overallScore={overallScore}
-                  get8Pillars={get8Pillars}
+                  audits={audits}
                   remediationTasks={remediationTasks}
                   handleToggleTask={handleToggleTask}
                   hasSubscription={hasSubscription}
                   handleStripeCheckout={handleStripeCheckout}
+                  onViewScans={() => setActiveTab('past_audits')}
                 />
               </div>
             )}
@@ -748,14 +746,14 @@ export default function Dashboard() {
                       onChange={(e) => setScanType(e.target.value as any)}
                       style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '12px 16px', borderRadius: '12px', fontSize: '14px', outline: 'none' }}
                     >
-                      <option value="Website">🌐 Website Domain</option>
-                      <option value="Facebook">👍 Facebook Page</option>
-                      <option value="Instagram">📸 Instagram Handle</option>
-                      <option value="LinkedIn">💼 LinkedIn Lead Gen</option>
-                      <option value="TikTok">🎵 TikTok Profile</option>
-                      <option value="WhatsApp">💬 WhatsApp Business</option>
-                      <option value="Mailchimp">✉️ Mailchimp CRM</option>
-                      <option value="Google Analytics 4">📊 Google Analytics 4</option>
+                      <option value="Website">Website domain</option>
+                      <option value="Facebook">Facebook page</option>
+                      <option value="Instagram">Instagram handle</option>
+                      <option value="LinkedIn">LinkedIn lead generation</option>
+                      <option value="TikTok">TikTok profile</option>
+                      <option value="WhatsApp">WhatsApp Business</option>
+                      <option value="Mailchimp">Mailchimp CRM</option>
+                      <option value="Google Analytics 4">Google Analytics 4</option>
                     </select>
 
                     <input 
@@ -873,7 +871,7 @@ export default function Dashboard() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ fontWeight: 700, fontSize: '15px' }}>{d.type}</span>
                                 <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: 700, background: isOverdue ? 'rgba(231,76,60,0.2)' : 'rgba(56,189,248,0.15)', color: isOverdue ? '#e74c3c' : 'var(--sky)' }}>
-                                  {isOverdue ? '🚨 OVERDUE' : `⏳ ${daysLeft} Days Remaining`}
+                                  {isOverdue ? 'Overdue' : `${daysLeft} days remaining`}
                                 </span>
                               </div>
                               <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Requester: {d.email} • Requested {d.date}</div>
@@ -1017,9 +1015,9 @@ export default function Dashboard() {
               Follow these 3 quick steps to automate your organisation's UK GDPR compliance:
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '20px 0' }}>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}>1️⃣ <strong>Add domain & social profiles</strong> to your audit registry.</div>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}>2️⃣ <strong>Generate your UK GDPR Privacy Policy</strong> using the wizard.</div>
-              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}>3️⃣ <strong>Review 8 Pillars</strong> and complete remediation tasks.</div>
+              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}><strong>1. Add domain and social profiles</strong> to your audit registry.</div>
+              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}><strong>2. Generate your UK GDPR privacy policy</strong> using the wizard.</div>
+              <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '13px' }}><strong>3. Review eight pillars</strong> and complete remediation tasks.</div>
             </div>
             <button onClick={() => setShowOnboarding(false)} style={{ width: '100%', background: 'var(--sky)', color: '#0f172a', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' }}>
               Get Started
@@ -1109,5 +1107,6 @@ export default function Dashboard() {
       </footer>
 
     </div>
+    </AppShell>
   );
 }
