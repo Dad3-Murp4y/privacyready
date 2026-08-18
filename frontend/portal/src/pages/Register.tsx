@@ -134,7 +134,7 @@ export default function Register() {
       setRegistered(true);
     } catch (err: any) {
       if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
-        setError('⚠️ System is currently offline for maintenance. Please try again later.');
+        setError('The system is currently offline for maintenance. Please try again later.');
       } else {
         setError(err.message || 'Registration failed');
       }
@@ -168,7 +168,7 @@ export default function Register() {
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
         <a href={import.meta.env.VITE_MARKETING_URL} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
-          <Home size={18} /> Back to Home
+          <Home size={18} /> Back to home
         </a>
       </div>
       <div className="auth-card">
@@ -176,8 +176,8 @@ export default function Register() {
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
             <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
           </div>
-          <h1 className="auth-title">Create Account</h1>
-          <p className="auth-subtitle">Start your GDPR compliance journey</p>
+          <h1 className="auth-title">Create account</h1>
+          <p className="auth-subtitle">Set up your PrivacyReady workspace</p>
         </div>
 
         {error && (
@@ -188,7 +188,7 @@ export default function Register() {
 
         <form className="auth-form" onSubmit={handleRegister} autoComplete="off">
           <div className="form-group">
-            <label className="form-label" htmlFor="register-full-name">Full Name</label>
+            <label className="form-label" htmlFor="register-full-name">Full name</label>
             <input 
               id="register-full-name"
               type="text" 
@@ -200,7 +200,7 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label" htmlFor="register-organisation">Organisation Name</label>
+            <label className="form-label" htmlFor="register-organisation">Organisation name</label>
             <input 
               id="register-organisation"
               type="text" 
@@ -212,7 +212,7 @@ export default function Register() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label" htmlFor="register-email">Email Address</label>
+            <label className="form-label" htmlFor="register-email">Email address</label>
             <input 
               id="register-email"
               type="email" 
@@ -258,7 +258,7 @@ export default function Register() {
               style={{ marginTop: '3px', cursor: 'pointer' }}
             />
             <label htmlFor="terms" style={{ fontSize: '13px', color: 'var(--text-secondary)', cursor: 'pointer', lineHeight: '1.5' }}>
-              I agree to the <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Terms of Service</a> and <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Privacy Policy</a>, and I acknowledge that PrivacyReady is a compliance management tool, not legal advice.
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>Privacy Policy</a>, and I acknowledge that PrivacyReady is a compliance management tool, not legal advice.
             </label>
           </div>
 

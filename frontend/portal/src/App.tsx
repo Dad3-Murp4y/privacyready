@@ -25,6 +25,7 @@ import Integrations from './pages/Integrations';
 import Certificate from './pages/Certificate';
 import NotFound from './pages/NotFound';
 import CookieConsent from './components/CookieConsent';
+import { AboutPage, ContactPage, CookiesPage, ComingSoonPage, FaqPage, GdprGuidePage, PrivacyPage, TermsPage } from './pages/PublicPages';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { Wrench } from 'lucide-react';
@@ -108,6 +109,21 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/gdpr-guide" element={<GdprGuidePage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/cookies" element={<CookiesPage />} />
+        <Route path="/coming-soon/:feature" element={<ComingSoonPage />} />
+        <Route path="/about.html" element={<Navigate to="/about" replace />} />
+        <Route path="/contact.html" element={<Navigate to="/contact" replace />} />
+        <Route path="/faq.html" element={<Navigate to="/faq" replace />} />
+        <Route path="/privacy-policy.html" element={<Navigate to="/privacy" replace />} />
+        <Route path="/terms.html" element={<Navigate to="/terms" replace />} />
+        <Route path="/cookies.html" element={<Navigate to="/cookies" replace />} />
+        <Route path="/coming-soon.html" element={<ComingSoonPage />} />
         <Route path="/public/dsr" element={<PublicDsr />} />
         <Route element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<Dashboard />} />

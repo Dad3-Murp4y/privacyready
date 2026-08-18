@@ -66,10 +66,10 @@ export default function PublicDsr() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', color: '#fff', padding: '24px' }}>
         <div style={{ background: 'var(--bg-card)', padding: '40px', borderRadius: '16px', maxWidth: '500px', width: '100%', textAlign: 'center', border: '1px solid rgba(165,215,232,0.2)' }}>
           <CheckCircle2 size={64} color="var(--primary)" style={{ margin: '0 auto 24px' }} />
-          <h2 style={{ fontSize: '24px', margin: '0 0 16px', color: 'var(--sky)' }}>Request Submitted</h2>
+          <h2 style={{ fontSize: '24px', margin: '0 0 16px', color: 'var(--sky)' }}>Request submitted</h2>
           <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>
-            Your Data Subject Request has been securely transmitted to <strong>{orgName}</strong>. 
-            Under the UK GDPR, they have 30 days to review and respond to this request.
+            Your data subject request has been submitted to <strong>{orgName}</strong>.
+            Under the UK GDPR, organisations usually need to respond without undue delay and within one month, subject to the applicable rules.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
             <Shield size={14} /> Powered securely by PrivacyReady
@@ -100,7 +100,7 @@ export default function PublicDsr() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Full Name</label>
+            <label className="form-label">Full name</label>
             <input 
               type="text" 
               name="subjectName"
@@ -113,7 +113,7 @@ export default function PublicDsr() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Email address</label>
             <input 
               type="email" 
               name="subjectEmail"
@@ -129,7 +129,7 @@ export default function PublicDsr() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Request Type</label>
+            <label className="form-label">Request type</label>
             <select 
               name="requestType"
               className="form-input" 
@@ -137,20 +137,20 @@ export default function PublicDsr() {
               onChange={handleChange}
               required
             >
-              <option value="ACCESS">Right of Access (Get a copy of my data)</option>
-              <option value="ERASURE">Right to Erasure (Delete my data)</option>
-              <option value="RECTIFICATION">Right to Rectification (Correct my data)</option>
-              <option value="PORTABILITY">Right to Data Portability (Transfer my data)</option>
-              <option value="RESTRICTION">Right to Restrict Processing</option>
+              <option value="ACCESS">Right of access (get a copy of my data)</option>
+              <option value="ERASURE">Right to erasure (delete my data)</option>
+              <option value="RECTIFICATION">Right to rectification (correct my data)</option>
+              <option value="PORTABILITY">Right to data portability (transfer my data)</option>
+              <option value="RESTRICTION">Right to restrict processing</option>
             </select>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Additional Details (Optional)</label>
+            <label className="form-label">Additional details (optional)</label>
             <textarea 
               name="reasonText"
               className="form-input" 
-              placeholder="Please provide any additional context to help locate your data..."
+              placeholder="Please provide any additional context to help locate your data…"
               rows={4}
               value={formData.reasonText}
               onChange={handleChange}
@@ -163,7 +163,7 @@ export default function PublicDsr() {
             style={{ width: '100%', justifyContent: 'center', marginTop: '16px' }}
             disabled={loading || !orgName}
           >
-            {loading ? 'Submitting...' : 'Submit Request'}
+            {loading ? 'Submitting…' : 'Submit request'}
           </button>
         </form>
 

@@ -74,13 +74,13 @@ export default function Login() {
       }
     } catch (err) {
       console.error('Login failed', err);
-      setError('⚠️ System is currently offline for maintenance. Please try again later.');
+      setError('The system is currently offline for maintenance. Please try again later.');
     }
   };
 
   const handleResendVerification = async () => {
     try {
-      setResendStatus('Sending...');
+      setResendStatus('Sending…');
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/resend-verification`, {
       credentials: 'include',
         method: 'POST',
@@ -88,12 +88,12 @@ export default function Login() {
         body: JSON.stringify({ email })
       });
       if (res.ok) {
-        setResendStatus('Verification link sent! Check your inbox.');
+        setResendStatus('Verification link sent. Check your inbox.');
       } else {
         setResendStatus('Failed to resend. Please try again later.');
       }
     } catch (err) {
-      setResendStatus('⚠️ System is currently offline for maintenance. Please try again later.');
+      setResendStatus('The system is currently offline for maintenance. Please try again later.');
     }
   };
 
@@ -115,7 +115,7 @@ export default function Login() {
       <div className="auth-glow" />
       <div style={{ position: 'absolute', top: '32px', left: '32px', zIndex: 10 }}>
         <a href={import.meta.env.VITE_MARKETING_URL} style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, fontFamily: 'inherit' }}>
-          <Home size={18} /> Back to Home
+          <Home size={18} /> Back to home
         </a>
       </div>
       <div className="auth-card">
@@ -127,13 +127,13 @@ export default function Login() {
               <CheckCircle2 size={64} strokeWidth={1.5} />
             </div>
             <div className="auth-header">
-              <h1 className="auth-title">Link Sent</h1>
+              <h1 className="auth-title">Reset unavailable</h1>
               <p className="auth-subtitle" style={{ lineHeight: '1.5' }}>
-                If an account is associated with <strong>{resetEmail}</strong>, we have sent a secure password reset link. Please check your inbox.
+                Password reset email is not currently connected, so no message has been sent to <strong>{resetEmail}</strong>. Contact <a href="mailto:hello@privacyready.co.uk">hello@privacyready.co.uk</a> for account support.
               </p>
             </div>
             <button className="btn btn-primary" onClick={handleBackToSignIn} style={{ width: '100%', marginTop: '24px' }}>
-              Back to Sign In
+              Back to sign in
             </button>
           </div>
         ) : isForgot ? (
@@ -143,13 +143,13 @@ export default function Login() {
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
                 <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
               </div>
-              <h1 className="auth-title">Reset Password</h1>
-              <p className="auth-subtitle">Enter your email to receive a recovery link</p>
+              <h1 className="auth-title">Reset password</h1>
+              <p className="auth-subtitle">Password reset email is not currently connected. Enter your email to view account-support guidance.</p>
             </div>
 
             <form className="auth-form" onSubmit={handleResetPassword}>
               <div className="form-group">
-                <label className="form-label" htmlFor="reset-email">Email Address</label>
+                <label className="form-label" htmlFor="reset-email">Email address</label>
                 <input 
                   id="reset-email"
                   type="email" 
@@ -162,12 +162,12 @@ export default function Login() {
               </div>
 
               <button type="submit" className="btn btn-primary">
-                Send Reset Link <ArrowRight size={18} />
+                Continue <ArrowRight size={18} />
               </button>
             </form>
 
             <div className="auth-footer">
-              <a href="#" onClick={(e) => { e.preventDefault(); handleBackToSignIn(); }}>Back to Sign In</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); handleBackToSignIn(); }}>Back to sign in</a>
             </div>
           </div>
         ) : (
@@ -202,7 +202,7 @@ export default function Login() {
 
             <form className="auth-form" onSubmit={handleLogin} autoComplete="off">
               <div className="form-group">
-                <label className="form-label" htmlFor="login-email">Email Address</label>
+                <label className="form-label" htmlFor="login-email">Email address</label>
                 <input 
                   id="login-email"
                   type="email" 
@@ -231,7 +231,7 @@ export default function Login() {
               </div>
 
               <button type="submit" className="btn btn-primary">
-                Sign In <ArrowRight size={18} />
+                Sign in <ArrowRight size={18} />
               </button>
             </form>
 
