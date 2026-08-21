@@ -156,7 +156,7 @@ export default function BlogPostDetail() {
           </div>
           <div>
             <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{post.author.name}</div>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{post.author.role} • PrivacyReady Expert</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{post.author.role}</div>
           </div>
         </div>
       </header>
@@ -249,7 +249,7 @@ export default function BlogPostDetail() {
         textAlign: 'center'
       }}>
         <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
-          Want to scan your platforms for these compliance items?
+          Want to review observable privacy signals on your website?
         </p>
         <button 
           onClick={() => navigate('/dashboard')} 
@@ -274,7 +274,7 @@ export default function BlogPostDetail() {
             e.currentTarget.style.boxShadow = 'none';
           }}
         >
-          Open Compliance Dashboard
+          Open compliance dashboard
         </button>
       </footer>
     </div>

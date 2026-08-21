@@ -21,19 +21,19 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: '1',
     slug: 'navigating-gdpr-cookie-consent-rules-2026',
-    title: 'Navigating GDPR Cookie Consent Rules in 2026',
-    summary: 'The legal landscape of tracking cookies is shifting. Learn how modern privacy regulators define active consent, and how to stay compliant with zero friction.',
+    title: 'Navigating GDPR cookie consent rules in 2026',
+    summary: 'A practical overview of active consent and the website signals organisations should review when using tracking technologies.',
     category: 'Compliance Guide',
-    publishedAt: 'July 8, 2026',
+    publishedAt: '8 July 2026',
     author: {
-      name: 'Sarah Jenkins',
-      role: 'Head of Privacy & Compliance'
+      name: 'PrivacyReady team',
+      role: 'Editorial team'
 },
     readTime: '5 min read',
     content: [
       {
         type: 'paragraph',
-        text: 'Data privacy and tracking cookies remain a critical battleground for consumer trust and compliance. Regulators across Europe and the UK have significantly stepped up their enforcement actions against non-compliant "cookie banners." To ensure your organisation is compliant in 2026, it is essential to understand what constitutes true legal consent.'
+        text: 'Data privacy and tracking cookies remain important considerations for customer trust and compliance. Organisations using non-essential cookies should understand what constitutes valid consent and review their implementation against current regulatory guidance.'
       },
       {
         type: 'heading',
@@ -49,7 +49,7 @@ export const BLOG_POSTS: BlogPost[] = [
           'Freely Given: Users must have a genuine choice. You cannot block access to your services or content just because a user declines non-essential cookies.',
           'Specific: You must obtain separate consent for separate purposes (e.g., analytics cookies vs. marketing/retargeting cookies).',
           'Informed: The banner must clearly explain who is tracking the user, what data is collected, and how it is used.',
-          'Unambiguous: Consent requires a clear affirmative action. Implied consent—such as "by continuing to browse, you accept cookies"—is completely illegal.',
+          'Unambiguous: Consent requires a clear affirmative action. Implied consent, such as "by continuing to browse, you accept cookies", does not provide a valid affirmative choice.',
           'Easy to Withdraw: Users must be able to change their minds and revoke consent at any time, as easily as they gave it.'
         ]
       },
@@ -59,7 +59,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'paragraph',
-        text: 'One of the most common compliance failures we scan for is the design of the banner buttons. Dark patterns—such as making the "Accept All" button prominent and bright while hiding "Reject All" inside a settings sub-menu—are now heavily penalized. Your "Reject All" button must be just as visible, styled equally, and accessible with a single click as the accept button.'
+        text: 'One website signal worth reviewing is the design of consent-banner controls. Dark patterns, such as making the "Accept all" button prominent while hiding "Reject all" inside a settings submenu, can undermine a valid choice. Rejecting optional cookies should be as straightforward as accepting them.'
       },
       {
         type: 'quote',
@@ -67,7 +67,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'heading',
-        text: 'Actionable Steps to Compliance'
+        text: 'Practical review steps'
       },
       {
         type: 'paragraph',
@@ -76,33 +76,33 @@ export const BLOG_POSTS: BlogPost[] = [
       {
         type: 'list',
         text: [
-          'Verify that all tracking scripts (Google Analytics, Meta Pixel, Hotjar, etc.) are blocked BEFORE the user clicks "Accept".',
+          'Verify that optional tracking scripts, such as analytics or advertising tools, do not run before the user gives the required consent.',
           'Ensure your cookie banner is responsive and has clear, non-manipulative button layouts.',
-          'Implement a persistent privacy badge or widget (like the PrivacyReady widget) that lets users reopen consent preferences at any time.'
+          'Provide a persistent, accessible control that lets users revisit their consent preferences at any time.'
         ]
       },
       {
         type: 'paragraph',
-        text: 'At PrivacyReady, we automatically scan and detect these issues on your digital properties so you can address compliance gaps before regulators do.'
+        text: 'PrivacyReady scans observable website signals, including cookies and third-party script indicators, to help organisations identify areas that need further review. A scan is not legal advice and does not certify compliance.'
       }
     ]
   },
   {
     id: '2',
     slug: 'automating-data-subject-requests-dsr',
-    title: 'How to Automate Data Subject Requests (DSR) Safely',
-    summary: 'Handling manual GDPR right-to-know and erasure requests is a significant administrative bottleneck. Discover how automated workflows securely verify and fulfill DSRs.',
+    title: 'How to manage data subject requests safely',
+    summary: 'Practical considerations for receiving, assigning and recording data subject requests without overstating what software can automate.',
     category: 'Product Update',
-    publishedAt: 'June 24, 2026',
+    publishedAt: '24 June 2026',
     author: {
-      name: 'David Kross',
-      role: 'Lead Architect'
+      name: 'PrivacyReady team',
+      role: 'Editorial team'
 },
     readTime: '4 min read',
     content: [
       {
         type: 'paragraph',
-        text: 'Under GDPR Article 15 (Right of Access) and Article 17 (Right to Erasure), individuals have the power to request a copy of their data or ask for its permanent deletion. Historically, processing these requests was a highly manual, error-prone effort involving multiple engineering, legal, and support teams. In 2026, manual processing is no longer viable at scale.'
+        text: 'Under UK GDPR, individuals may exercise rights including access to personal data and, in relevant circumstances, erasure. Handling these requests can require coordination across operational, technical and legal teams. Software can support the workflow, but the organisation remains responsible for identity checks, decisions and responses.'
       },
       {
         type: 'heading',
@@ -110,22 +110,22 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'paragraph',
-        text: 'A typical manual Data Subject Request (DSR) consumes approximately 10-15 engineering hours. Teams have to scour logs, search production databases, clear caches, and filter through customer support records—all while verifying that no other user\'s private data is accidentally leaked in the export. This manual coordination often risks exceeding the strict 30-day regulatory response window.'
+        text: 'A data subject request can require teams to search relevant systems, review records and protect other people\'s personal data while preparing a response. Clear ownership and an auditable workflow help organisations manage the applicable response period without assuming that every request follows the same process.'
       },
       {
         type: 'heading',
-        text: 'The PrivacyReady DSR Solution'
+        text: 'A practical DSR workflow'
       },
       {
         type: 'paragraph',
-        text: 'We are thrilled to highlight our built-in DSR Manager. Designed to operate safely with minimal configuration, the system automates the verification and lookup phases:'
+        text: 'A useful request-management workflow should support the organisation without pretending to make legal decisions or perform unsupported data operations. Consider the following controls:'
       },
       {
         type: 'list',
         text: [
-          'Secure Authentication: Users submitting a request are securely verified via email OTP or OAuth, preventing malicious "identity theft" deletion requests.',
-          'Automated Database Mapping: Once authorized, our API routes connect to your customer tables to securely generate a formatted JSON export of the user\'s data.',
-          'Safe Deletion Handshakes: For deletion requests, a cascading sequence cleanly deletes or anonymizes user tables without breaking foreign key constraints or historic analytical aggregates.'
+          'Identity checks: Define a proportionate method for confirming the requester\'s identity before disclosing or changing personal data.',
+          'Request records: Record the request type, owner, status, relevant dates and decisions in an organisation-controlled workflow.',
+          'Reviewed fulfilment: Search, export, correct or erase data only through approved systems and processes, with appropriate checks for exemptions and other people\'s rights.'
         ]
       },
       {
@@ -140,26 +140,26 @@ export const BLOG_POSTS: BlogPost[] = [
         type: 'list',
         text: [
           'Encrypt all DSR outputs: Exported archives must be password-protected or served over short-lived secure download links.',
-          'Keep an audit log: Document the receipt, processing state, and completion date of every request. (PrivacyReady does this automatically in your admin dashboard).',
+          'Keep an audit log: Document the receipt, processing state, decisions and completion date of every request.',
           'Exempt active legal files: Ensure your deletion routines preserve data required for tax, compliance, or fraud prevention.'
         ]
       },
       {
         type: 'paragraph',
-        text: 'Automating your DSRs reduces legal risks, guarantees SLA compliance, and saves your engineering team hundreds of hours of manual database query extraction.'
+        text: 'A structured workflow can reduce avoidable administrative effort and make deadlines easier to monitor. It does not guarantee compliance, determine whether an exemption applies or replace qualified advice.'
       }
     ]
   },
   {
     id: '3',
     slug: 'securing-web-apps-against-third-party-leaks',
-    title: 'Securing Web Applications Against Third-Party Script Leaks',
-    summary: 'Third-party scripts account for over 70% of client-side security vulnerabilities. Learn how Content Security Policies (CSP) and active scanning protect user data.',
+    title: 'Securing web applications against third-party script leaks',
+    summary: 'Learn how Content Security Policy and website scanning can help teams review risks introduced by third-party scripts.',
     category: 'Security',
-    publishedAt: 'May 15, 2026',
+    publishedAt: '15 May 2026',
     author: {
-      name: 'Marcus Vance',
-      role: 'Principal Security Researcher'
+      name: 'PrivacyReady team',
+      role: 'Editorial team'
 },
     readTime: '6 min read',
     content: [
@@ -173,7 +173,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'paragraph',
-        text: 'When a user fills out a registration form or enters payment details, a compromised or overly intrusive third-party script can bind event listeners to input fields. It can capture keystrokes and silently transmit personal data to unauthorized servers. Since these leaks occur entirely in the user\'s browser, traditional backend firewalls and API logs fail to detect them.'
+        text: 'When a user fills out a registration form or enters payment details, a compromised or overly intrusive third-party script can bind event listeners to input fields. It can capture keystrokes and silently transmit personal data to unauthorised servers. Since these leaks occur entirely in the user\'s browser, traditional backend firewalls and API logs may not detect them.'
       },
       {
         type: 'heading',
@@ -181,7 +181,7 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'paragraph',
-        text: 'A Content Security Policy is a powerful browser-level defense. By declaring which domains are allowed to load and execute scripts, you prevent unauthorized code from running. Here is a strong baseline CSP header configuration:'
+        text: 'A Content Security Policy is an important browser-level defence. By declaring which domains are allowed to load and execute scripts, it can help prevent unauthorised code from running. The following example illustrates the structure of a restrictive policy and must be adapted to the application it protects:'
       },
       {
         type: 'code',
@@ -197,11 +197,11 @@ export const BLOG_POSTS: BlogPost[] = [
       },
       {
         type: 'paragraph',
-        text: 'While a CSP protects you from unknown domains, it doesn\'t prevent a legitimate, trusted domain from being compromised (supply chain attacks). That is why continuous automated scanning is vital. PrivacyReady\'s active scanner crawls your web portals, analyzes executing JavaScript files, identifies scripts collecting sensitive data, and warns you immediately if a trusted script begins communicating with a suspicious, unlisted endpoint.'
+        text: 'A CSP does not eliminate the risk that a legitimate, trusted domain could be compromised in a supply-chain attack. PrivacyReady can surface observable third-party script indicators during a website scan so that teams can decide what requires further investigation. It does not provide continuous runtime monitoring or certify that scripts are safe.'
       },
       {
         type: 'paragraph',
-        text: 'By combining a strict, actively managed Content Security Policy with PrivacyReady continuous compliance audits, you close the gap on client-side vulnerabilities and safeguard your customers\' personal data.'
+        text: 'A maintained Content Security Policy, supplier review and periodic website scanning can form part of a wider approach to reducing client-side risk. Each control has limits and should be reviewed in the context of the organisation\'s actual systems.'
       }
     ]
   }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ArrowRight, Clock, BookOpen, User, Tag, ChevronLeft } from 'lucide-react';
 import { BLOG_POSTS } from '../data/blogPosts';
+import PublicSiteLayout from '../components/layout/PublicSiteLayout';
 
 export default function Blog() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function Blog() {
   });
 
   return (
+    <PublicSiteLayout title="PrivacyReady Blog | UK GDPR guides and updates" description="PrivacyReady guides, product updates and information about practical UK GDPR readiness." canonicalPath="/blog" mainClassName="blog-public">
     <div className="dashboard-container animate-fade-up">
       {/* Header */}
       <div className="dashboard-header" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '32px' }}>
@@ -45,7 +47,7 @@ export default function Blog() {
           <BookOpen size={32} color="var(--sky)" />
           <h1 className="dashboard-title" style={{ margin: 0 }}>PrivacyReady Blog</h1>
         </div>
-        <p className="dashboard-subtitle">Guides, insights, and updates from our security & compliance experts</p>
+        <p className="dashboard-subtitle">Guides, insights and updates about privacy and compliance operations</p>
       </div>
 
       {/* Filters & Search Row */}
@@ -58,12 +60,12 @@ export default function Blog() {
         marginBottom: '40px' 
       }}>
         {/* Search Input */}
-        <div className="search-bar" style={{ flex: '1', minWidth: '280px', maxWidth: '400px', margin: 0 }}>
+        <div className="search-bar" style={{ flex: '1', minWidth: 'min(280px, 100%)', maxWidth: '400px', margin: 0 }}>
           <Search className="search-icon" size={18} />
           <input 
             type="text" 
             className="search-input" 
-            placeholder="Search guides and updates..." 
+            placeholder="Search guides and updates…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -108,15 +110,14 @@ export default function Blog() {
 
       {/* Blog Cards Grid */}
       {filteredPosts.length > 0 ? (
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
-          gap: '30px' 
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(340px, 100%), 1fr))',
+          gap: '30px'
         }}>
           {filteredPosts.map((post, index) => (
             <article 
               key={post.id}
-              onClick={() => navigate(`/blog/${post.slug}`)}
               className={`animate-fade-up stagger-${(index % 3) + 1}`}
               style={{
                 background: 'var(--glass-bg)',
@@ -124,34 +125,15 @@ export default function Blog() {
                 border: '1px solid var(--glass-border)',
                 borderRadius: '16px',
                 padding: '24px',
-                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
                 transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
 }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(0, 229, 255, 0.3)';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 229, 255, 0.05)';
-                const titleEl = e.currentTarget.querySelector('.post-card-title') as HTMLElement;
-                if (titleEl) {
-                  titleEl.style.color = 'var(--sky)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--glass-border)';
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-                const titleEl = e.currentTarget.querySelector('.post-card-title') as HTMLElement;
-                if (titleEl) {
-                  titleEl.style.color = 'var(--text-primary)';
-                }
-              }}
             >
               {/* Category & Read Time Row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <span style={{ 
+                <span style={{
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '6px', 
@@ -220,7 +202,7 @@ export default function Blog() {
                     <div style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>{post.publishedAt}</div>
                   </div>
                 </div>
-                <span style={{ 
+                <Link to={`/blog/${post.slug}`} aria-label={`Read ${post.title}`} style={{
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '4px', 
@@ -229,7 +211,7 @@ export default function Blog() {
                   fontWeight: 500
                 }}>
                   Read Post <ArrowRight size={14} />
-                </span>
+                </Link>
               </div>
             </article>
           ))}
@@ -262,5 +244,6 @@ export default function Blog() {
         </div>
       )}
     </div>
+    </PublicSiteLayout>
   );
 }

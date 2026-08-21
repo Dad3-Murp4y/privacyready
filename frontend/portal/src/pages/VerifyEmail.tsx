@@ -53,7 +53,7 @@ export default function VerifyEmail() {
           </div>
           <h1 className="auth-title">
             {status === 'ready' && 'Confirm your email'}
-            {status === 'verifying' && 'Verifying your email...'}
+            {status === 'verifying' && 'Verifying your email…'}
             {status === 'success' && 'Email verified'}
             {status === 'error' && 'Verification failed'}
           </h1>

@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
-
-const CONSENT_KEY = 'gdpr_cookie_consent';
-const CONSENT_EVENT = 'privacyready:consent-changed';
+import { CONSENT_EVENT, CONSENT_KEY, OPEN_SETTINGS_EVENT } from '../utils/cookieConsent';
 
 /**
  * Call this before initializing any non-essential script (analytics,
  * ads, embeds). Returns false until the user has explicitly accepted.
- * This is the single source of truth for consent state — any script
+ * This is the single source of truth for consent state; any script
  * loader in the app should check this instead of reading localStorage
  * directly, so gating logic lives in one place.
  */
-export function hasAnalyticsConsent(): boolean {
-  return localStorage.getItem(CONSENT_KEY) === 'accepted';
-}
-
 export default function CookieConsent() {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -22,6 +16,10 @@ export default function CookieConsent() {
     if (!consent) {
       setIsVisible(true);
     }
+
+    const showSettings = () => setIsVisible(true);
+    window.addEventListener(OPEN_SETTINGS_EVENT, showSettings);
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, showSettings);
   }, []);
 
   const setConsent = (value: 'accepted' | 'declined') => {
