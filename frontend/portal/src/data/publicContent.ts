@@ -9,7 +9,15 @@ export const PUBLIC_FAQS = [
   },
   {
     question: 'What happens after the free scan?',
-    answer: 'You can create an account or sign in to claim the one-time scan and keep it in your organisation workspace. Paid plans add detailed operational tools and findings.',
+    answer: 'You can create an account or sign in to claim the one-time assessment and keep it in your organisation workspace. Paid plans add detailed findings, evidence, remediation guidance and operational tools.',
+  },
+  {
+    question: 'Can I verify changes after fixing an issue?',
+    answer: 'You can run another assessment after making changes and compare the latest score with the previous result. This checks whether observable website signals have changed; it does not verify legal compliance or certify a fix.',
+  },
+  {
+    question: 'Does PrivacyReady monitor my website automatically?',
+    answer: 'Not currently. You can manually repeat assessments as your website changes, but scheduled scans, automatic change detection and monitoring alerts are not yet available.',
   },
   {
     question: 'Is my organisation data kept separate?',
@@ -17,7 +25,7 @@ export const PUBLIC_FAQS = [
   },
   {
     question: 'Is PrivacyReady a law firm or a substitute for legal advice?',
-    answer: 'No. PrivacyReady is compliance software, not a law firm. Its scans and operational guidance do not constitute legal advice or guarantee compliance. Seek qualified legal advice for your organisation’s specific circumstances.',
+    answer: 'No. PrivacyReady is privacy operations software, not a law firm. Its assessments and operational guidance do not constitute legal advice or guarantee compliance. Seek qualified legal advice for your organisation’s specific circumstances.',
   },
   {
     question: 'How does PrivacyReady handle website scan data?',
