@@ -10,7 +10,6 @@ from dataclasses import asdict
 import facebook_scanner
 import instagram_scanner
 import linkedin_scanner
-import mailchimp_scanner
 import twitter_scanner
 import google_analytics_scanner as ga_scanner
 import whatsapp_scanner
@@ -50,7 +49,6 @@ class SocialScanRequest(BaseModel):
     ig_account_id: Optional[str] = None
     linkedin_token: Optional[str] = None
     linkedin_company_id: Optional[str] = None
-    mailchimp_api_key: Optional[str] = None
     twitter_token: Optional[str] = None
     twitter_username: Optional[str] = None
     ga_property_id: Optional[str] = None
@@ -76,13 +74,12 @@ def scan_website(req: WebsiteScanRequest):
         scanner = website_scanner.WebsiteScanner(req.url)
         findings = scanner.scan_all()
         all_findings.extend([asdict(f) for f in findings])
-    except Exception as e:
-        print(f"Website scan error: {e}")
+    except Exception:
         all_findings.append({
             "platform": "website",
             "severity": "medium",
             "finding_type": "scan_error",
-            "description": f"Failed to scan Website: {str(e)}"
+            "description": "The website scan could not be completed."
         })
 
     # Always go through the scorer, including for an empty findings list,
@@ -109,13 +106,12 @@ def scan_social(req: SocialScanRequest):
             scanner = facebook_scanner.FacebookScanner(req.facebook_token, req.facebook_page_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            print(f"Facebook scan error: {e}")
+        except Exception:
             all_findings.append({
                 "platform": "facebook",
                 "severity": "medium",
                 "finding_type": "scan_error",
-                "description": f"Failed to scan Facebook: {str(e)}"
+                "description": "The Facebook scan could not be completed."
             })
 
     # 2. Instagram Scan
@@ -124,13 +120,12 @@ def scan_social(req: SocialScanRequest):
             scanner = instagram_scanner.InstagramScanner(req.ig_access_token, req.ig_account_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            print(f"Instagram scan error: {e}")
+        except Exception:
             all_findings.append({
                 "platform": "instagram",
                 "severity": "medium",
                 "finding_type": "scan_error",
-                "description": f"Failed to scan Instagram: {str(e)}"
+                "description": "The Instagram scan could not be completed."
             })
 
     # 3. LinkedIn Scan
@@ -139,17 +134,8 @@ def scan_social(req: SocialScanRequest):
             scanner = linkedin_scanner.LinkedInScanner(req.linkedin_token, req.linkedin_company_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            all_findings.append({"platform": "linkedin", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
-
-    # 4. Mailchimp Scan
-    if req.mailchimp_api_key:
-        try:
-            scanner = mailchimp_scanner.MailchimpScanner(req.mailchimp_api_key)
-            findings = scanner.scan_all()
-            all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            all_findings.append({"platform": "mailchimp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+        except Exception:
+            all_findings.append({"platform": "linkedin", "severity": "medium", "finding_type": "scan_error", "description": "The LinkedIn scan could not be completed."})
 
     # 5. Twitter Scan
     if req.twitter_token and req.twitter_username:
@@ -157,8 +143,8 @@ def scan_social(req: SocialScanRequest):
             scanner = twitter_scanner.TwitterScanner(req.twitter_token, req.twitter_username)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            all_findings.append({"platform": "twitter", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+        except Exception:
+            all_findings.append({"platform": "twitter", "severity": "medium", "finding_type": "scan_error", "description": "The Twitter scan could not be completed."})
 
     # 6. Google Analytics Scan
     if req.ga_property_id:
@@ -166,8 +152,8 @@ def scan_social(req: SocialScanRequest):
             scanner = ga_scanner.GoogleAnalyticsScanner(req.ga_property_id)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            all_findings.append({"platform": "google_analytics", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+        except Exception:
+            all_findings.append({"platform": "google_analytics", "severity": "medium", "finding_type": "scan_error", "description": "The Google Analytics scan could not be completed."})
 
     # 7. WhatsApp Scan
     if req.whatsapp_phone:
@@ -175,8 +161,8 @@ def scan_social(req: SocialScanRequest):
             scanner = whatsapp_scanner.WhatsAppScanner(req.whatsapp_phone)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            all_findings.append({"platform": "whatsapp", "severity": "medium", "finding_type": "scan_error", "description": str(e)})
+        except Exception:
+            all_findings.append({"platform": "whatsapp", "severity": "medium", "finding_type": "scan_error", "description": "The WhatsApp scan could not be completed."})
 
     # 8. TikTok Scan
     if req.tiktok_username:
@@ -184,13 +170,12 @@ def scan_social(req: SocialScanRequest):
             scanner = tiktok_scanner.TikTokScanner(req.tiktok_username)
             findings = scanner.scan_all()
             all_findings.extend([asdict(f) for f in findings])
-        except Exception as e:
-            print(f"TikTok scan error: {e}")
+        except Exception:
             all_findings.append({
                 "platform": "tiktok",
                 "severity": "medium",
                 "finding_type": "scan_error",
-                "description": f"Failed to scan TikTok: {str(e)}"
+                "description": "The TikTok scan could not be completed."
             })
 
     # 4. Calculate Unified Score -- same reasoning as scan_website above:

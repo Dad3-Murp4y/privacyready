@@ -1,5 +1,6 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { prisma } from './db.js';
+import { maskedEmail } from './safe-logging.js';
 
 const REGION = process.env.AWS_REGION || 'eu-west-2';
 export const DEFAULT_SES_FROM_EMAIL = 'no-reply@notify.privacyready.co.uk';
@@ -22,7 +23,7 @@ export async function sendEmail(to: string, subject: string, htmlBody: string, t
   // Check suppression list before sending to protect SES reputation
   const suppressed = await prisma.suppressionList.findUnique({ where: { email: to } });
   if (suppressed) {
-    console.warn(`[SES] Skipped sending to ${to} (Suppression reason: ${suppressed.reason})`);
+    console.warn(`[SES] Skipped sending to ${maskedEmail(to)} (Suppression reason: ${suppressed.reason})`);
     return null;
   }
 

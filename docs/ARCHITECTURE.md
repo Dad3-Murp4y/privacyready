@@ -177,6 +177,8 @@ RDS PostgreSQL is the durable system of record. Storage is encrypted and network
 
 Application records use organisation identifiers to enforce tenant ownership. Anonymous scans initially have no organisation. The authenticated claim operation assigns the organisation derived from the authenticated session, not client input. Scan history is consequently scoped by organisation. This document intentionally does not infer schema relationships beyond the repository implementation.
 
+Application retention is implemented as an explicit, dry-run-first command rather than an automatic scheduler. Organisation deletion requires a separate deletion request and 30-day recovery period; Stripe subscription cancellation changes entitlements but does not delete data. See [`RETENTION.md`](RETENTION.md).
+
 ## Scanner Security
 
 The scanner's primary boundary is network isolation: private subnet, no public IP, no load balancer, API-only ingress, and a shared API key checked with constant-time comparison. Application protections in `website_scanner.py` include:

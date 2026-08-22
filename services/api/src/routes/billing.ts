@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { Readable } from 'node:stream';
 import { prisma } from '../db.js';
+import { safeErrorMetadata } from '../safe-logging.js';
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 const STRIPE_PRICE_ID = process.env.STRIPE_PRICE_ID || '';
@@ -136,8 +137,8 @@ export async function registerBillingRoutes(app: FastifyInstance) {
     const isGrowth = plan === 'growth';
     const planName = isGrowth ? 'Growth' : 'Founder';
     const planDesc = isGrowth 
-      ? 'Full UK GDPR compliance suite, Consent Manager, Vendor ROPA, Staff Training & Priority Support'
-      : 'Founder subscription, Policy Generators, DSR Tracker & Article 33 Breach Register';
+      ? 'PrivacyReady Growth subscription for practical privacy operations'
+      : 'PrivacyReady Founder subscription for practical privacy operations';
     const unitAmount = isGrowth ? 3900 : 1500; // £39.00 or £15.00
 
     const priceId = isGrowth 
@@ -180,7 +181,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       const session = await response.json();
 
       if (!response.ok) {
-        app.log.error({ session }, 'Stripe API error');
+        app.log.error({ stripeErrorType: session.error?.type, stripeErrorCode: session.error?.code, httpStatusCode: response.status }, 'Stripe API error');
         return reply.code(400).send({ error: session.error?.message || 'Failed to create Stripe session' });
       }
 
@@ -189,7 +190,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
         sessionId: session.id
       };
     } catch (err) {
-      app.log.error({ err }, 'Stripe checkout error');
+      app.log.error(safeErrorMetadata(err), 'Stripe checkout error');
       return reply.code(500).send({ error: 'Internal server error creating checkout session' });
     }
   });
@@ -264,13 +265,13 @@ export async function registerBillingRoutes(app: FastifyInstance) {
       const session = await response.json();
 
       if (!response.ok) {
-        app.log.error({ session }, 'Stripe Portal API error');
+        app.log.error({ stripeErrorType: session.error?.type, stripeErrorCode: session.error?.code, httpStatusCode: response.status }, 'Stripe Portal API error');
         return reply.code(400).send({ error: session.error?.message || 'Failed to create portal session' });
       }
 
       return { url: session.url };
     } catch (err) {
-      app.log.error({ err }, 'Stripe portal error');
+      app.log.error(safeErrorMetadata(err), 'Stripe portal error');
       return reply.code(500).send({ error: 'Internal server error creating portal session' });
     }
   });
@@ -357,7 +358,7 @@ export async function registerBillingRoutes(app: FastifyInstance) {
 
       return { received: true };
     } catch (err) {
-      app.log.error({ err }, 'Webhook processing failed');
+      app.log.error({ ...safeErrorMetadata(err), stripeEventType: event.type }, 'Webhook processing failed');
       return reply.code(500).send({ error: 'Webhook processing failed' });
     }
   });

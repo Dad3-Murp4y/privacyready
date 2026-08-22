@@ -1,7 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
-import { openCookieSettings } from '../../utils/cookieConsent';
 
 type PublicSiteLayoutProps = {
   children: ReactNode;
@@ -84,7 +83,7 @@ export default function PublicSiteLayout({ children, title, description, canonic
               <li><Link to="/privacy">Privacy policy</Link></li>
               <li><Link to="/terms">Terms of service</Link></li>
               <li><Link to="/cookies">Cookie policy</Link></li>
-              <li><button type="button" className="footer-link-button" onClick={openCookieSettings}>Cookie settings</button></li>
+              <li><Link to="/cookies">Browser storage</Link></li>
             </ul>
           </div>
         </div>

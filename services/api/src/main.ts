@@ -13,6 +13,8 @@ import { teamRoutes } from './routes/team.js';
 import { adminRoutes } from './routes/admin.js';
 import { registerBillingRoutes } from './routes/billing.js';
 import { registerPolicyRoutes } from './routes/policies.js';
+import { accountRoutes } from './routes/account.js';
+import { safeErrorMetadata } from './safe-logging.js';
 
 import { Redis } from 'ioredis';
 
@@ -71,6 +73,7 @@ async function buildServer() {
   await app.register(adminRoutes, { prefix: '/api' });
   await app.register(registerBillingRoutes, { prefix: '/api/billing' });
   await registerPolicyRoutes(app);
+  await app.register(accountRoutes);
 
 
   return app;
@@ -81,7 +84,7 @@ async function start() {
   try {
     await app.listen({ port, host });
   } catch (error) {
-    app.log.error(error);
+    app.log.error(safeErrorMetadata(error), 'API startup failed');
     process.exit(1);
   }
 }

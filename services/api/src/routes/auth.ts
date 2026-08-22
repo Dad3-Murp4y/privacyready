@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../email.js';
+import { safeErrorMetadata } from '../safe-logging.js';
 
 type AuthPrisma = Pick<typeof prisma, 'user' | 'organization' | 'scan' | '$transaction'>;
 
@@ -135,7 +136,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
     try {
       await issueVerificationEmail(prismaClient, sendVerification, user.id, user.email, user.fullName);
     } catch (err) {
-      request.log.error(err, 'Failed to send verification email');
+      request.log.error(safeErrorMetadata(err), 'Failed to send verification email');
     }
 
     // No session token issued here on purpose -- login is blocked until
@@ -201,7 +202,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
       try {
         await issueVerificationEmail(prismaClient, sendVerification, user.id, user.email, user.fullName);
       } catch (err) {
-        request.log.error(err, 'Failed to resend verification email');
+        request.log.error(safeErrorMetadata(err), 'Failed to resend verification email');
       }
     }
 
@@ -241,11 +242,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
 
     const token = app.jwt.sign({ sub: user.id, org: user.organizationId, role: user.role }, { expiresIn: '1h' });
     const isProd = process.env.NODE_ENV === 'production';
-    const payload = token.split('.')[1];
-    reply.header('Set-Cookie', [
-      `__Host-token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${isProd ? '; Secure' : ''}`,
-      `auth_payload=${payload}; Path=/; Max-Age=3600; SameSite=Lax${isProd ? '; Secure' : ''}`
-    ]);
+    reply.header('Set-Cookie', `__Host-token=${token}; HttpOnly; Path=/; Max-Age=3600; SameSite=Lax${isProd ? '; Secure' : ''}`);
     return { success: true, requiresPasswordChange: user.requiresPasswordChange };
   });
 
@@ -304,7 +301,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
         const delivery = await sendPasswordReset(user.email, user.fullName, resetUrl);
         if (delivery === null) throw new Error('Password reset email was not delivered');
       } catch (err) {
-        request.log.error(err, 'Failed to send reset email');
+        request.log.error(safeErrorMetadata(err), 'Failed to send reset email');
         // A token the user never received must not remain usable. Keep the
         // public response generic while invalidating the failed reset state.
         await prismaClient.user.update({

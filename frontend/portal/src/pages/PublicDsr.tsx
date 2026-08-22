@@ -108,6 +108,7 @@ export default function PublicDsr() {
               placeholder="e.g. Jane Doe"
               value={formData.subjectName}
               onChange={handleChange}
+              maxLength={200}
               required
             />
           </div>
@@ -121,6 +122,7 @@ export default function PublicDsr() {
               placeholder="jane@example.com"
               value={formData.subjectEmail}
               onChange={handleChange}
+              maxLength={254}
               required
             />
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -154,7 +156,11 @@ export default function PublicDsr() {
               rows={4}
               value={formData.reasonText}
               onChange={handleChange}
+              maxLength={2000}
             />
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px', lineHeight: 1.5 }}>
+              Provide only what is necessary to locate and understand your request. Do not include passwords, payment details, identity documents or unrelated sensitive information about you or anyone else. Maximum 2,000 characters.
+            </div>
           </div>
 
           <button 

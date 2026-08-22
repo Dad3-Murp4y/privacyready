@@ -67,7 +67,7 @@ class TikTokScanner:
             username=self.username,
             finding_type='comments_pii_heuristic',
             severity='medium',
-            description='Public video comments may contain PII — manual review required',
+            description='Public video comments may contain PII; manual review required',
             evidence='TikTok API restrictions prevent automated comment scanning',
             gdpr_article='Article 32 (Security of processing)',
             remediation='Manually review recent video comments; delete any containing phone/email/ID; enable comment moderation'
