@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import Fastify from 'fastify';
 import jwt from '@fastify/jwt';
 import rateLimit from '@fastify/rate-limit';
-import { authRoutes } from './auth.js';
+import { authRoutes, PASSWORD_RESET_REQUEST_MESSAGE, REGISTRATION_MESSAGE, VERIFICATION_REQUEST_MESSAGE } from './auth.js';
 
 type TestUser = {
   id: string;
@@ -105,7 +105,7 @@ test('successful registration sends verification but keeps the account unverifie
 
   const response = await app.inject({ method: 'POST', url: '/api/auth/register', payload: registration });
   assert.equal(response.statusCode, 201);
-  assert.deepEqual(response.json(), { message: 'Account created. Check your email to verify your address before logging in.' });
+  assert.deepEqual(response.json(), { message: REGISTRATION_MESSAGE });
   assert.equal(deliveries.length, 1);
   const user = store.users[0];
   assert.equal(user.emailVerified, false);
@@ -140,7 +140,8 @@ test('verification delivery failures never verify the user or permit login', asy
       method: 'POST', url: '/api/auth/resend-verification', payload: { email: registration.email },
     });
     assert.equal(resent.statusCode, 200);
-    assert.equal(resent.json().message, 'If that email is registered and unverified, a new verification link has been sent.');
+    assert.equal(resent.json().message, VERIFICATION_REQUEST_MESSAGE);
+    assert.equal(resent.json().message.includes('has been sent'), false);
     assert.equal(user.emailVerified, false);
   }
   assert.equal(attempts, 3);
@@ -171,6 +172,7 @@ test('password-reset delivery success stores only a hash and returns no token', 
 
   const response = await app.inject({ method: 'POST', url: '/api/auth/forgot-password', payload: { email: user.email } });
   assert.equal(response.statusCode, 200);
+  assert.equal(response.json().message, PASSWORD_RESET_REQUEST_MESSAGE);
   const rawToken = new URL(deliveredUrl).searchParams.get('token');
   assert.ok(rawToken);
   assert.equal(store.users[0].passwordResetTokenHash, digest(rawToken));
@@ -203,6 +205,8 @@ test('password-reset delivery failure preserves the password and invalidates res
   assert.equal(providerCalled, true);
   assert.equal(known.statusCode, 200);
   assert.deepEqual(known.json(), unknown.json());
+  assert.equal(known.json().message, PASSWORD_RESET_REQUEST_MESSAGE);
+  assert.equal(known.json().message.includes('has been sent'), false);
   assert.equal(JSON.stringify(known.json()).includes('synthetic SES'), false);
   assert.equal(store.users[0].passwordHash, originalHash);
   assert.equal(store.users[0].passwordResetTokenHash, null);

@@ -16,6 +16,7 @@ export default function Register() {
   const [orgName, setOrgName] = useState('');
   const [error, setError] = useState('');
   const [registered, setRegistered] = useState(false);
+  const [registrationMessage, setRegistrationMessage] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const navigate = useNavigate();
 
@@ -110,6 +111,7 @@ export default function Register() {
       sessionStorage.removeItem('freeScanClaimToken');
       sessionStorage.removeItem('freeScanUrl');
       sessionStorage.removeItem('freeScanScore');
+      setRegistrationMessage(data.message || 'Account request accepted. If a verification message can be delivered, you will receive a link before you can sign in.');
       setRegistered(true);
     } catch (err: any) {
       if (err.message === 'Failed to fetch' || err.message === 'NetworkError when attempting to fetch resource.') {
@@ -129,9 +131,9 @@ export default function Register() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
               <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
             </div>
-            <h1 className="auth-title">Check your email</h1>
+            <h1 className="auth-title">Registration request accepted</h1>
             <p className="auth-subtitle">
-              We've sent a verification link to <strong>{email}</strong>. Click it to activate your account, then log in.
+              {registrationMessage}
             </p>
           </div>
           <div className="auth-footer">

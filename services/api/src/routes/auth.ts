@@ -16,6 +16,9 @@ interface AuthRouteOptions {
 
 const PORTAL_URL = process.env.PORTAL_URL || 'https://portal.privacyready.co.uk';
 const VERIFY_TOKEN_TTL_HOURS = 24;
+export const REGISTRATION_MESSAGE = 'Account request accepted. If a verification message can be delivered, you will receive a link before you can sign in.';
+export const VERIFICATION_REQUEST_MESSAGE = 'If an unverified account matches that email and a message can be delivered, you will receive a new verification link.';
+export const PASSWORD_RESET_REQUEST_MESSAGE = 'If an account matches that email and a message can be delivered, you will receive a password reset link. If it does not arrive, contact account support.';
 
 // TypeBox schemas for validation and sanitization
 const RegisterSchema = {
@@ -80,7 +83,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
     if (existingUser) {
       // To prevent email enumeration, pretend registration succeeded
       return reply.status(201).send({
-        message: 'Account created. Check your email to verify your address before logging in.'
+        message: REGISTRATION_MESSAGE
       });
     }
 
@@ -142,7 +145,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
     // No session token issued here on purpose -- login is blocked until
     // the email is verified, so there's nothing useful a token would do yet.
     return reply.status(201).send({
-      message: 'Account created. Check your email to verify your address before logging in.'
+      message: REGISTRATION_MESSAGE
     });
   });
 
@@ -206,7 +209,7 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
       }
     }
 
-    return { message: 'If that email is registered and unverified, a new verification link has been sent.' };
+    return { message: VERIFICATION_REQUEST_MESSAGE };
   });
 
   // Apply rate limit just to login
@@ -310,7 +313,10 @@ export const authRoutes: FastifyPluginAsync<AuthRouteOptions> = async (app, opti
         });
       }
     }
-    return { message: 'If that email is registered, a password reset link has been sent.' };
+    // Keep the response identical for unknown accounts, successful delivery
+    // and provider failure. It neither permits account enumeration nor claims
+    // that a message was delivered when SES rejected it.
+    return { message: PASSWORD_RESET_REQUEST_MESSAGE };
   });
 
   app.post('/auth/reset-password', {
