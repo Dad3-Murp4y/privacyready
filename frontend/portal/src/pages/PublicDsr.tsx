@@ -72,7 +72,7 @@ export default function PublicDsr() {
             Under the UK GDPR, organisations usually need to respond without undue delay and within one month, subject to the applicable rules.
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-            <Shield size={14} /> Powered securely by PrivacyReady
+            <Shield size={14} /> Powered by PrivacyReady
           </div>
         </div>
       </div>
@@ -175,7 +175,7 @@ export default function PublicDsr() {
 
         <div style={{ textAlign: 'center', marginTop: '32px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-            <Shield size={14} /> Powered securely by <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>PrivacyReady</a>
+            <Shield size={14} /> Powered by <a href="https://privacyready.co.uk" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--sky)', textDecoration: 'none' }}>PrivacyReady</a>
           </div>
         </div>
       </div>

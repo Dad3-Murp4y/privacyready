@@ -7,6 +7,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import Settings from './pages/Settings';
 import Team from './pages/Team';
 import VerifyEmail from './pages/VerifyEmail';
+import ResetPassword from './pages/ResetPassword';
 import Blog from './pages/Blog';
 import BlogPostDetail from './pages/BlogPostDetail';
 import PublicDsr from './pages/PublicDsr';
@@ -106,6 +107,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
         <Route path="/about" element={<AboutPage />} />

@@ -14,6 +14,8 @@ export default function Login() {
   const [isForgot, setIsForgot] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/auth/me`, { credentials: 'include' })
@@ -87,8 +89,9 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email })
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setResendStatus('Verification link sent. Check your inbox.');
+        setResendStatus(data.message || 'If an unverified account matches that email and a message can be delivered, you will receive a new verification link.');
       } else {
         setResendStatus('Failed to resend. Please try again later.');
       }
@@ -97,10 +100,25 @@ export default function Login() {
     }
   };
 
-  const handleResetPassword = (e: React.FormEvent) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (resetEmail) {
+    if (!resetEmail) return;
+    setResetLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: resetEmail }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error('Password reset could not be requested. Please try again later.');
+      setResetMessage(data.message || 'If an account matches that email and a message can be delivered, you will receive a password reset link. If it does not arrive, contact account support.');
       setResetSent(true);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Password reset could not be requested. Please try again later.');
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -108,6 +126,8 @@ export default function Login() {
     setIsForgot(false);
     setResetSent(false);
     setResetEmail('');
+    setResetMessage('');
+    setError('');
   };
 
   return (
@@ -127,9 +147,9 @@ export default function Login() {
               <CheckCircle2 size={64} strokeWidth={1.5} />
             </div>
             <div className="auth-header">
-              <h1 className="auth-title">Reset unavailable</h1>
+              <h1 className="auth-title">Reset request received</h1>
               <p className="auth-subtitle" style={{ lineHeight: '1.5' }}>
-                Password reset email is not currently connected, so no message has been sent to <strong>{resetEmail}</strong>. Contact <a href="mailto:hello@privacyready.co.uk">hello@privacyready.co.uk</a> for account support.
+                {resetMessage} Contact <a href="mailto:hello@privacyready.co.uk">hello@privacyready.co.uk</a> if you need account support.
               </p>
             </div>
             <button className="btn btn-primary" onClick={handleBackToSignIn} style={{ width: '100%', marginTop: '24px' }}>
@@ -144,8 +164,10 @@ export default function Login() {
                 <ShieldCheck size={48} color="var(--sky)" strokeWidth={1.5} />
               </div>
               <h1 className="auth-title">Reset password</h1>
-              <p className="auth-subtitle">Password reset email is not currently connected. Enter your email to view account-support guidance.</p>
+              <p className="auth-subtitle">Enter your account email to request a one-time reset link.</p>
             </div>
+
+            {error && <div role="alert" className="error-message">{error}</div>}
 
             <form className="auth-form" onSubmit={handleResetPassword}>
               <div className="form-group">
@@ -161,8 +183,8 @@ export default function Login() {
                 />
               </div>
 
-              <button type="submit" className="btn btn-primary">
-                Continue <ArrowRight size={18} />
+              <button type="submit" className="btn btn-primary" disabled={resetLoading} aria-busy={resetLoading}>
+                {resetLoading ? 'Requesting link' : 'Request reset link'} <ArrowRight size={18} />
               </button>
             </form>
 
