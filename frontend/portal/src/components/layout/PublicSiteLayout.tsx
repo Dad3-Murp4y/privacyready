@@ -43,10 +43,10 @@ export default function PublicSiteLayout({ children, title, description, canonic
         <nav className="marketing-nav" aria-label="Main navigation">
           <Link className="marketing-brand" to="/" aria-label="PrivacyReady home"><ShieldCheck size={25} /> PrivacyReady</Link>
           <div className="marketing-nav__links">
-            <a href="/#checks">What we check</a>
+            <a href="/#journey">How it works</a>
             <a href="/#pricing">Pricing</a>
             <Link to="/login">Sign in</Link>
-            <a className="ui-button ui-button--primary" href="/#scanner">Run free GDPR scan</a>
+            <a className="ui-button ui-button--primary" href="/#scanner">Run free assessment</a>
           </div>
         </nav>
       </header>
@@ -55,15 +55,15 @@ export default function PublicSiteLayout({ children, title, description, canonic
         <div className="marketing-footer__grid">
           <div className="marketing-footer__brand">
             <Link className="marketing-brand" to="/"><ShieldCheck size={23} /> PrivacyReady</Link>
-            <p>Practical UK GDPR readiness and compliance operations for growing organisations.</p>
+            <p>Website privacy assessment and practical remediation for UK organisations.</p>
           </div>
           <div>
             <h2>Product</h2>
             <ul>
-              <li><a href="/#how-it-works">How it works</a></li>
+              <li><a href="/#journey">How it works</a></li>
               <li><a href="/#pricing">Pricing</a></li>
               <li><Link to="/coming-soon/api-access">API access <span className="footer-status">Coming soon</span></Link></li>
-              <li><Link to="/coming-soon/compliance-monitoring">Compliance monitoring <span className="footer-status">Coming soon</span></Link></li>
+              <li><Link to="/coming-soon/compliance-monitoring">Automated monitoring <span className="footer-status">Coming soon</span></Link></li>
             </ul>
           </div>
           <div>
