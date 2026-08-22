@@ -44,43 +44,20 @@ export default function Register() {
     // Remove any legacy copy; current claims remain scoped to this browser tab.
     localStorage.removeItem('freeScanClaimToken');
     localStorage.removeItem('freeScanId');
-    const queryParams = new URLSearchParams(window.location.search);
-    const source = queryParams.get('source');
-    const scanUrlRaw = sessionStorage.getItem('freeScanUrl') || queryParams.get('url');
-    const scanScoreRaw = sessionStorage.getItem('freeScanScore') || queryParams.get('score');
-    const scanIdRaw = sessionStorage.getItem('freeScanId') || queryParams.get('scanId');
+    localStorage.removeItem('freeScanUrl');
+    localStorage.removeItem('freeScanScore');
+    const scanIdRaw = sessionStorage.getItem('freeScanId');
     // Claim tokens are bearer credentials and must never be accepted from a
     // URL. The public scanner stores the token in same-tab sessionStorage.
     const scanClaimTokenRaw = sessionStorage.getItem('freeScanClaimToken');
 
-    // Validate before storing -- these come straight from the URL, which
-    // is attacker-controllable (a crafted link), so each value is checked
-    // for a sane shape rather than trusted as-is.
-    const isValidHttpUrl = (value: string | null): value is string => {
-      if (!value) return false;
-      try {
-        const parsed = new URL(value);
-        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-      } catch {
-        return false;
-      }
-    };
-    const isValidScore = (value: string | null) => {
-      if (!value) return false;
-      const n = Number(value);
-      return Number.isInteger(n) && n >= 0 && n <= 100;
-    };
     const isValidUuid = (value: string | null): value is string =>
       !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
     const isValidClaimToken = (value: string | null): value is string =>
       !!value && /^[0-9a-f]{64}$/i.test(value); // 32 random bytes, hex-encoded
 
-    if (source === 'free-scan' && isValidHttpUrl(scanUrlRaw)) {
-      localStorage.setItem('freeScanUrl', scanUrlRaw);
-      localStorage.setItem('freeScanScore', isValidScore(scanScoreRaw) ? scanScoreRaw! : '75');
-      if (!isValidUuid(scanIdRaw)) sessionStorage.removeItem('freeScanId');
-      if (!isValidClaimToken(scanClaimTokenRaw)) sessionStorage.removeItem('freeScanClaimToken');
-    }
+    if (!isValidUuid(scanIdRaw)) sessionStorage.removeItem('freeScanId');
+    if (!isValidClaimToken(scanClaimTokenRaw)) sessionStorage.removeItem('freeScanClaimToken');
 
     
   }, [navigate]);
@@ -127,6 +104,8 @@ export default function Register() {
       
       localStorage.removeItem('freeScanId');
       localStorage.removeItem('freeScanClaimToken');
+      localStorage.removeItem('freeScanUrl');
+      localStorage.removeItem('freeScanScore');
       sessionStorage.removeItem('freeScanId');
       sessionStorage.removeItem('freeScanClaimToken');
       sessionStorage.removeItem('freeScanUrl');

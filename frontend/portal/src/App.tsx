@@ -24,7 +24,6 @@ import Training from './pages/Training';
 import Integrations from './pages/Integrations';
 import Certificate from './pages/Certificate';
 import NotFound from './pages/NotFound';
-import CookieConsent from './components/CookieConsent';
 import { AboutPage, ContactPage, CookiesPage, ComingSoonPage, FaqPage, GdprGuidePage, PrivacyPage, TermsPage } from './pages/PublicPages';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { useState, useEffect } from 'react';
@@ -151,7 +150,6 @@ function App() {
         />
         <Route path="*" element={<UnknownRoute />} />
       </Routes>
-      <CookieConsent />
     </AuthProvider>
   );
 }

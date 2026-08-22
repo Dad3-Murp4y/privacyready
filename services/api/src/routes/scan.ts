@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
+import { safeErrorMetadata } from '../safe-logging.js';
 
 type ScanPrisma = Pick<typeof prisma, 'scan' | 'user' | 'organization'>;
 
@@ -73,8 +74,8 @@ function scannerEndpoint(isWebsite: boolean): string {
 }
 
 function publicWebsiteTarget(value: string): { target: string; hostname: string } {
-  const target = value.trim();
-  const candidate = target.includes('://') ? target : `https://${target}`;
+  const supplied = value.trim();
+  const candidate = supplied.includes('://') ? supplied : `https://${supplied}`;
   let parsed: URL;
   try {
     parsed = new URL(candidate);
@@ -84,7 +85,92 @@ function publicWebsiteTarget(value: string): { target: string; hostname: string 
   if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname || parsed.username || parsed.password) {
     throw new Error('Enter a valid public HTTP or HTTPS website URL.');
   }
+  parsed.username = '';
+  parsed.password = '';
+  parsed.search = '';
+  parsed.hash = '';
+  const target = supplied.includes('://') ? parsed.toString() : parsed.toString().replace(/^https:\/\//, '').replace(/\/$/, '');
   return { target, hostname: parsed.hostname.toLowerCase() };
+}
+
+function resemblesCredential(value: string): boolean {
+  const candidate = value.trim();
+  const knownCredentialPrefix = /^(?:gh[pousr]_|github_pat_|xox[baprs]-|AKIA|ASIA|AIza|ya29\.)/;
+  const [hexValue, regionalSuffix, ...extraParts] = candidate.toLowerCase().split('-');
+  const resemblesHexKey = hexValue.length >= 32
+    && hexValue.length <= 512
+    && [...hexValue].every((character) => '0123456789abcdef'.includes(character))
+    && extraParts.length === 0
+    && (regionalSuffix === undefined || /^[a-z]{2}\d{1,6}$/.test(regionalSuffix));
+  return /^(?:bearer\s+|(?:api[_ -]?key|access[_ -]?token|password|secret)\s*[:=])/i.test(candidate)
+    || knownCredentialPrefix.test(candidate)
+    || /^(?:sk|pk)_(?:live|test)_[A-Za-z0-9_-]+$/.test(candidate)
+    || /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(candidate)
+    || resemblesHexKey;
+}
+
+function minimiseWebsiteEvidence(value: string): string {
+  return value
+    .replace(/https?:\/\/[^/\s@]+@/gi, 'https://[credentials removed]@')
+    .replace(/([?&][^\s]*)/g, '[query removed]');
+}
+
+const FINDING_STRING_FIELDS = ['platform', 'finding_type', 'severity', 'description', 'gdpr_article', 'remediation', 'status', 'checkName', 'title', 'detail'] as const;
+
+function boundedText(value: unknown, maxLength = 2000): string | undefined {
+  return typeof value === 'string' && value.length > 0 ? value.slice(0, maxLength) : undefined;
+}
+
+export function sanitizeScannerFindings(findings: unknown, scanType: string): Array<Record<string, string | boolean>> {
+  if (!Array.isArray(findings)) return [];
+  return findings.slice(0, 500).map((finding: unknown) => {
+    if (!finding || typeof finding !== 'object') return { finding_type: 'unknown', severity: 'unknown' };
+    const source = finding as Record<string, unknown>;
+    const result: Record<string, string | boolean> = {};
+    for (const field of FINDING_STRING_FIELDS) {
+      const value = boundedText(source[field]);
+      if (value) result[field] = value;
+    }
+    if (typeof source.passed === 'boolean') result.passed = source.passed;
+    const findingType = String(source.finding_type ?? '');
+    if (findingType.includes('error') || findingType.includes('failed') || findingType.includes('blocked')) {
+      result.description = 'This check could not be completed.';
+      delete result.detail;
+    } else if (scanType === 'website') {
+      const evidence = boundedText(source.evidence, 1000);
+      if (evidence) result.evidence = minimiseWebsiteEvidence(evidence);
+    }
+    return result;
+  });
+}
+
+function scannerRequestFor(scanType: string, targetIdentifier: string, organizationId: string): Record<string, string> {
+  switch (scanType) {
+    case 'website': return { customer_id: organizationId, url: targetIdentifier };
+    case 'tiktok': return { customer_id: organizationId, tiktok_username: targetIdentifier };
+    case 'facebook': return { customer_id: organizationId, facebook_page_id: targetIdentifier };
+    case 'instagram': return { customer_id: organizationId, ig_account_id: targetIdentifier };
+    case 'twitter': return { customer_id: organizationId, twitter_username: targetIdentifier };
+    case 'google_analytics': return { customer_id: organizationId, ga_property_id: targetIdentifier };
+    case 'whatsapp': return { customer_id: organizationId, whatsapp_phone: targetIdentifier };
+    case 'linkedin': return { customer_id: organizationId, linkedin_company_id: targetIdentifier };
+    default: throw new Error('Unsupported scan type');
+  }
+}
+
+function scanResponse(scan: any, findingsJson = scan.findingsJson) {
+  return {
+    id: scan.id,
+    scanType: scan.scanType,
+    targetIdentifier: scan.targetIdentifier,
+    status: scan.status,
+    score: scan.score,
+    riskLevel: scan.riskLevel,
+    findingsJson,
+    organizationId: scan.organizationId,
+    createdAt: scan.createdAt,
+    completedAt: scan.completedAt,
+  };
 }
 
 function isAnonymousScanRateLimited(sourceIp: string, hostname: string): boolean {
@@ -165,7 +251,6 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
         Type.Literal('facebook'),
         Type.Literal('instagram'),
         Type.Literal('linkedin'),
-        Type.Literal('mailchimp'),
         Type.Literal('twitter'),
         Type.Literal('google_analytics'),
         Type.Literal('whatsapp'),
@@ -223,8 +308,9 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
 
     try {
       const result = await callScanner(scannerEndpoint(true), { customer_id: 'guest', url: targetIdentifier });
+      const safeFindings = sanitizeScannerFindings(result.findings, scanType);
 
-      const hasOnlyErrors = result.findings.length > 0 && result.findings.every((f: any) => ['scan_error', 'scan_blocked', 'scan_failed'].includes(f.finding_type));
+      const hasOnlyErrors = safeFindings.length > 0 && safeFindings.every((f: any) => ['scan_error', 'scan_blocked', 'scan_failed'].includes(f.finding_type));
       if (hasOnlyErrors) {
         throw new Error(result.findings[0].description);
       }
@@ -235,7 +321,7 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
           status: 'COMPLETED',
           score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
-          findingsJson: result.findings,
+          findingsJson: safeFindings,
           completedAt: new Date()
         }
       });
@@ -262,7 +348,7 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
           completedAt: new Date()
         }
       });
-      request.log.warn({ err }, 'Public website scan failed');
+      request.log.warn(safeErrorMetadata(err), 'Public website scan failed');
       return reply.code(400).send({ error: 'Scan could not be completed. Check that the target is a public website and try again.' });
     }
   });
@@ -289,8 +375,17 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
 
   app.post('/api/scan', { schema: CreateScanSchema }, async (request, reply) => {
     const user = request.user as any;
-    const { scanType } = request.body as any;
-    const targetIdentifier = (request.body as any).targetIdentifier.trim();
+    const { scanType } = request.body as { scanType: string };
+    let targetIdentifier = (request.body as { targetIdentifier: string }).targetIdentifier.trim();
+    if (scanType === 'website') {
+      try {
+        targetIdentifier = publicWebsiteTarget(targetIdentifier).target;
+      } catch (err: any) {
+        return reply.code(400).send({ error: err.message });
+      }
+    } else if (resemblesCredential(targetIdentifier)) {
+      return reply.code(400).send({ error: 'Credentials and secrets cannot be used as scan targets.' });
+    }
 
     const scan = await prismaClient.scan.create({
       data: {
@@ -302,48 +397,31 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
     });
 
     const isWebsite = scanType === 'website';
-    let payload: any = { customer_id: user.org };
-    if (isWebsite) {
-      payload.url = targetIdentifier;
-    } else {
-      const typeMap: Record<string, string> = {
-        'tiktok': 'tiktok_username',
-        'facebook': 'facebook_page_id',
-        'instagram': 'ig_account_id',
-        'twitter': 'twitter_username',
-        'google_analytics': 'ga_property_id',
-        'whatsapp': 'whatsapp_phone',
-        'linkedin': 'linkedin_company_id',
-        'mailchimp': 'mailchimp_api_key'
-      };
-      payload[typeMap[scanType] || 'tiktok_username'] = targetIdentifier;
-    }
+    const payload = scannerRequestFor(scanType, targetIdentifier, user.org);
 
     try {
       const result = await callScanner(scannerEndpoint(isWebsite), payload);
 
+      const safeFindings = sanitizeScannerFindings(result.findings, scanType);
       const updated = await prismaClient.scan.update({
         where: { id: scan.id },
         data: {
           status: 'COMPLETED',
           score: result.gdpr_compliance_percentage,
           riskLevel: result.risk_level,
-          findingsJson: result.findings, // Store the real findings securely in DB
+          findingsJson: safeFindings,
           completedAt: new Date()
         }
       });
       
       // Redact for response if not premium
-      let responseFindings = result.findings;
+      let responseFindings = safeFindings;
       const org = await prismaClient.organization.findUnique({ where: { id: user.org } });
       if (org?.subscriptionStatus !== 'active') {
         responseFindings = freeFindingSummaries(responseFindings);
       }
 
-      return {
-        ...updated,
-        findingsJson: responseFindings
-      };
+      return scanResponse(updated, responseFindings);
     } catch (err) {
       const failed = await prismaClient.scan.update({
         where: { id: scan.id },
@@ -353,8 +431,8 @@ export async function registerScanRoutes(app: FastifyInstance, dependencies: Sca
           completedAt: new Date()
         }
       });
-      request.log.warn({ err }, 'Authenticated scan failed');
-      return reply.code(502).send({ ...failed, error: 'Scan could not be completed. Please try again.' });
+      request.log.warn(safeErrorMetadata(err), 'Authenticated scan failed');
+      return reply.code(502).send({ ...scanResponse(failed), error: 'Scan could not be completed. Please try again.' });
     }
   });
 

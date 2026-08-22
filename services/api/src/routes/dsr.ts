@@ -10,7 +10,8 @@ interface DsrRouteDependencies {
 
 const VALID_REQUEST_TYPES = ['ACCESS', 'ERASURE', 'RECTIFICATION', 'PORTABILITY', 'RESTRICTION'];
 const VALID_STATUSES = ['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'COMPLETED'];
-const DSR_DEADLINE_DAYS = 30; // GDPR Art. 12(3) — one month, extendable in complex cases
+const DSR_DEADLINE_DAYS = 30; // GDPR Art. 12(3): one month, extendable in complex cases
+export const DSR_LIMITS = Object.freeze({ organizationName: 200, subjectEmail: 254, subjectName: 200, reasonText: 2000 });
 
 export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrRouteDependencies = {}) {
   const prismaClient = dependencies.prismaClient ?? prisma;
@@ -38,10 +39,10 @@ export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrR
 
   const CreateDsrSchema = {
     body: Type.Object({
-      subjectEmail: Type.String({ format: 'email' }),
-      subjectName: Type.Optional(Type.String()),
+      subjectEmail: Type.String({ format: 'email', maxLength: DSR_LIMITS.subjectEmail }),
+      subjectName: Type.Optional(Type.String({ maxLength: DSR_LIMITS.subjectName })),
       requestType: Type.String(),
-      reasonText: Type.Optional(Type.String())
+      reasonText: Type.Optional(Type.String({ maxLength: DSR_LIMITS.reasonText }))
     })
   };
 
@@ -117,7 +118,7 @@ export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrR
       where: { id },
       data: {
         status: normalizedStatus,
-        resolvedAt: normalizedStatus === 'COMPLETED' ? new Date() : existing.resolvedAt
+        resolvedAt: ['COMPLETED', 'REJECTED'].includes(normalizedStatus) ? (existing.resolvedAt ?? new Date()) : null
       }
     });
     return updated;
@@ -125,11 +126,11 @@ export async function registerDsrRoutes(app: FastifyInstance, dependencies: DsrR
 
   const PublicDsrSchema = {
     body: Type.Object({
-      organizationName: Type.String(),
-      subjectEmail: Type.String({ format: 'email' }),
-      subjectName: Type.Optional(Type.String()),
+      organizationName: Type.String({ minLength: 2, maxLength: DSR_LIMITS.organizationName }),
+      subjectEmail: Type.String({ format: 'email', maxLength: DSR_LIMITS.subjectEmail }),
+      subjectName: Type.Optional(Type.String({ maxLength: DSR_LIMITS.subjectName })),
       requestType: Type.String(),
-      reasonText: Type.Optional(Type.String())
+      reasonText: Type.Optional(Type.String({ maxLength: DSR_LIMITS.reasonText }))
     })
   };
 

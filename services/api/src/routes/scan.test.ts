@@ -7,7 +7,7 @@ import rateLimit from '@fastify/rate-limit';
 
 process.env.SCANNER_API_KEY = 'unit-test-scanner-key';
 
-const { claimAnonymousScan, registerScanRoutes } = await import('./scan.js');
+const { claimAnonymousScan, registerScanRoutes, sanitizeScannerFindings } = await import('./scan.js');
 
 type ScanRow = {
   id: string;
@@ -370,4 +370,92 @@ test('a tenant-owned scan cannot be claimed by token or direct identifier guessi
   assert.equal(claim.statusCode, 400);
   assert.equal(readById.statusCode, 404); // No unscoped read-by-ID route exists.
   assert.equal(store.scans[0].organizationId, 'org-b');
+});
+
+test('Mailchimp credential scanning is rejected before a scan can be persisted or returned', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  const credential = '0123456789abcdef0123456789abcdef-us1';
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/scan',
+    headers: bearer(app, 'user-a'),
+    payload: { scanType: 'mailchimp', targetIdentifier: credential },
+  });
+  assert.equal(response.statusCode, 400);
+  assert.equal(store.scans.length, 0);
+  assert.equal(response.body.includes(credential), false);
+});
+
+test('credential-like values are rejected for supported targets before persistence', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  const credential = 'Bearer header.payload.signature';
+  const response = await app.inject({
+    method: 'POST',
+    url: '/api/scan',
+    headers: bearer(app, 'user-a'),
+    payload: { scanType: 'facebook', targetIdentifier: credential },
+  });
+  assert.equal(response.statusCode, 400);
+  assert.equal(store.scans.length, 0);
+  assert.equal(response.body.includes(credential), false);
+});
+
+test('known third-party access-token formats are rejected before persistence', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  for (const credential of ['xoxb-1234567890-sensitive', 'ghp_sensitivecredentialvalue']) {
+    const response = await app.inject({
+      method: 'POST', url: '/api/scan', headers: bearer(app, 'user-a'),
+      payload: { scanType: 'facebook', targetIdentifier: credential },
+    });
+    assert.equal(response.statusCode, 400);
+    assert.equal(response.body.includes(credential), false);
+  }
+  assert.equal(store.scans.length, 0);
+});
+
+test('website targets and evidence do not retain URL query strings', async (t) => {
+  const store = fakePrisma();
+  const app = await testApp(store.client);
+  t.after(() => app.close());
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    gdpr_compliance_percentage: 80,
+    risk_level: 'LOW',
+    findings: [{ finding_type: 'tls', severity: 'low', evidence: 'Final URL: https://example.test/path?email=person@example.test' }],
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const response = await app.inject({
+    method: 'POST', url: '/api/scan', headers: bearer(app, 'user-a'),
+    payload: { scanType: 'website', targetIdentifier: 'https://example.test/path?token=sensitive#fragment' },
+  });
+  assert.equal(response.statusCode, 200);
+  assert.equal(store.scans[0].targetIdentifier.includes('?'), false);
+  assert.equal(JSON.stringify(store.scans[0].findingsJson).includes('person@example.test'), false);
+});
+
+test('social finding evidence and provider error details are minimised before persistence', () => {
+  const findings = sanitizeScannerFindings([
+    { finding_type: 'public_pii_exposure', severity: 'critical', description: 'Public data found', evidence: 'person@example.test' },
+    { finding_type: 'api_error', severity: 'low', description: 'Bearer credential-value failed', evidence: 'credential-value' },
+  ], 'instagram');
+  assert.equal(JSON.stringify(findings).includes('person@example.test'), false);
+  assert.equal(JSON.stringify(findings).includes('credential-value'), false);
+  assert.equal(findings[1].description, 'This check could not be completed.');
+});
+
+test('website evidence removes embedded URL credentials as well as query values', () => {
+  const findings = sanitizeScannerFindings([{
+    finding_type: 'redirect', severity: 'medium',
+    evidence: 'Final URL: https://person:password@example.test/path?token=sensitive',
+  }], 'website');
+  const encoded = JSON.stringify(findings);
+  assert.equal(encoded.includes('person:password'), false);
+  assert.equal(encoded.includes('token=sensitive'), false);
+  assert.match(String(findings[0].evidence), /credentials removed/);
 });

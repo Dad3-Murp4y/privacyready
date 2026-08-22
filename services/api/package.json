@@ -9,6 +9,8 @@
     "test": "tsx --test src/**/*.test.ts",
     "test:integration": "bash scripts/test-postgres-integration.sh",
     "test:integration:run": "tsx --test src/integration/**/*.integration.ts",
+    "retention:report": "tsx scripts/run-retention.ts",
+    "retention:execute": "tsx scripts/run-retention.ts --execute",
     "bootstrap:staging-demo": "node dist/scripts/bootstrap-staging-demo.js",
     "lint": "eslint src/",
     "start": "export DATABASE_URL=\"postgresql://${DB_USER:-privacyready_admin}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME:-privacyready}\" && node dist/src/main.js"

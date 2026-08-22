@@ -11,6 +11,7 @@ import { claimAnonymousScan, registerScanRoutes } from '../routes/scan.js';
 import { registerDsrRoutes } from '../routes/dsr.js';
 import { teamRoutes } from '../routes/team.js';
 import { isCheckoutSessionForOrganization } from '../routes/billing.js';
+import { runRetention } from '../retention.js';
 
 assert.equal(process.env.RUN_POSTGRES_INTEGRATION, 'true', 'Run through npm run test:integration');
 assert.ok(process.env.DATABASE_URL?.includes('privacyready_test'), 'Refusing to use a non-test database');
@@ -174,6 +175,7 @@ test('real PostgreSQL security and persistence contracts', async (t) => {
     await clearDatabase();
     const a = await createTenant('Org A', 'route-admin-a');
     const b = await createTenant('Org B', 'route-admin-b');
+    await prisma.organization.update({ where: { id: a.organization.id }, data: { subscriptionStatus: 'active' } });
     const foreignScan = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'foreign.invalid', organizationId: b.organization.id } });
     const ownScan = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'own.invalid', organizationId: a.organization.id } });
     const foreignDsr = await prisma.dsrRequest.create({ data: { organizationId: b.organization.id, subjectEmail: 'foreign@integration.invalid', requestType: 'ACCESS', dueDate: new Date(Date.now() + 86_400_000) } });
@@ -208,6 +210,53 @@ test('real PostgreSQL security and persistence contracts', async (t) => {
     assert.equal(await prisma.user.findUnique({ where: { id: a.user.id } }), null);
     assert.equal(await prisma.scan.findUnique({ where: { id: scan.id } }), null);
     assert.equal(await prisma.dsrRequest.findUnique({ where: { id: dsr.id } }), null);
+  });
+
+  await t.test('retention selects only expired records and preserves active or recent data', async () => {
+    await clearDatabase();
+    const now = new Date('2026-08-22T12:00:00.000Z');
+    const eligibleOrg = await createTenant('Deletion Requested', 'retention-delete');
+    await prisma.organization.update({ where: { id: eligibleOrg.organization.id }, data: { deletionRequestedAt: new Date('2026-07-20T12:00:00.000Z') } });
+    const recoveringOrg = await createTenant('Recovery Period', 'retention-recovering');
+    await prisma.organization.update({ where: { id: recoveringOrg.organization.id }, data: { deletionRequestedAt: new Date('2026-07-24T12:00:00.000Z') } });
+    const activeOrg = await createTenant('Active Organisation', 'retention-active');
+    const oldScan = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'old.example', organizationId: activeOrg.organization.id, createdAt: new Date('2025-08-20T12:00:00.000Z') } });
+    const recentScan = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'recent.example', organizationId: activeOrg.organization.id, createdAt: new Date('2025-08-23T12:00:00.000Z') } });
+    const expiredAnonymous = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'expired-anonymous.example', claimTokenHash: 'expired', claimTokenExpires: new Date('2026-08-21T11:59:59.000Z') } });
+    const graceAnonymous = await prisma.scan.create({ data: { scanType: 'website', targetIdentifier: 'grace-anonymous.example', claimTokenHash: 'grace', claimTokenExpires: new Date('2026-08-21T12:00:01.000Z') } });
+    const oldDsr = await prisma.dsrRequest.create({ data: { organizationId: activeOrg.organization.id, subjectEmail: 'old-dsr@example.test', requestType: 'ACCESS', status: 'COMPLETED', dueDate: now, resolvedAt: new Date('2024-08-20T12:00:00.000Z') } });
+    const recentDsr = await prisma.dsrRequest.create({ data: { organizationId: activeOrg.organization.id, subjectEmail: 'recent-dsr@example.test', requestType: 'ACCESS', status: 'COMPLETED', dueDate: now, resolvedAt: new Date('2024-08-23T12:00:00.000Z') } });
+    const openDsr = await prisma.dsrRequest.create({ data: { organizationId: activeOrg.organization.id, subjectEmail: 'open-dsr@example.test', requestType: 'ACCESS', status: 'PENDING', dueDate: now, resolvedAt: new Date('2024-08-20T12:00:00.000Z') } });
+    await prisma.user.update({ where: { id: activeOrg.user.id }, data: {
+      emailVerifyTokenHash: 'expired-token', emailVerifyExpires: new Date('2026-08-22T11:59:59.000Z'),
+      passwordResetTokenHash: 'recent-reset-token', passwordResetExpires: new Date('2026-08-22T12:00:01.000Z'),
+    } });
+    await prisma.suppressionList.create({ data: { email: 'preserve@example.test', reason: 'COMPLAINT' } });
+
+    const dryRun = await runRetention(prisma, { now });
+    assert.deepEqual(dryRun.eligible, { organizations: 1, scans: 1, anonymousScans: 1, closedDsrRequests: 1, expiredVerificationTokens: 1, expiredPasswordResetTokens: 0 });
+    assert.ok(await prisma.scan.findUnique({ where: { id: oldScan.id } }));
+
+    const executed = await runRetention(prisma, { now, execute: true });
+    assert.equal(executed.mode, 'execute');
+    assert.equal(await prisma.organization.findUnique({ where: { id: eligibleOrg.organization.id } }), null);
+    assert.ok(await prisma.organization.findUnique({ where: { id: recoveringOrg.organization.id } }));
+    assert.equal(await prisma.scan.findUnique({ where: { id: oldScan.id } }), null);
+    assert.ok(await prisma.scan.findUnique({ where: { id: recentScan.id } }));
+    assert.equal(await prisma.scan.findUnique({ where: { id: expiredAnonymous.id } }), null);
+    assert.ok(await prisma.scan.findUnique({ where: { id: graceAnonymous.id } }));
+    assert.equal(await prisma.dsrRequest.findUnique({ where: { id: oldDsr.id } }), null);
+    assert.ok(await prisma.dsrRequest.findUnique({ where: { id: recentDsr.id } }));
+    assert.ok(await prisma.dsrRequest.findUnique({ where: { id: openDsr.id } }));
+    assert.ok(await prisma.suppressionList.findUnique({ where: { email: 'preserve@example.test' } }));
+    const activeUser = await prisma.user.findUniqueOrThrow({ where: { id: activeOrg.user.id } });
+    assert.equal(activeUser.emailVerifyTokenHash, null);
+    assert.equal(activeUser.emailVerifyExpires, null);
+    assert.equal(activeUser.passwordResetTokenHash, 'recent-reset-token');
+    assert.ok(activeUser.passwordResetExpires);
+
+    const repeated = await runRetention(prisma, { now, execute: true });
+    assert.deepEqual(repeated.affected, { organizations: 0, scans: 0, anonymousScans: 0, closedDsrRequests: 0, expiredVerificationTokens: 0, expiredPasswordResetTokens: 0 });
   });
 
   await clearDatabase();

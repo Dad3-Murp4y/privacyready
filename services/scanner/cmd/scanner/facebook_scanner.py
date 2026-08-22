@@ -122,7 +122,7 @@ class FacebookScanner:
                 page_id=self.page_id,
                 finding_type='messenger_chat_plugin',
                 severity='medium',
-                description='Messenger chat plugin enabled — conversations may contain PII without consent',
+                description='Messenger chat plugin enabled; conversations may contain PII without consent',
                 evidence='Chat plugin is active on website',
                 gdpr_article='Article 6/7 (Lawful basis and conditions for consent)',
                 remediation='Add pre-chat consent message: "By continuing, you agree to our privacy policy"'

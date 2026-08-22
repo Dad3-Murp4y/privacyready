@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { prisma } from '../db.js';
 import { sendTeamInviteEmail } from '../email.js';
+import { safeErrorMetadata } from '../safe-logging.js';
 
 type TeamPrisma = Pick<typeof prisma, 'user' | 'organization'>;
 
@@ -117,7 +118,7 @@ export const teamRoutes: FastifyPluginAsync<TeamRouteOptions> = async (app, opti
       const delivery = await sendInvite(email, fullName, org?.name || 'your organization', tempPassword, verifyUrl);
       if (delivery === null) throw new Error('Team invitation email was not delivered');
     } catch (err) {
-      request.log.error(err, 'Failed to send team invite email');
+      request.log.error(safeErrorMetadata(err), 'Failed to send team invite email');
       emailFailed = true;
     }
 

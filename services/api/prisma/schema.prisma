@@ -17,8 +17,11 @@ model Organization {
   dsrRequests DsrRequest[]
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
+  deletionRequestedAt DateTime?
   stripeCustomerId    String?
   subscriptionStatus  String       @default("free") // free, active, past_due, canceled
+
+  @@index([deletionRequestedAt])
 }
 
 model User {

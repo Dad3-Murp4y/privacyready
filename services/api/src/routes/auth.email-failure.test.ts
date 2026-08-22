@@ -208,3 +208,22 @@ test('password-reset delivery failure preserves the password and invalidates res
   assert.equal(store.users[0].passwordResetTokenHash, null);
   assert.equal(store.users[0].passwordResetExpires, null);
 });
+
+test('successful login sets only the HttpOnly authentication cookie', async (t) => {
+  const password = 'Synthetic1!';
+  const store = fakePrisma([{
+    id: 'verified-user', email: 'verified@example.test', fullName: 'Verified User',
+    passwordHash: await bcrypt.hash(password, 4), organizationId: 'org-verified', role: 'ADMIN',
+    emailVerified: true, emailVerifyTokenHash: null, emailVerifyExpires: null,
+    passwordResetTokenHash: null, passwordResetExpires: null, requiresPasswordChange: false,
+  }]);
+  const app = await testApp({ prismaClient: store.client });
+  t.after(() => app.close());
+  const response = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { email: 'verified@example.test', password } });
+  assert.equal(response.statusCode, 200);
+  const cookies = response.headers['set-cookie'];
+  assert.equal(typeof cookies, 'string');
+  assert.match(String(cookies), /__Host-token=/);
+  assert.match(String(cookies), /HttpOnly/);
+  assert.equal(String(cookies).includes('auth_payload='), false);
+});
