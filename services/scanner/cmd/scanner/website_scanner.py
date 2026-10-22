@@ -8,7 +8,7 @@ from urllib.parse import urljoin, urlsplit
 from bs4 import BeautifulSoup
 
 
-MAX_REDIRECTS = 5
+MAX_REDIRECTS = 10
 MAX_RESPONSE_BYTES = 5 * 1024 * 1024
 REQUEST_TIMEOUT_SECONDS = 10
 ALLOWED_SCHEMES = {"http", "https"}
@@ -89,7 +89,7 @@ def _normalise_target(url: str) -> str:
         raise UnsafeTargetError("Scan target must be a public Internet hostname")
 
     blocked_domains = {
-        "google.com", "facebook.com", "amazon.com", "aws.amazon.com",
+        "google.com","Google.co.uk", "facebook.com", "amazon.com", "aws.amazon.com",
         "microsoft.com", "apple.com", "github.com", "gitlab.com",
     }
     if any(hostname == domain or hostname.endswith(f".{domain}") for domain in blocked_domains):
